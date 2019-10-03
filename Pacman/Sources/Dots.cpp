@@ -126,7 +126,7 @@ void Dots::Init(ID3D11Device1* device)
     {
       if (m_dots[z][x] == 1)
       {
-        // TUCNA +0.5 je tady pro centrovani
+        // TUCNA +0.5 is here for centering
         m_instances.push_back({DirectX::XMFLOAT3(static_cast<float>(x) + 0.5f, 0.2f, static_cast<float>(z) + 0.5f)});
       }
     }
@@ -134,7 +134,7 @@ void Dots::Init(ID3D11Device1* device)
   // Set up the description of the instance buffer.
   D3D11_BUFFER_DESC instanceBufferDesc = {};
   instanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-  instanceBufferDesc.ByteWidth = sizeof(InstanceType) * (UINT)m_instances.size(); // TUCNA 2 is two dots
+  instanceBufferDesc.ByteWidth = sizeof(InstanceType) * (UINT)m_instances.size();
   instanceBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
   instanceBufferDesc.CPUAccessFlags = 0;
   instanceBufferDesc.MiscFlags = 0;

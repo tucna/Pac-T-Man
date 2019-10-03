@@ -31,7 +31,7 @@ void Game::Initialize(HWND window, int width, int height)
     m_dots.Init(m_d3dDevice.Get());
 
     m_camera.SetPosition(10.5f, 15.0f, 10.5f);
-    //m_camera.SetPosition(10.5f, 15.0f, -2.5f);
+    //m_camera.SetPosition(3, 2, 3);
     m_camera.SetLookAtPos(XMFLOAT3(10.5, 0, 10.5));
 
     m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f); // Here or to resize?
@@ -97,13 +97,13 @@ void Game::Render()
     // Draw world
     ID3D11Buffer* vertexShaderBuffers[1] = { m_constantBuffer.Get() };
 
-    m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Transform, vertexShaderBuffers, 1);
+    m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Indexed, vertexShaderBuffers, 1);
     m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Flat);
 
     m_world.Draw(m_d3dContext.Get());
 
     // Draw dots
-    m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Transform_TODO, vertexShaderBuffers, 1);
+    m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Instanced, vertexShaderBuffers, 1);
     m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard, vertexShaderBuffers, 1); // TUCNA - kheili good!
     m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Texture);
 
@@ -174,29 +174,6 @@ void Game::OnWindowSizeChanged(int width, int height)
 {
     m_outputWidth = std::max(width, 1);
     m_outputHeight = std::max(height, 1);
-
-    // TODO: refactor this
-    /*
-    m_camera.SetProjectionValues(90.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f);
-    XMMATRIX world = XMMatrixIdentity();
-    XMMATRIX finalMatrix = world * m_camera.GetViewMatrix() * m_camera.GetProjectionMatrix();
-    finalMatrix = DirectX::XMMatrixTranspose(finalMatrix);
-
-
-    D3D11_BUFFER_DESC cbd = {};
-    cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbd.Usage = D3D11_USAGE_DYNAMIC;
-    cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    cbd.MiscFlags = 0;
-    cbd.ByteWidth = sizeof(finalMatrix);
-    cbd.StructureByteStride = 0;
-
-    D3D11_SUBRESOURCE_DATA csd = {};
-    csd.pSysMem = &finalMatrix;
-
-    m_d3dDevice->CreateBuffer(&cbd, &csd, &m_constantBuffer);
-    */
-    //--
 
     CreateResources();
 
@@ -337,6 +314,7 @@ void Game::CreateResources()
         swapChainDesc.SampleDesc.Quality = 0;
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.BufferCount = backBufferCount;
+        swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
         DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsSwapChainDesc = {};
         fsSwapChainDesc.Windowed = TRUE;
