@@ -4,6 +4,8 @@
 
 #include "Camera.h"
 #include "Dots.h"
+#include "Character.h"
+#include "Keyboard.h"
 #include "StepTimer.h"
 #include "World.h"
 
@@ -29,6 +31,9 @@ public:
     void GetDefaultSize( int& width, int& height ) const;
 
 private:
+    void DrawWorld();
+    void DrawSprites();
+
     void Update(DX::StepTimer const& timer);
     void Render();
 
@@ -53,6 +58,10 @@ private:
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  m_renderTargetView;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_depthStencilView;
     Microsoft::WRL::ComPtr<ID3D11Buffer>            m_constantBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer>            m_frameBuffer;
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer>            m_cameraPerFrame;
+    Microsoft::WRL::ComPtr<ID3D11Buffer>            m_cameraPerObject;
 
     // Rendering loop timer.
     DX::StepTimer                                   m_timer;
@@ -60,6 +69,9 @@ private:
     Camera                                          m_camera;
     Dots                                            m_dots;
     World                                           m_world;
+    Character                                       m_pacman;
 
     std::unique_ptr<ShaderManager>                  m_shaderManager;
+
+    std::unique_ptr<DirectX::Keyboard> m_keyboard;
 };

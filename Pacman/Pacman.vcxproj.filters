@@ -34,6 +34,9 @@
     <ClInclude Include="Sources\WICTextureLoader.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\Character.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Camera.cpp">
@@ -57,12 +60,18 @@
     <ClCompile Include="Sources\WICTextureLoader.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Character.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\directx.ico">
       <Filter>Assets</Filter>
     </Image>
     <Image Include="Resources\dot.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Resources\pacman.png">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
@@ -75,5 +84,8 @@
     <Manifest Include="Resources\settings.manifest">
       <Filter>Assets</Filter>
     </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

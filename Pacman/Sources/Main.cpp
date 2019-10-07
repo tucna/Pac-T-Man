@@ -188,6 +188,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 game->OnDeactivated();
             }
         }
+        Keyboard::ProcessMessage(message, wParam, lParam);
+        break;
+
+    case WM_KEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+        Keyboard::ProcessMessage(message, wParam, lParam);
         break;
 
     case WM_POWERBROADCAST:
@@ -244,6 +251,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             s_fullscreen = !s_fullscreen;
         }
+        // TUCNA > shall I pass thru         Keyboard::ProcessMessage(message, wParam, lParam); ??
         break;
 
     case WM_MENUCHAR:
@@ -254,7 +262,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     return DefWindowProc(hWnd, message, wParam, lParam);
 }
-
 
 // Exit helper
 void ExitGame()

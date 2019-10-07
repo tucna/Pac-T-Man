@@ -18,6 +18,8 @@ public:
   void Draw(ID3D11DeviceContext1* context);
   void Init(ID3D11Device1* device);
 
+  DirectX::XMMATRIX GetWorldMatrix() const noexcept;
+
 private:
   const uint8_t m_dots[Global::worldSize][Global::worldSize];
 

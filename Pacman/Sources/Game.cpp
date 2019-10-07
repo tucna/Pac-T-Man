@@ -29,13 +29,18 @@ void Game::Initialize(HWND window, int width, int height)
 
     m_world.Init(m_d3dDevice.Get());
     m_dots.Init(m_d3dDevice.Get());
+    m_pacman.Init(m_d3dDevice.Get());
+
+    m_keyboard = std::make_unique<Keyboard>();
 
     m_camera.SetPosition(10.5f, 15.0f, 10.5f);
+    //m_camera.SetPosition(10.5f, 5.0f, -2.5f);
     //m_camera.SetPosition(3, 2, 3);
     m_camera.SetLookAtPos(XMFLOAT3(10.5, 0, 10.5));
 
     m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f); // Here or to resize?
 
+    // Camera constant buffers
     Global::CameraConstantBuffer cameraConstantBuffer;
 
     cameraConstantBuffer.world = DirectX::XMMatrixIdentity();
@@ -55,12 +60,69 @@ void Game::Initialize(HWND window, int width, int height)
 
     m_d3dDevice->CreateBuffer(&cbd, &csd, &m_constantBuffer);
 
+    // Camera constant buffers v2
+    Global::CameraPerFrame cameraConstantBufferPerFrame;
+
+    //cameraConstantBuffer.world = DirectX::XMMatrixIdentity();
+    cameraConstantBufferPerFrame.view = DirectX::XMMatrixTranspose(m_camera.GetViewMatrix());
+    cameraConstantBufferPerFrame.projection = DirectX::XMMatrixTranspose(m_camera.GetProjectionMatrix());
+
+    D3D11_BUFFER_DESC cbd_v2 = {};
+    cbd_v2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbd_v2.Usage = D3D11_USAGE_DYNAMIC;
+    cbd_v2.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    cbd_v2.MiscFlags = 0;
+    cbd_v2.ByteWidth = sizeof(Global::CameraPerFrame);
+    cbd_v2.StructureByteStride = 0;
+
+    D3D11_SUBRESOURCE_DATA csd_v2 = {};
+    csd_v2.pSysMem = &cameraConstantBufferPerFrame;
+
+    m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerFrame);
+
+    Global::CameraPerObject cameraConstantBufferPerObject;
+    cameraConstantBufferPerObject.world = DirectX::XMMatrixIdentity();
+
+    cbd_v2.ByteWidth = sizeof(Global::CameraPerObject);
+
+    csd_v2.pSysMem = &cameraConstantBufferPerObject;
+
+    m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerObject);
+
+    // Frame constant buffers
+    Global::FrameConstantBuffer frameConstantBuffer;
+
+    frameConstantBuffer.frameID = DirectX::XMFLOAT2(1, 0);
+    frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(2, 1); // Two frames on X axis and one frame on Y
+    frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(1, 0, 0, 0);
+
+    cbd = {};
+    cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbd.Usage = D3D11_USAGE_DYNAMIC;
+    cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    cbd.MiscFlags = 0;
+    cbd.ByteWidth = sizeof(Global::FrameConstantBuffer);
+    cbd.StructureByteStride = 0;
+
+    csd = {};
+    csd.pSysMem = &frameConstantBuffer;
+
+    m_d3dDevice->CreateBuffer(&cbd, &csd, &m_frameBuffer);
+
+    ID3D11Buffer* geometryShaderBuffers[2] = { m_constantBuffer.Get(), m_frameBuffer.Get() };
+    m_shaderManager->BindConstantBuffersToGeometryShader(ShaderManager::GeometryShader::Billboard, geometryShaderBuffers, 2);
+
+    ID3D11Buffer* vertexShaderBuffers[2] = { m_cameraPerFrame.Get(), m_cameraPerObject.Get() };
+    m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Instanced, vertexShaderBuffers, 2);
+
+    //ID3D11Buffer* vertexShaderBuffers_v2[1] = {m_constantBuffer.Get()};
+    m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Indexed, vertexShaderBuffers, 2);
+
+
     // TODO: Change the timer settings if you want something other than the default variable timestep mode.
     // e.g. for 60 FPS fixed timestep update logic, call:
-    /*
     m_timer.SetFixedTimeStep(true);
     m_timer.SetTargetElapsedSeconds(1.0 / 60);
-    */
 }
 
 // Executes the basic game loop.
@@ -77,10 +139,61 @@ void Game::Tick()
 // Updates the world.
 void Game::Update(DX::StepTimer const& timer)
 {
-    float elapsedTime = float(timer.GetElapsedSeconds());
+    //float elapsedTime = float(timer.GetElapsedSeconds());
 
-    // TODO: Add your game logic here.
-    elapsedTime;
+    auto kb = m_keyboard->GetState();
+
+    if (kb.Escape)
+      ExitGame();
+
+    DirectX::XMFLOAT3 pacmanPosition = m_pacman.GetPosition();
+    //const pacManSizeFromCenter = 0.5f;
+
+    //pacmanPosition.x += 0.5f;
+    //pacmanPosition.z = Global::worldSize - 1.0f - pacmanPosition.z + 0.5f;
+    pacmanPosition.z = Global::worldSize - pacmanPosition.z;
+
+    if (kb.Right)
+    {
+      if (m_world.IsPassable(
+        static_cast<uint8_t>(floor(pacmanPosition.x + 0.5f + Global::speed)),
+        static_cast<uint8_t>(floor(pacmanPosition.z))))
+      {
+        m_pacman.SetDirection(0);
+        m_pacman.AdjustPosition(Global::speed, 0, 0);
+      }
+    }
+    else if (kb.Left)
+    {
+      if (m_world.IsPassable(
+        static_cast<uint8_t>(floor(pacmanPosition.x - 0.5f - Global::speed)),
+        static_cast<uint8_t>(floor(pacmanPosition.z))))
+      {
+        m_pacman.SetDirection(1);
+        m_pacman.AdjustPosition(-Global::speed, 0, 0);
+      }
+    }
+
+    if (kb.Up)
+    {
+      if (m_world.IsPassable(
+        static_cast<uint8_t>(floor(pacmanPosition.x)),
+        static_cast<uint8_t>(floor(pacmanPosition.z - 0.5f + Global::speed))))
+      {
+        m_pacman.SetDirection(2);
+        m_pacman.AdjustPosition(0, 0, Global::speed);
+      }
+    }
+    else if (kb.Down)
+    {
+      if (m_world.IsPassable(
+        static_cast<uint8_t>(floor(pacmanPosition.x)),
+        static_cast<uint8_t>(floor(pacmanPosition.z + 0.5f - Global::speed))))
+      {
+        m_pacman.SetDirection(3);
+        m_pacman.AdjustPosition(0, 0, -Global::speed);
+      }
+    }
 }
 
 // Draws the scene.
@@ -94,20 +207,8 @@ void Game::Render()
 
     Clear();
 
-    // Draw world
-    ID3D11Buffer* vertexShaderBuffers[1] = { m_constantBuffer.Get() };
-
-    m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Indexed, vertexShaderBuffers, 1);
-    m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Flat);
-
-    m_world.Draw(m_d3dContext.Get());
-
-    // Draw dots
-    m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Instanced, vertexShaderBuffers, 1);
-    m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard, vertexShaderBuffers, 1); // TUCNA - kheili good!
-    m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Texture);
-
-    m_dots.Draw(m_d3dContext.Get());
+    DrawWorld();
+    DrawSprites();
 
     Present();
 }
@@ -186,6 +287,57 @@ void Game::GetDefaultSize(int& width, int& height) const
     // TODO: Change to desired default window size (note minimum size is 320x200).
     width = 800;
     height = 600;
+}
+
+void Game::DrawWorld()
+{
+  m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Indexed);
+  m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Flat);
+
+  Global::CameraPerObject cameraPerObjectConstantBuffer;
+  cameraPerObjectConstantBuffer.world = m_world.GetWorldMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+
+  m_world.Draw(m_d3dContext.Get());
+}
+
+void Game::DrawSprites()
+{
+  // Draw dots
+  m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Instanced);
+  m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard);
+  m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Texture);
+
+  Global::FrameConstantBuffer frameConstantBuffer;
+  frameConstantBuffer.frameID = DirectX::XMFLOAT2(0, 0);
+  frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(1, 1);
+  frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(0.25f, 0, 0, 0);
+
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+
+  Global::CameraPerObject cameraPerObjectConstantBuffer;
+  cameraPerObjectConstantBuffer.world = m_dots.GetWorldMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+
+  m_dots.Draw(m_d3dContext.Get());
+
+  // Draw pacman
+  if (m_timer.GetFrameCount() % 10 == 0)
+    m_pacman.Update();
+
+  frameConstantBuffer.frameID = DirectX::XMFLOAT2(static_cast<float>(m_pacman.GetFrame()), m_pacman.GetDirection());
+  frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(2, 4);
+  frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(Global::pacManSize, 0, 0, 0);
+
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+
+  cameraPerObjectConstantBuffer.world = m_pacman.GetWorldMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+
+  m_pacman.Draw(m_d3dContext.Get());
 }
 
 // These are the resources that depend on the device.
