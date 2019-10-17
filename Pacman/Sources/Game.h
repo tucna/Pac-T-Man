@@ -12,66 +12,77 @@
 class Game
 {
 public:
-    Game() noexcept;
+  enum class Movement
+  {
+    Stop,
+    Up,
+    Right,
+    Down,
+    Left
+  };
 
-    // Initialization and management
-    void Initialize(HWND window, int width, int height);
+  Game() noexcept;
 
-    // Basic game loop
-    void Tick();
+  // Initialization and management
+  void Initialize(HWND window, int width, int height);
 
-    // Messages
-    void OnActivated();
-    void OnDeactivated();
-    void OnSuspending();
-    void OnResuming();
-    void OnWindowSizeChanged(int width, int height);
+  // Basic game loop
+  void Tick();
 
-    // Properties
-    void GetDefaultSize( int& width, int& height ) const;
+  // Messages
+  void OnActivated();
+  void OnDeactivated();
+  void OnSuspending();
+  void OnResuming();
+  void OnWindowSizeChanged(int width, int height);
+
+  // Properties
+  void GetDefaultSize( int& width, int& height ) const;
 
 private:
-    void DrawWorld();
-    void DrawSprites();
+  void DrawWorld();
+  void DrawSprites();
 
-    void Update(DX::StepTimer const& timer);
-    void Render();
+  void Update(DX::StepTimer const& timer);
+  void Render();
 
-    void Clear();
-    void Present();
+  void Clear();
+  void Present();
 
-    void CreateDevice();
-    void CreateResources();
+  void CreateDevice();
+  void CreateResources();
 
-    void OnDeviceLost();
+  void OnDeviceLost();
 
-    // Device resources
-    HWND                                            m_window;
-    int                                             m_outputWidth;
-    int                                             m_outputHeight;
+  // Device resources
+  HWND                                            m_window;
+  int                                             m_outputWidth;
+  int                                             m_outputHeight;
 
-    D3D_FEATURE_LEVEL                               m_featureLevel;
-    Microsoft::WRL::ComPtr<ID3D11Device1>           m_d3dDevice;
-    Microsoft::WRL::ComPtr<ID3D11DeviceContext1>    m_d3dContext;
+  D3D_FEATURE_LEVEL                               m_featureLevel;
+  Microsoft::WRL::ComPtr<ID3D11Device1>           m_d3dDevice;
+  Microsoft::WRL::ComPtr<ID3D11DeviceContext1>    m_d3dContext;
 
-    Microsoft::WRL::ComPtr<IDXGISwapChain1>         m_swapChain;
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  m_renderTargetView;
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_depthStencilView;
-    Microsoft::WRL::ComPtr<ID3D11Buffer>            m_constantBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Buffer>            m_frameBuffer;
+  Microsoft::WRL::ComPtr<IDXGISwapChain1>         m_swapChain;
+  Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  m_renderTargetView;
+  Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_depthStencilView;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>            m_constantBuffer;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>            m_frameBuffer;
 
-    Microsoft::WRL::ComPtr<ID3D11Buffer>            m_cameraPerFrame;
-    Microsoft::WRL::ComPtr<ID3D11Buffer>            m_cameraPerObject;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>            m_cameraPerFrame;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>            m_cameraPerObject;
 
-    // Rendering loop timer.
-    DX::StepTimer                                   m_timer;
+  // Rendering loop timer.
+  DX::StepTimer                                   m_timer;
 
-    Camera                                          m_camera;
-    Dots                                            m_dots;
-    World                                           m_world;
-    Character                                       m_pacman;
+  Camera                                          m_camera;
+  Dots                                            m_dots;
+  World                                           m_world;
+  Character                                       m_pacman;
 
-    std::unique_ptr<ShaderManager>                  m_shaderManager;
+  std::unique_ptr<ShaderManager>                  m_shaderManager;
 
-    std::unique_ptr<DirectX::Keyboard> m_keyboard;
+  std::unique_ptr<DirectX::Keyboard>              m_keyboard;
+
+  Movement                                        m_movement;
 };

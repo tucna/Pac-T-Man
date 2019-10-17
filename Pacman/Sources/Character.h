@@ -32,6 +32,8 @@ public:
   void Init(ID3D11Device1* device);
   void Draw(ID3D11DeviceContext1* context);
 
+  void AlignToMap();
+
   DirectX::XMMATRIX GetWorldMatrix() const noexcept;
 
 private:

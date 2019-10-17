@@ -10,10 +10,11 @@ using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
 Game::Game() noexcept :
-    m_window(nullptr),
-    m_outputWidth(800),
-    m_outputHeight(600),
-    m_featureLevel(D3D_FEATURE_LEVEL_9_1)
+  m_window(nullptr),
+  m_outputWidth(800),
+  m_outputHeight(600),
+  m_featureLevel(D3D_FEATURE_LEVEL_9_1),
+  m_movement(Movement::Stop)
 {
 }
 
@@ -151,13 +152,131 @@ void Game::Update(DX::StepTimer const& timer)
 
     //pacmanPosition.x += 0.5f;
     //pacmanPosition.z = Global::worldSize - 1.0f - pacmanPosition.z + 0.5f;
-    pacmanPosition.z = Global::worldSize - pacmanPosition.z;
 
+    pacmanPosition.x = floor(pacmanPosition.x * 10) / 10.0f;
+    pacmanPosition.z = floor(pacmanPosition.z * 10) / 10.0f;
+
+    bool isVerticallyAligned = fmod(pacmanPosition.z - 0.5f, 1.0f) < 0.01f ? true : false;
+    bool isHorizontallyAligned = fmod(pacmanPosition.x - 0.5f, 1.0f) < 0.01f ? true : false;
+
+    //if (isHorizontallyAligned)
+    //  m_movement = Movement::Stop;
+
+    if (isVerticallyAligned)
+    {
+      if (kb.Right)
+        m_movement = Movement::Right;
+      else if (kb.Left)
+        m_movement = Movement::Left;
+    }
+
+    if (isHorizontallyAligned)
+    {
+      if (kb.Up)
+        m_movement = Movement::Up;
+      else if (kb.Down)
+        m_movement = Movement::Down;
+    }
+
+    // TUCNA debug
+    if (kb.Space)
+      m_movement = Movement::Stop;
+
+    std::wstring string;
+
+    switch (m_movement)
+    {
+      case Movement::Right:
+        if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x + 0.55f)), static_cast<uint8_t>(floor(pacmanPosition.z))))
+        {
+          m_pacman.SetDirection(0);
+          m_pacman.AdjustPosition(Global::speed, 0, 0);
+        }
+        else
+        {
+          m_pacman.AlignToMap();
+          m_movement = Movement::Stop;
+        }
+
+        string = L"X: " + std::to_wstring(pacmanPosition.x) + L", Z: " + std::to_wstring(pacmanPosition.z) + L" :: " + std::to_wstring(fmod(pacmanPosition.x - 0.5f, 1.0f)) + L"\n";
+        OutputDebugString(string.c_str());
+        break;
+      case Movement::Left:
+        if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x - 0.55f)), static_cast<uint8_t>(floor(pacmanPosition.z))))
+        {
+          m_pacman.SetDirection(1);
+          m_pacman.AdjustPosition(-Global::speed, 0, 0);
+        }
+        else
+        {
+          m_pacman.AlignToMap();
+          m_movement = Movement::Stop;
+        }
+
+        string = L"X: " + std::to_wstring(pacmanPosition.x) + L", Z: " + std::to_wstring(pacmanPosition.z) + L"\n";
+        OutputDebugString(string.c_str());
+        break;
+      case Movement::Up:
+        if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x)), static_cast<uint8_t>(floor(pacmanPosition.z + 0.55f))))
+        {
+          m_pacman.SetDirection(2);
+          m_pacman.AdjustPosition(0, 0, Global::speed);
+        }
+        else
+        {
+          m_pacman.AlignToMap();
+          m_movement = Movement::Stop;
+        }
+
+        string = L"X: " + std::to_wstring(pacmanPosition.x) + L", Z: " + std::to_wstring(pacmanPosition.z) + L"\n";
+        OutputDebugString(string.c_str());
+
+        break;
+      case Movement::Down:
+        if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x)), static_cast<uint8_t>(floor(pacmanPosition.z - 0.55f))))
+        {
+          m_pacman.SetDirection(3);
+          m_pacman.AdjustPosition(0, 0, -Global::speed);
+        }
+        else
+        {
+          m_pacman.AlignToMap();
+          m_movement = Movement::Stop;
+        }
+
+        string = L"X: " + std::to_wstring(pacmanPosition.x) + L", Z: " + std::to_wstring(pacmanPosition.z) + L"\n";
+        OutputDebugString(string.c_str());
+
+        break;
+      default:
+        // Nothing
+        break;
+    }
+
+    //std::wstring string = L"X: " + std::to_wstring(pacmanPosition.x) + L", Z: " + std::to_wstring(pacmanPosition.z) + L"\n";
+    //OutputDebugString(string.c_str());
+
+    /*
+    // Collision check
+    float halfPacmanSize = Global::pacManSize / 2.0f - 0.05f;
+
+    bool topLeftCornerCollision = !m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x - halfPacmanSize)), static_cast<uint8_t>(floor(pacmanPosition.z + halfPacmanSize)));
+    bool topRightCornerCollision = !m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x + halfPacmanSize)), static_cast<uint8_t>(floor(pacmanPosition.z + halfPacmanSize)));
+    bool downRightCornerCollision = !m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x + halfPacmanSize)), static_cast<uint8_t>(floor(pacmanPosition.z - halfPacmanSize)));
+    bool downLeftCornerCollision = !m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x - halfPacmanSize)), static_cast<uint8_t>(floor(pacmanPosition.z - halfPacmanSize)));
+
+    if (topLeftCornerCollision || topRightCornerCollision || downRightCornerCollision || downLeftCornerCollision)
+    {
+      m_movement = Movement::Stop;
+    }
+    */
+
+    /*
     if (kb.Right)
     {
       if (m_world.IsPassable(
         static_cast<uint8_t>(floor(pacmanPosition.x + 0.5f + Global::speed)),
-        static_cast<uint8_t>(floor(pacmanPosition.z))))
+        static_cast<uint8_t>(floor(pacmanPosition.z))) && isVerticallyAligned)
       {
         m_pacman.SetDirection(0);
         m_pacman.AdjustPosition(Global::speed, 0, 0);
@@ -167,7 +286,7 @@ void Game::Update(DX::StepTimer const& timer)
     {
       if (m_world.IsPassable(
         static_cast<uint8_t>(floor(pacmanPosition.x - 0.5f - Global::speed)),
-        static_cast<uint8_t>(floor(pacmanPosition.z))))
+        static_cast<uint8_t>(floor(pacmanPosition.z))) && isVerticallyAligned)
       {
         m_pacman.SetDirection(1);
         m_pacman.AdjustPosition(-Global::speed, 0, 0);
@@ -178,7 +297,7 @@ void Game::Update(DX::StepTimer const& timer)
     {
       if (m_world.IsPassable(
         static_cast<uint8_t>(floor(pacmanPosition.x)),
-        static_cast<uint8_t>(floor(pacmanPosition.z - 0.5f + Global::speed))))
+        static_cast<uint8_t>(floor(pacmanPosition.z + 0.5f + Global::speed))) && isHorizontallyAligned)
       {
         m_pacman.SetDirection(2);
         m_pacman.AdjustPosition(0, 0, Global::speed);
@@ -188,12 +307,13 @@ void Game::Update(DX::StepTimer const& timer)
     {
       if (m_world.IsPassable(
         static_cast<uint8_t>(floor(pacmanPosition.x)),
-        static_cast<uint8_t>(floor(pacmanPosition.z + 0.5f - Global::speed))))
+        static_cast<uint8_t>(floor(pacmanPosition.z - 0.5f - Global::speed))) && isHorizontallyAligned)
       {
         m_pacman.SetDirection(3);
         m_pacman.AdjustPosition(0, 0, -Global::speed);
       }
     }
+    */
 }
 
 // Draws the scene.

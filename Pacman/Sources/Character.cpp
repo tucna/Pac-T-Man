@@ -154,6 +154,22 @@ void Character::Draw(ID3D11DeviceContext1* context)
   context->DrawInstanced(1, (UINT)m_instances.size(), 0, 0);
 }
 
+void Character::AlignToMap()
+{
+  // Check if X is alligned to .5
+
+  // TODO tohle je spatne - musi to byt zarovnane na nejblizsi 0.5
+
+  int mod_x = static_cast<int>(floor(m_position.x * 10)) % 5;
+  int mod_z = static_cast<int>(floor(m_position.z * 10)) % 5;
+
+  int diff_x = mod_x < 2 ? mod_x : 5 - mod_x;
+  int diff_z = mod_z < 2 ? mod_z : 5 - mod_z;
+
+  m_position.x += diff_x / 10.0f;
+  m_position.z += diff_z / 10.0f;
+}
+
 DirectX::XMMATRIX Character::GetWorldMatrix() const noexcept
 {
   return DirectX::XMMatrixTranspose(

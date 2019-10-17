@@ -17,6 +17,8 @@ public:
 
   bool IsPassable(uint8_t column, uint8_t row);
 
+  bool IsSpriteColliding(float leftUpX, float leftUpY, float width, float height);
+
 private:
   void Generate(ID3D11Device1* device);
 
