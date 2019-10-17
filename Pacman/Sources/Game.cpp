@@ -364,7 +364,8 @@ void Game::GetDefaultSize(int& width, int& height) const
 void Game::DrawWorld()
 {
   m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Indexed);
-  m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Flat);
+  //m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Flat);
+  m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Phong);
 
   Global::CameraPerObject cameraPerObjectConstantBuffer;
   cameraPerObjectConstantBuffer.world = m_world.GetWorldMatrix();
