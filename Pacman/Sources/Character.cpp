@@ -63,11 +63,8 @@ void Character::Init(ID3D11Device1 * device)
   // Texture - check HR
   CreateWICTextureFromFile(device, nullptr, L"Resources/pacman.png", m_resource.GetAddressOf(), m_shaderResourceView.GetAddressOf());
 
-  //m_vertices.push_back({{10.5f, 3, 10.5f}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-  // TUCNA for debug
   m_vertices.push_back({{0,0,0}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-  //SetPosition(10.5f, 5, 1);
-  SetPosition(2.5, 0.0, 1.5);
+  //SetPosition(2.5, 0.0, 1.5);
 
   // Vertex buffer
   D3D11_BUFFER_DESC bd = {};
@@ -156,10 +153,6 @@ void Character::Draw(ID3D11DeviceContext1* context)
 
 void Character::AlignToMap()
 {
-  // Check if X is alligned to .5
-
-  // TODO tohle je spatne - musi to byt zarovnane na nejblizsi 0.5
-
   int mod_x = static_cast<int>(floor(m_position.x * 10)) % 5;
   int mod_z = static_cast<int>(floor(m_position.z * 10)) % 5;
 

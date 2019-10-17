@@ -127,11 +127,11 @@ void Dots::Init(ID3D11Device1* device)
 
   // Set up the description of the instance buffer.
   D3D11_BUFFER_DESC instanceBufferDesc = {};
-  instanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-  instanceBufferDesc.ByteWidth = sizeof(InstanceType) * (UINT)m_instances.size();
+  instanceBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
   instanceBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-  instanceBufferDesc.CPUAccessFlags = 0;
+  instanceBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
   instanceBufferDesc.MiscFlags = 0;
+  instanceBufferDesc.ByteWidth = sizeof(InstanceType) * (UINT)m_instances.size();
   instanceBufferDesc.StructureByteStride = 0;
 
   D3D11_SUBRESOURCE_DATA instanceData = {};
@@ -141,6 +141,33 @@ void Dots::Init(ID3D11Device1* device)
 
   // Create the instance buffer.
   device->CreateBuffer(&instanceBufferDesc, &instanceData, m_instanceBuffer.GetAddressOf());
+}
+
+void Dots::Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context)
+{
+  if (m_dots[row][column] == 1)
+  {
+    m_dots[row][column] = 0;
+
+    m_instances.clear();
+
+    for (unsigned int z = 0; z != Global::worldSize; z++)
+      for (unsigned int x = 0; x != Global::worldSize; x++)
+        if (m_dots[z][x] == 1)
+          m_instances.push_back({DirectX::XMFLOAT3(static_cast<float>(x) + 0.5f, 0.25f, static_cast<float>(z) + 0.5f)});
+
+    if (m_instances.size() == 0)
+    {
+      // TODO: game end
+    }
+    else
+    {
+      D3D11_MAPPED_SUBRESOURCE resource;
+      context->Map(m_instanceBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+      memcpy(resource.pData, m_instances.data(), m_instances.size() * sizeof(InstanceType));
+      context->Unmap(m_instanceBuffer.Get(), 0);
+    }
+  }
 }
 
 DirectX::XMMATRIX Dots::GetWorldMatrix() const noexcept

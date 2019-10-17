@@ -84,6 +84,6 @@ private:
 
   std::unique_ptr<DirectX::Keyboard>              m_keyboard;
 
-  Movement                                        m_movement;
+  Movement m_movement;
   Movement m_movementRequest;
 };

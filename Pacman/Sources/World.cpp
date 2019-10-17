@@ -183,8 +183,3 @@ bool World::IsPassable(uint8_t column, uint8_t row)
 {
   return m_map[row][column] == 0 ? true : false;
 }
-
-bool World::IsSpriteColliding(float leftUpX, float leftUpY, float width, float height)
-{
-  return false;
-}
