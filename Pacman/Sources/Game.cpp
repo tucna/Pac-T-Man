@@ -165,17 +165,17 @@ void Game::Update(DX::StepTimer const& timer)
     if (isVerticallyAligned)
     {
       if (kb.Right)
-        m_movement = Movement::Right;
+        m_movementRequest = Movement::Right;
       else if (kb.Left)
-        m_movement = Movement::Left;
+        m_movementRequest = Movement::Left;
     }
 
     if (isHorizontallyAligned)
     {
       if (kb.Up)
-        m_movement = Movement::Up;
+        m_movementRequest = Movement::Up;
       else if (kb.Down)
-        m_movement = Movement::Down;
+        m_movementRequest = Movement::Down;
     }
 
     // TUCNA debug
@@ -184,18 +184,22 @@ void Game::Update(DX::StepTimer const& timer)
 
     std::wstring string;
 
-    switch (m_movement)
+    switch (m_movementRequest)
     {
       case Movement::Right:
         if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x + 0.55f)), static_cast<uint8_t>(floor(pacmanPosition.z))))
         {
-          m_pacman.SetDirection(0);
-          m_pacman.AdjustPosition(Global::speed, 0, 0);
+          m_movement = m_movementRequest;
         }
         else
         {
-          m_pacman.AlignToMap();
-          m_movement = Movement::Stop;
+          if (m_movementRequest == m_movement)
+          {
+            m_pacman.AlignToMap();
+            m_movement = Movement::Stop;
+          }
+          else
+            m_movementRequest = m_movement;
         }
 
         string = L"X: " + std::to_wstring(pacmanPosition.x) + L", Z: " + std::to_wstring(pacmanPosition.z) + L" :: " + std::to_wstring(fmod(pacmanPosition.x - 0.5f, 1.0f)) + L"\n";
@@ -204,13 +208,17 @@ void Game::Update(DX::StepTimer const& timer)
       case Movement::Left:
         if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x - 0.55f)), static_cast<uint8_t>(floor(pacmanPosition.z))))
         {
-          m_pacman.SetDirection(1);
-          m_pacman.AdjustPosition(-Global::speed, 0, 0);
+          m_movement = m_movementRequest;
         }
         else
         {
-          m_pacman.AlignToMap();
-          m_movement = Movement::Stop;
+          if (m_movementRequest == m_movement)
+          {
+            m_pacman.AlignToMap();
+            m_movement = Movement::Stop;
+          }
+          else
+            m_movementRequest = m_movement;
         }
 
         string = L"X: " + std::to_wstring(pacmanPosition.x) + L", Z: " + std::to_wstring(pacmanPosition.z) + L"\n";
@@ -219,13 +227,17 @@ void Game::Update(DX::StepTimer const& timer)
       case Movement::Up:
         if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x)), static_cast<uint8_t>(floor(pacmanPosition.z + 0.55f))))
         {
-          m_pacman.SetDirection(2);
-          m_pacman.AdjustPosition(0, 0, Global::speed);
+          m_movement = m_movementRequest;
         }
         else
         {
-          m_pacman.AlignToMap();
-          m_movement = Movement::Stop;
+          if (m_movementRequest == m_movement)
+          {
+            m_pacman.AlignToMap();
+            m_movement = Movement::Stop;
+          }
+          else
+            m_movementRequest = m_movement;
         }
 
         string = L"X: " + std::to_wstring(pacmanPosition.x) + L", Z: " + std::to_wstring(pacmanPosition.z) + L"\n";
@@ -235,18 +247,45 @@ void Game::Update(DX::StepTimer const& timer)
       case Movement::Down:
         if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x)), static_cast<uint8_t>(floor(pacmanPosition.z - 0.55f))))
         {
-          m_pacman.SetDirection(3);
-          m_pacman.AdjustPosition(0, 0, -Global::speed);
+          m_movement = m_movementRequest;
         }
         else
         {
-          m_pacman.AlignToMap();
-          m_movement = Movement::Stop;
+          if (m_movementRequest == m_movement)
+          {
+            m_pacman.AlignToMap();
+            m_movement = Movement::Stop;
+          }
+          else
+            m_movementRequest = m_movement;
         }
 
         string = L"X: " + std::to_wstring(pacmanPosition.x) + L", Z: " + std::to_wstring(pacmanPosition.z) + L"\n";
         OutputDebugString(string.c_str());
 
+        break;
+      default:
+        // Nothing
+        break;
+    }
+
+    switch (m_movement)
+    {
+      case Movement::Right:
+        m_pacman.SetDirection(0);
+        m_pacman.AdjustPosition(Global::speed, 0, 0);
+        break;
+      case Movement::Left:
+        m_pacman.SetDirection(1);
+        m_pacman.AdjustPosition(-Global::speed, 0, 0);
+        break;
+      case Movement::Up:
+        m_pacman.SetDirection(2);
+        m_pacman.AdjustPosition(0, 0, Global::speed);
+        break;
+      case Movement::Down:
+        m_pacman.SetDirection(3);
+        m_pacman.AdjustPosition(0, 0, -Global::speed);
         break;
       default:
         // Nothing
