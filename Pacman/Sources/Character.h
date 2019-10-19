@@ -7,6 +7,15 @@
 class Character
 {
 public:
+  enum class Movement
+  {
+    Up,
+    Right,
+    Down,
+    Left,
+    Stop
+  };
+
   struct InstanceType
   {
     DirectX::XMFLOAT3 newPosition;
@@ -24,12 +33,15 @@ public:
 
   uint8_t GetFrame();
 
-  void SetDirection(uint8_t direction);
-  uint8_t GetDirection();
+  void SetRowInSheet(uint8_t direction);
+  uint8_t GetRowInSheet();
 
-  void Update();
+  void SetMovement(Movement movement);
+  Movement GetMovement();
 
-  void Init(ID3D11Device1* device);
+  void Update(uint8_t coefMod, uint8_t coefAdd);
+
+  void Init(ID3D11Device1* device, const wchar_t* fileName);
   void Draw(ID3D11DeviceContext1* context);
 
   void AlignToMap();
@@ -51,5 +63,7 @@ private:
 
   std::vector<InstanceType>   m_instances;
   std::vector<Global::Vertex> m_vertices;
+
+  Movement m_movement;
 };
 

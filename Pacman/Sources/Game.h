@@ -12,13 +12,13 @@
 class Game
 {
 public:
-  enum class Movement
+  enum Direction
   {
-    Stop,
     Up,
     Right,
     Down,
-    Left
+    Left,
+    _Count
   };
 
   Game() noexcept;
@@ -42,6 +42,8 @@ public:
 private:
   void DrawWorld();
   void DrawSprites();
+
+  void UpdatePositionOfBlinky();
 
   void Update(DX::StepTimer const& timer);
   void Render();
@@ -80,10 +82,14 @@ private:
   World                                           m_world;
   Character                                       m_pacman;
 
+  Character m_blinky;
+  Character m_pinky;
+  Character m_inky;
+  Character m_clyde;
+
   std::unique_ptr<ShaderManager>                  m_shaderManager;
 
   std::unique_ptr<DirectX::Keyboard>              m_keyboard;
 
-  Movement m_movement;
-  Movement m_movementRequest;
+  Character::Movement m_pacmanMovementRequest;
 };

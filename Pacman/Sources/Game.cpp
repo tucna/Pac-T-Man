@@ -14,7 +14,7 @@ Game::Game() noexcept :
   m_outputWidth(800),
   m_outputHeight(600),
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
-  m_movement(Movement::Stop)
+  m_pacmanMovementRequest(Character::Movement::Stop)
 {
 }
 
@@ -30,9 +30,13 @@ void Game::Initialize(HWND window, int width, int height)
 
     m_world.Init(m_d3dDevice.Get());
     m_dots.Init(m_d3dDevice.Get());
-    m_pacman.Init(m_d3dDevice.Get());
 
-    m_pacman.SetPosition(10.5, 0.25, 9.5);
+    m_pacman.Init(m_d3dDevice.Get(), L"Resources/pacman.png");
+    m_pacman.SetPosition(10.5f, 0.25f, 9.5f);
+
+    m_blinky.Init(m_d3dDevice.Get(), L"Resources/ghosts.png");
+    m_blinky.SetPosition(10.5f, 0.3f, 13.5f);
+    m_blinky.SetMovement(Character::Movement::Left);
 
     m_keyboard = std::make_unique<Keyboard>();
 
@@ -149,8 +153,8 @@ void Game::Update(DX::StepTimer const& timer)
     ExitGame();
 
   DirectX::XMFLOAT3 pacmanPosition = m_pacman.GetPosition();
-  pacmanPosition.x = floor(pacmanPosition.x * 10) / 10.0f;
-  pacmanPosition.z = floor(pacmanPosition.z * 10) / 10.0f;
+  pacmanPosition.x = static_cast<int>(pacmanPosition.x * 10) / 10.0f;
+  pacmanPosition.z = static_cast<int>(pacmanPosition.z * 10) / 10.0f;
 
   bool isVerticallyAligned = fmod(pacmanPosition.z - 0.5f, 1.0f) < 0.01f ? true : false;
   bool isHorizontallyAligned = fmod(pacmanPosition.x - 0.5f, 1.0f) < 0.01f ? true : false;
@@ -158,83 +162,83 @@ void Game::Update(DX::StepTimer const& timer)
   if (isVerticallyAligned)
   {
     if (kb.Right)
-      m_movementRequest = Movement::Right;
+      m_pacmanMovementRequest = Character::Movement::Right;
     else if (kb.Left)
-      m_movementRequest = Movement::Left;
+      m_pacmanMovementRequest = Character::Movement::Left;
   }
 
   if (isHorizontallyAligned)
   {
     if (kb.Up)
-      m_movementRequest = Movement::Up;
+      m_pacmanMovementRequest = Character::Movement::Up;
     else if (kb.Down)
-      m_movementRequest = Movement::Down;
+      m_pacmanMovementRequest = Character::Movement::Down;
   }
 
-  switch (m_movementRequest)
+  switch (m_pacmanMovementRequest)
   {
-    case Movement::Right:
-      if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x + 0.55f)), static_cast<uint8_t>(floor(pacmanPosition.z))))
+    case Character::Movement::Right:
+      if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x + 0.51f)), static_cast<uint8_t>(floor(pacmanPosition.z))))
       {
-        m_movement = m_movementRequest;
+        m_pacman.SetMovement(m_pacmanMovementRequest);
       }
       else
       {
-        if (m_movementRequest == m_movement)
+        if (m_pacmanMovementRequest == m_pacman.GetMovement())
         {
           m_pacman.AlignToMap();
-          m_movement = Movement::Stop;
+          m_pacman.SetMovement(Character::Movement::Stop);
         }
         else
-          m_movementRequest = m_movement;
+          m_pacmanMovementRequest = m_pacman.GetMovement();
       }
       break;
-    case Movement::Left:
-      if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x - 0.55f)), static_cast<uint8_t>(floor(pacmanPosition.z))))
+    case Character::Movement::Left:
+      if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x - 0.51f)), static_cast<uint8_t>(floor(pacmanPosition.z))))
       {
-        m_movement = m_movementRequest;
+        m_pacman.SetMovement(m_pacmanMovementRequest);
       }
       else
       {
-        if (m_movementRequest == m_movement)
+        if (m_pacmanMovementRequest == m_pacman.GetMovement())
         {
           m_pacman.AlignToMap();
-          m_movement = Movement::Stop;
+          m_pacman.SetMovement(Character::Movement::Stop);
         }
         else
-          m_movementRequest = m_movement;
+          m_pacmanMovementRequest = m_pacman.GetMovement();
       }
       break;
-    case Movement::Up:
-      if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x)), static_cast<uint8_t>(floor(pacmanPosition.z + 0.55f))))
+    case Character::Movement::Up:
+      if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x)), static_cast<uint8_t>(floor(pacmanPosition.z + 0.51f))))
       {
-        m_movement = m_movementRequest;
+        m_pacman.SetMovement(m_pacmanMovementRequest);
       }
       else
       {
-        if (m_movementRequest == m_movement)
+        if (m_pacmanMovementRequest == m_pacman.GetMovement())
         {
           m_pacman.AlignToMap();
-          m_movement = Movement::Stop;
+          m_pacman.SetMovement(Character::Movement::Stop);
         }
         else
-          m_movementRequest = m_movement;
+          m_pacmanMovementRequest = m_pacman.GetMovement();
       }
       break;
-    case Movement::Down:
-      if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x)), static_cast<uint8_t>(floor(pacmanPosition.z - 0.55f))))
+    case Character::Movement::Down:
+      if (m_world.IsPassable(static_cast<uint8_t>(floor(pacmanPosition.x)), static_cast<uint8_t>(floor(pacmanPosition.z - 0.51f))))
       {
-        m_movement = m_movementRequest;
+        m_pacman.SetMovement(m_pacmanMovementRequest);
       }
       else
       {
-        if (m_movementRequest == m_movement)
+        if (m_pacmanMovementRequest == m_pacman.GetMovement())
         {
           m_pacman.AlignToMap();
-          m_movement = Movement::Stop;
+          m_pacman.SetMovement(Character::Movement::Stop);
         }
         else
-          m_movementRequest = m_movement;
+          m_pacmanMovementRequest = m_pacman.GetMovement();
       }
       break;
     default:
@@ -242,23 +246,23 @@ void Game::Update(DX::StepTimer const& timer)
       break;
   }
 
-  switch (m_movement)
+  switch (m_pacman.GetMovement())
   {
-    case Movement::Right:
-      m_pacman.SetDirection(0);
-      m_pacman.AdjustPosition(Global::speed, 0, 0);
+    case Character::Movement::Left:
+      m_pacman.SetRowInSheet(0);
+      m_pacman.AdjustPosition(-Global::pacManSpeed, 0, 0);
       break;
-    case Movement::Left:
-      m_pacman.SetDirection(1);
-      m_pacman.AdjustPosition(-Global::speed, 0, 0);
+    case Character::Movement::Right:
+      m_pacman.SetRowInSheet(1);
+      m_pacman.AdjustPosition(Global::pacManSpeed, 0, 0);
       break;
-    case Movement::Up:
-      m_pacman.SetDirection(2);
-      m_pacman.AdjustPosition(0, 0, Global::speed);
+    case Character::Movement::Up:
+      m_pacman.SetRowInSheet(2);
+      m_pacman.AdjustPosition(0, 0, Global::pacManSpeed);
       break;
-    case Movement::Down:
-      m_pacman.SetDirection(3);
-      m_pacman.AdjustPosition(0, 0, -Global::speed);
+    case Character::Movement::Down:
+      m_pacman.SetRowInSheet(3);
+      m_pacman.AdjustPosition(0, 0, -Global::pacManSpeed);
       break;
     default:
       // Nothing
@@ -266,6 +270,9 @@ void Game::Update(DX::StepTimer const& timer)
   }
 
   m_dots.Update(static_cast<uint8_t>(floor(pacmanPosition.x)), static_cast<uint8_t>(floor(pacmanPosition.z)), m_d3dContext.Get());
+
+  // Ghosts
+  UpdatePositionOfBlinky();
 }
 
 // Draws the scene.
@@ -398,9 +405,9 @@ void Game::DrawSprites()
 
   // Draw pacman
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_pacman.Update();
+    m_pacman.Update(2, 0);
 
-  frameConstantBuffer.frameID = DirectX::XMFLOAT2(static_cast<float>(m_pacman.GetFrame()), m_pacman.GetDirection());
+  frameConstantBuffer.frameID = DirectX::XMFLOAT2(static_cast<float>(m_pacman.GetFrame()), m_pacman.GetRowInSheet());
   frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(2, 4);
   frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(Global::pacManSize, 0, 0, 0);
 
@@ -411,6 +418,123 @@ void Game::DrawSprites()
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
   m_pacman.Draw(m_d3dContext.Get());
+
+  // Draw ghosts
+  uint8_t ghostDirection = 0;
+
+  switch (m_blinky.GetMovement())
+  {
+    case Character::Movement::Up:
+      ghostDirection = 0;
+      break;
+    case Character::Movement::Right:
+      ghostDirection = 6;
+      break;
+    case Character::Movement::Down:
+      ghostDirection = 2;
+      break;
+    case Character::Movement::Left:
+      ghostDirection = 4;
+      break;
+  }
+
+  if (m_timer.GetFrameCount() % 10 == 0)
+    m_blinky.Update(2, ghostDirection);
+
+  frameConstantBuffer.frameID = DirectX::XMFLOAT2(static_cast<float>(m_blinky.GetFrame()), m_blinky.GetRowInSheet());
+  frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(8, 4);
+  frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(Global::pacManSize, 0, 0, 0); // TODO: ghost size?
+
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+
+  cameraPerObjectConstantBuffer.world = m_blinky.GetWorldMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+
+  m_blinky.Draw(m_d3dContext.Get());
+}
+
+void Game::UpdatePositionOfBlinky()
+{
+  m_blinky.SetRowInSheet(0);
+
+  const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
+  DirectX::XMFLOAT3 blinkyPos = m_blinky.GetPosition();
+  blinkyPos.x = static_cast<int>(blinkyPos.x * 10) / 10.0f;
+  blinkyPos.z = static_cast<int>(blinkyPos.z * 10) / 10.0f;
+
+  bool moves[Direction::_Count] = {0, 0, 0, 0}; // up, right, down, left
+
+  // First check what moves are possible
+  moves[Direction::Up] = m_world.IsPassable(static_cast<uint8_t>(floor(blinkyPos.x)), static_cast<uint8_t>(floor(blinkyPos.z + 0.51f)));
+  moves[Direction::Right] = m_world.IsPassable(static_cast<uint8_t>(floor(blinkyPos.x + 0.51f)), static_cast<uint8_t>(floor(blinkyPos.z)));
+  moves[Direction::Down] = m_world.IsPassable(static_cast<uint8_t>(floor(blinkyPos.x)), static_cast<uint8_t>(floor(blinkyPos.z - 0.51f)));
+  moves[Direction::Left] = m_world.IsPassable(static_cast<uint8_t>(floor(blinkyPos.x - 0.51f)), static_cast<uint8_t>(floor(blinkyPos.z)));
+
+  bool isVerticallyAligned = fmod(blinkyPos.z - 0.5f, 1.0f) < 0.01f ? true : false;
+  bool isHorizontallyAligned = fmod(blinkyPos.x - 0.5f, 1.0f) < 0.01f ? true : false;
+
+  if (isVerticallyAligned && isHorizontallyAligned)
+  {
+    std::array<float, Direction::_Count> distances = {FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX};
+
+    if (moves[Direction::Up])
+      distances[Direction::Up] = sqrt( (pacmanPos.x - blinkyPos.x) * (pacmanPos.x - blinkyPos.x) + (pacmanPos.z - (blinkyPos.z + 1.0f)) * (pacmanPos.z - (blinkyPos.z + 1.0f)) );
+
+    if (moves[Direction::Down])
+      distances[Direction::Down] = sqrt( (pacmanPos.x - blinkyPos.x) * (pacmanPos.x - blinkyPos.x) + (pacmanPos.z - (blinkyPos.z - 1.0f)) * (pacmanPos.z - (blinkyPos.z - 1.0f)) );
+
+    if (moves[Direction::Left])
+      distances[Direction::Left] = sqrt( (pacmanPos.x - (blinkyPos.x - 1.0f)) * (pacmanPos.x - (blinkyPos.x - 1.0f)) + (pacmanPos.z - blinkyPos.z) * (pacmanPos.z - blinkyPos.z) );
+
+    if (moves[Direction::Right])
+      distances[Direction::Right] = sqrt( (pacmanPos.x - (blinkyPos.x + 1.0f)) * (pacmanPos.x - (blinkyPos.x + 1.0f)) + (pacmanPos.z - blinkyPos.z) * (pacmanPos.z - blinkyPos.z) );
+
+    Character::Movement blinkyMovement = m_blinky.GetMovement();
+
+    if (moves[static_cast<int>(blinkyMovement)])
+    {
+      //distances[static_cast<int>(blinkyMovement)] = 0;
+
+      switch (blinkyMovement)
+      {
+        case Character::Movement::Up:
+          distances[Direction::Down] = FLT_MAX;
+          break;
+        case Character::Movement::Down:
+          distances[Direction::Up] = FLT_MAX;
+          break;
+        case Character::Movement::Left:
+          distances[Direction::Right] = FLT_MAX;
+          break;
+        case Character::Movement::Right:
+          distances[Direction::Left] = FLT_MAX;
+          break;
+      }
+    }
+
+    m_blinky.SetMovement(static_cast<Character::Movement>(std::min_element(distances.begin(), distances.end()) - distances.begin()));
+  }
+
+  // Blinky follows pacman
+  switch (m_blinky.GetMovement())
+  {
+    case Character::Movement::Left:
+      m_blinky.AdjustPosition(-Global::ghostSpeed, 0, 0);
+      break;
+    case Character::Movement::Right:
+      m_blinky.AdjustPosition(Global::ghostSpeed, 0, 0);
+      break;
+    case Character::Movement::Up:
+      m_blinky.AdjustPosition(0, 0, Global::ghostSpeed);
+      break;
+    case Character::Movement::Down:
+      m_blinky.AdjustPosition(0, 0, -Global::ghostSpeed);
+      break;
+    default:
+      // Should not happen
+      break;
+  }
 }
 
 // These are the resources that depend on the device.

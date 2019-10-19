@@ -4,7 +4,8 @@ namespace Global
 {
 
 constexpr uint8_t worldSize = 21;
-constexpr float speed = 0.1f;
+constexpr float pacManSpeed = 0.1f;
+constexpr float ghostSpeed = 0.08f;
 constexpr float pacManSize = 1.0f;
 
 struct Vertex
