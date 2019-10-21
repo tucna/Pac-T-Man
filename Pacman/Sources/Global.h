@@ -7,8 +7,9 @@ constexpr uint8_t worldSize = 21;
 constexpr float pacManSpeed = 0.08f;
 constexpr float ghostSpeed = 0.08f;
 constexpr float pacManSize = 1.0f;
-
 constexpr float pacManHalfSize = pacManSize / 2.0f;
+
+constexpr uint8_t minFramesPerDirection = 3;
 
 struct Vertex
 {

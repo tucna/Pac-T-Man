@@ -92,4 +92,6 @@ private:
   std::unique_ptr<DirectX::Keyboard>              m_keyboard;
 
   Character::Movement m_pacmanMovementRequest;
+
+  uint8_t m_framesForMovement;
 };
