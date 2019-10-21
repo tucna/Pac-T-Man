@@ -163,17 +163,19 @@ void Character::Draw(ID3D11DeviceContext1* context)
 
 void Character::AlignToMap()
 {
-  int mod_x = static_cast<int>(floor(m_position.x * 10)) % 5;
-  int mod_z = static_cast<int>(floor(m_position.z * 10)) % 5;
+  m_position.x = floor(m_position.x) + 0.5f;
+  m_position.z = floor(m_position.z) + 0.5f;
 
-  int diff_x = mod_x < 2 ? mod_x : 5 - mod_x;
-  int diff_z = mod_z < 2 ? mod_z : 5 - mod_z;
+  /*
+  unsigned int mod_x = static_cast<unsigned int>(round(m_position.x * 100)) % 50;
+  unsigned int mod_z = static_cast<unsigned int>(round(m_position.z * 100)) % 50;
+
+  unsigned int diff_x = mod_x < 2 ? mod_x : 5 - mod_x;
+  unsigned int diff_z = mod_z < 2 ? mod_z : 5 - mod_z;
 
   m_position.x += diff_x / 10.0f;
   m_position.z += diff_z / 10.0f;
-
-  m_position.x = static_cast<int>(m_position.x * 10) / 10.0f;
-  m_position.z = static_cast<int>(m_position.z * 10) / 10.0f;
+  */
 }
 
 DirectX::XMMATRIX Character::GetWorldMatrix() const noexcept
