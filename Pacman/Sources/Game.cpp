@@ -15,7 +15,7 @@ Game::Game() noexcept :
   m_outputHeight(600),
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
-  m_debugDraw(true)
+  m_debugDraw(false)
 {
 }
 
@@ -170,12 +170,11 @@ void Game::Update(DX::StepTimer const& timer)
   if (kb.Escape)
     ExitGame();
 
-  const DirectX::XMFLOAT3& pacmanPosition = m_pacman.GetPosition();
-  const unsigned int pacmanX = static_cast<unsigned int>(round(pacmanPosition.x * 100.0f));
-  const unsigned int pacmanZ = static_cast<unsigned int>(round(pacmanPosition.z * 100.0f));
+  const Character::Movement pacmanMovement = m_pacman.GetMovement();
+  const DirectX::XMFLOAT3& pacmanPosCurrent = m_pacman.GetPosition();
 
-  bool isVerticallyAligned = (pacmanZ - 50) % 100 < 5 ? true : false;
-  bool isHorizontallyAligned = (pacmanX - 50) % 100 < 5 ? true : false;
+  bool isHorizontallyAligned = (fmod(pacmanPosCurrent.x - 0.5f, 1.0f) < Global::pacManSpeed);
+  bool isVerticallyAligned   = (fmod(pacmanPosCurrent.z - 0.5f, 1.0f) < Global::pacManSpeed);
 
   if (isVerticallyAligned)
   {
@@ -195,99 +194,99 @@ void Game::Update(DX::StepTimer const& timer)
 
   switch (m_pacmanMovementRequest)
   {
-    case Character::Movement::Right:
-      if (m_world.IsPassable(static_cast<uint8_t>((pacmanX + 51) / 100), static_cast<uint8_t>(pacmanZ / 100)))
+  case Character::Movement::Right:
+    if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x + Global::pacManHalfSize), static_cast<uint8_t>(pacmanPosCurrent.z)))
+    {
+      m_pacman.SetMovement(m_pacmanMovementRequest);
+    }
+    else
+    {
+      if (m_pacmanMovementRequest == m_pacman.GetMovement())
       {
-        m_pacman.SetMovement(m_pacmanMovementRequest);
+        m_pacman.AlignToMap();
+        m_pacman.SetMovement(Character::Movement::Stop);
       }
       else
+        m_pacmanMovementRequest = m_pacman.GetMovement();
+    }
+    break;
+  case Character::Movement::Left:
+    if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x - (Global::pacManHalfSize + Global::pacManSpeed)), static_cast<uint8_t>(pacmanPosCurrent.z)))
+    {
+      m_pacman.SetMovement(m_pacmanMovementRequest);
+    }
+    else
+    {
+      if (m_pacmanMovementRequest == m_pacman.GetMovement())
       {
-        if (m_pacmanMovementRequest == m_pacman.GetMovement())
-        {
-          m_pacman.AlignToMap();
-          m_pacman.SetMovement(Character::Movement::Stop);
-        }
-        else
-          m_pacmanMovementRequest = m_pacman.GetMovement();
-      }
-      break;
-    case Character::Movement::Left:
-      if (m_world.IsPassable(static_cast<uint8_t>((pacmanX - 51) / 100), static_cast<uint8_t>(pacmanZ / 100)))
-      {
-        m_pacman.SetMovement(m_pacmanMovementRequest);
-      }
-      else
-      {
-        if (m_pacmanMovementRequest == m_pacman.GetMovement())
-        {
-          m_pacman.AlignToMap();
-          m_pacman.SetMovement(Character::Movement::Stop);
-        }
-        else
-          m_pacmanMovementRequest = m_pacman.GetMovement();
-      }
-      break;
-    case Character::Movement::Up:
-      if (m_world.IsPassable(static_cast<uint8_t>(pacmanX / 100), static_cast<uint8_t>((pacmanZ + 51) / 100)))
-      {
-        m_pacman.SetMovement(m_pacmanMovementRequest);
+        m_pacman.AlignToMap();
+        m_pacman.SetMovement(Character::Movement::Stop);
       }
       else
+        m_pacmanMovementRequest = m_pacman.GetMovement();
+    }
+    break;
+  case Character::Movement::Up:
+    if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z + (Global::pacManHalfSize + Global::pacManSpeed))))
+    {
+      m_pacman.SetMovement(m_pacmanMovementRequest);
+    }
+    else
+    {
+      if (m_pacmanMovementRequest == m_pacman.GetMovement())
       {
-        if (m_pacmanMovementRequest == m_pacman.GetMovement())
-        {
-          m_pacman.AlignToMap();
-          m_pacman.SetMovement(Character::Movement::Stop);
-        }
-        else
-          m_pacmanMovementRequest = m_pacman.GetMovement();
-      }
-      break;
-    case Character::Movement::Down:
-      if (m_world.IsPassable(static_cast<uint8_t>(pacmanX / 100), static_cast<uint8_t>((pacmanZ - 51) / 100)))
-      {
-        m_pacman.SetMovement(m_pacmanMovementRequest);
+        m_pacman.AlignToMap();
+        m_pacman.SetMovement(Character::Movement::Stop);
       }
       else
+        m_pacmanMovementRequest = m_pacman.GetMovement();
+    }
+    break;
+  case Character::Movement::Down:
+    if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z - (Global::pacManHalfSize + Global::pacManSpeed))))
+    {
+      m_pacman.SetMovement(m_pacmanMovementRequest);
+    }
+    else
+    {
+      if (m_pacmanMovementRequest == m_pacman.GetMovement())
       {
-        if (m_pacmanMovementRequest == m_pacman.GetMovement())
-        {
-          m_pacman.AlignToMap();
-          m_pacman.SetMovement(Character::Movement::Stop);
-        }
-        else
-          m_pacmanMovementRequest = m_pacman.GetMovement();
+        m_pacman.AlignToMap();
+        m_pacman.SetMovement(Character::Movement::Stop);
       }
-      break;
-    default:
-      // Nothing
-      break;
+      else
+        m_pacmanMovementRequest = m_pacman.GetMovement();
+    }
+    break;
+  default:
+    // Nothing
+    break;
   }
 
   switch (m_pacman.GetMovement())
   {
-    case Character::Movement::Left:
-      m_pacman.SetRowInSheet(0);
-      m_pacman.AdjustPosition(-Global::pacManSpeed, 0, 0);
-      break;
-    case Character::Movement::Right:
-      m_pacman.SetRowInSheet(1);
-      m_pacman.AdjustPosition(Global::pacManSpeed, 0, 0);
-      break;
-    case Character::Movement::Up:
-      m_pacman.SetRowInSheet(2);
-      m_pacman.AdjustPosition(0, 0, Global::pacManSpeed);
-      break;
-    case Character::Movement::Down:
-      m_pacman.SetRowInSheet(3);
-      m_pacman.AdjustPosition(0, 0, -Global::pacManSpeed);
-      break;
-    default:
-      // Nothing
-      break;
+  case Character::Movement::Left:
+    m_pacman.SetRowInSheet(0);
+    m_pacman.AdjustPosition(-Global::pacManSpeed, 0, 0);
+    break;
+  case Character::Movement::Right:
+    m_pacman.SetRowInSheet(1);
+    m_pacman.AdjustPosition(Global::pacManSpeed, 0, 0);
+    break;
+  case Character::Movement::Up:
+    m_pacman.SetRowInSheet(2);
+    m_pacman.AdjustPosition(0, 0, Global::pacManSpeed);
+    break;
+  case Character::Movement::Down:
+    m_pacman.SetRowInSheet(3);
+    m_pacman.AdjustPosition(0, 0, -Global::pacManSpeed);
+    break;
+  default:
+    // Nothing
+    break;
   }
 
-  m_dots.Update(static_cast<uint8_t>(pacmanX / 100), static_cast<uint8_t>(pacmanZ / 100), m_d3dContext.Get());
+  m_dots.Update(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z), m_d3dContext.Get());
 
   // Ghosts
   UpdatePositionOfBlinky();
