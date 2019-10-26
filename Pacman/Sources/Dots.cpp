@@ -91,7 +91,7 @@ void Dots::Init(ID3D11Device1* device)
   device->CreateRasterizerState(&cmdesc, m_cullNone.GetAddressOf());
 
   // Texture - check HR
-  CreateWICTextureFromFile(device, nullptr, L"Resources/dot.png", m_resource.GetAddressOf(), m_shaderResourceView.GetAddressOf());
+  DirectX::CreateWICTextureFromFile(device, nullptr, L"Resources/dot.png", m_resource.GetAddressOf(), m_shaderResourceView.GetAddressOf());
 
   // Sampler
   D3D11_SAMPLER_DESC sampDesc = {};

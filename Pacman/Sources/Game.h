@@ -4,6 +4,7 @@
 
 #include "Camera.h"
 #include "Dots.h"
+#include "Global.h"
 #include "Character.h"
 #include "Keyboard.h"
 #include "StepTimer.h"
@@ -12,15 +13,6 @@
 class Game
 {
 public:
-  enum Direction
-  {
-    Up,
-    Right,
-    Down,
-    Left,
-    _Count
-  };
-
   Game() noexcept;
 
   // Initialization and management
@@ -42,8 +34,13 @@ public:
 private:
   void DrawWorld();
   void DrawSprites();
+  void DrawDebug();
 
+  void MoveCharacterTowardsPosition(float posX, float posZ, Character& character);
   void UpdatePositionOfBlinky();
+  void UpdatePositionOfPinky();
+  void UpdatePositionOfInky();
+  void UpdatePositionOfClyde();
 
   void Update(DX::StepTimer const& timer);
   void Render();
@@ -93,5 +90,12 @@ private:
 
   Character::Movement m_pacmanMovementRequest;
 
-  uint8_t m_framesForMovement;
+  Microsoft::WRL::ComPtr<ID3D11Resource>            m_pacManResource;
+  Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>  m_pacManShaderResourceView;
+
+  Microsoft::WRL::ComPtr<ID3D11Resource>            m_ghostsResource;
+  Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>  m_ghostsShaderResourceView;
+
+  bool m_debugDraw;
+  std::vector<Global::Vertex> m_debugPoints;
 };

@@ -171,7 +171,6 @@
     <ClInclude Include="Sources\Dots.h" />
     <ClInclude Include="Sources\Game.h" />
     <ClInclude Include="Sources\Global.h" />
-    <ClInclude Include="Sources\WICTextureLoader.h" />
     <ClInclude Include="Sources\World.h" />
     <ClInclude Include="Sources\pch.h" />
     <ClInclude Include="Sources\StepTimer.h" />
@@ -182,7 +181,6 @@
     <ClCompile Include="Sources\Dots.cpp" />
     <ClCompile Include="Sources\Game.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
-    <ClCompile Include="Sources\WICTextureLoader.cpp" />
     <ClCompile Include="Sources\World.cpp" />
     <ClCompile Include="Sources\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -197,6 +195,7 @@
   <ItemGroup>
     <Image Include="Resources\dot.png" />
     <Image Include="Resources\directx.ico" />
+    <Image Include="Resources\ghosts.png" />
     <Image Include="Resources\pacman.png" />
   </ItemGroup>
   <ItemGroup>

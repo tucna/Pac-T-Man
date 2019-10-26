@@ -1,13 +1,14 @@
 #include "pch.h"
 
 #include "Character.h"
-#include "WICTextureLoader.h"
 
 Character::Character() :
   m_currentFrame(0),
   m_direction(0),
   m_position(0, 0, 0),
-  m_movement(Movement::Stop)
+  m_movement(Movement::Stop),
+  m_frameCounter(0),
+  m_facingDirection(Direction::Left)
 {
 }
 
@@ -57,11 +58,25 @@ uint8_t Character::GetRowInSheet()
 void Character::SetMovement(Movement movement)
 {
   m_movement = movement;
+
+  if (movement != Movement::Stop && movement != Movement::Dead)
+    m_facingDirection = static_cast<Direction>(static_cast<uint8_t>(movement));
 }
 
-Character::Movement Character::GetMovement()
+Character::Movement Character::GetMovement() const
 {
   return m_movement;
+}
+
+Character::Direction Character::GetFacingDirection() const
+{
+  // TODO
+  return m_facingDirection;
+}
+
+void Character::SetFacingDirection(Direction direction)
+{
+  m_facingDirection = direction;
 }
 
 void Character::Update(uint8_t coefMod, uint8_t coefAdd)
@@ -69,12 +84,9 @@ void Character::Update(uint8_t coefMod, uint8_t coefAdd)
   m_currentFrame = ++m_currentFrame % coefMod + coefAdd;
 }
 
-void Character::Init(ID3D11Device1* device, const wchar_t* fileName)
+void Character::Init(ID3D11Device1 * device, float r, float g, float b)
 {
-  // Texture - check HR
-  CreateWICTextureFromFile(device, nullptr, fileName, m_resource.GetAddressOf(), m_shaderResourceView.GetAddressOf());
-
-  m_vertices.push_back({{0,0,0}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{0,0,0}, {0.0, 1.0, 0.0}, {r, g, b}});
 
   // Vertex buffer
   D3D11_BUFFER_DESC bd = {};
@@ -132,6 +144,11 @@ void Character::Init(ID3D11Device1* device, const wchar_t* fileName)
   device->CreateBuffer(&instanceBufferDesc, &instanceData, m_instanceBuffer.GetAddressOf());
 }
 
+void Character::Init(ID3D11Device1* device)
+{
+  Init(device, 0.0f, 0.0f, 0.0f);
+}
+
 void Character::Draw(ID3D11DeviceContext1* context)
 {
   unsigned int strides[2];
@@ -153,7 +170,6 @@ void Character::Draw(ID3D11DeviceContext1* context)
   context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
   context->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);
 
-  context->PSSetShaderResources(0, 1, m_shaderResourceView.GetAddressOf());
   context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 
   context->RSSetState(m_cullNone.Get());
@@ -165,17 +181,6 @@ void Character::AlignToMap()
 {
   m_position.x = floor(m_position.x) + 0.5f;
   m_position.z = floor(m_position.z) + 0.5f;
-
-  /*
-  unsigned int mod_x = static_cast<unsigned int>(round(m_position.x * 100)) % 50;
-  unsigned int mod_z = static_cast<unsigned int>(round(m_position.z * 100)) % 50;
-
-  unsigned int diff_x = mod_x < 2 ? mod_x : 5 - mod_x;
-  unsigned int diff_z = mod_z < 2 ? mod_z : 5 - mod_z;
-
-  m_position.x += diff_x / 10.0f;
-  m_position.z += diff_z / 10.0f;
-  */
 }
 
 DirectX::XMMATRIX Character::GetWorldMatrix() const noexcept
@@ -186,4 +191,19 @@ DirectX::XMMATRIX Character::GetWorldMatrix() const noexcept
       m_position.y,
       m_position.z
     ));
+}
+
+void Character::IncreaseFrameCounter()
+{
+  m_frameCounter++;
+}
+
+uint8_t Character::GetNumberOfFrames()
+{
+  return m_frameCounter;
+}
+
+void Character::ResetFrameCounter()
+{
+  m_frameCounter = 0;
 }

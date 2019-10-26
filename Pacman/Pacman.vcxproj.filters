@@ -31,9 +31,6 @@
     <ClInclude Include="Sources\World.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\WICTextureLoader.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\Character.h">
       <Filter>Sources</Filter>
     </ClInclude>
@@ -57,9 +54,6 @@
     <ClCompile Include="Sources\World.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\WICTextureLoader.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Character.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -72,6 +66,9 @@
       <Filter>Assets</Filter>
     </Image>
     <Image Include="Resources\pacman.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Resources\ghosts.png">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>

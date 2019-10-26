@@ -1,7 +1,7 @@
 #include "pch.h"
 
-#include "Global.h"
 #include "Game.h"
+#include "WICTextureLoader.h"
 
 extern void ExitGame();
 
@@ -15,133 +15,150 @@ Game::Game() noexcept :
   m_outputHeight(600),
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
-  m_framesForMovement(0)
+  m_debugDraw(true)
 {
 }
 
-// Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
-    m_window = window;
-    m_outputWidth = std::max(width, 1);
-    m_outputHeight = std::max(height, 1);
+  m_window = window;
+  m_outputWidth = std::max(width, 1);
+  m_outputHeight = std::max(height, 1);
 
-    CreateDevice();
-    CreateResources();
+  CreateDevice();
+  CreateResources();
 
-    m_world.Init(m_d3dDevice.Get());
-    m_dots.Init(m_d3dDevice.Get());
+  m_world.Init(m_d3dDevice.Get());
+  m_dots.Init(m_d3dDevice.Get());
 
-    m_pacman.Init(m_d3dDevice.Get(), L"Resources/pacman.png");
-    m_pacman.SetPosition(10.5f, 0.25f, 9.5f);
+  m_pacman.Init(m_d3dDevice.Get());
+  m_pacman.SetPosition(10.5f, 0.25f, 9.5f);
 
-    m_blinky.Init(m_d3dDevice.Get(), L"Resources/ghosts.png");
-    m_blinky.SetPosition(10.5f, 0.3f, 13.5f);
-    m_blinky.SetMovement(Character::Movement::Left);
+  m_blinky.Init(m_d3dDevice.Get());
+  m_blinky.SetPosition(10.5f, 0.3f, 13.5f);
+  m_blinky.SetMovement(Character::Movement::Left);
 
-    m_keyboard = std::make_unique<Keyboard>();
+  m_pinky.Init(m_d3dDevice.Get());
+  //m_pinky.SetPosition(10.5f, 0.3f, 11.5f); TODO: correct position
+  m_pinky.SetPosition(13.5f, 0.3f, 13.5f);
+  //m_pinky.SetMovement(Character::Movement::Stop);
+  m_pinky.SetMovement(Character::Movement::Left);
 
-    m_camera.SetPosition(10.5f, 15.0f, 10.5f);
-    //m_camera.SetPosition(10.5f, 5.0f, -2.5f);
-    //m_camera.SetPosition(3, 2, 3);
-    m_camera.SetLookAtPos(XMFLOAT3(10.5, 0, 10.5));
+  m_inky.Init(m_d3dDevice.Get());
+  m_inky.SetPosition(12.5f, 0.3f, 13.5f);
+  m_inky.SetMovement(Character::Movement::Left);
 
-    m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f); // Here or to resize?
+  m_clyde.Init(m_d3dDevice.Get());
+  m_clyde.SetPosition(11.5f, 0.3f, 13.5f);
+  m_clyde.SetMovement(Character::Movement::Left);
 
-    // Camera constant buffers
-    Global::CameraConstantBuffer cameraConstantBuffer;
+  // TODO Check HR
+  CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf());
+  CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf());
 
-    cameraConstantBuffer.world = DirectX::XMMatrixIdentity();
-    cameraConstantBuffer.view = DirectX::XMMatrixTranspose(m_camera.GetViewMatrix());
-    cameraConstantBuffer.projection = DirectX::XMMatrixTranspose(m_camera.GetProjectionMatrix());
+  m_keyboard = std::make_unique<Keyboard>();
 
-    D3D11_BUFFER_DESC cbd = {};
-    cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbd.Usage = D3D11_USAGE_DYNAMIC;
-    cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    cbd.MiscFlags = 0;
-    cbd.ByteWidth = sizeof(Global::CameraConstantBuffer);
-    cbd.StructureByteStride = 0;
+  m_camera.SetPosition(10.5f, 15.0f, 10.5f);
+  //m_camera.SetPosition(10.5f, 5.0f, -2.5f);
+  //m_camera.SetPosition(3, 2, 3);
+  m_camera.SetLookAtPos(XMFLOAT3(10.5, 0, 10.5));
 
-    D3D11_SUBRESOURCE_DATA csd = {};
-    csd.pSysMem = &cameraConstantBuffer;
+  m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f); // Here or to resize?
 
-    m_d3dDevice->CreateBuffer(&cbd, &csd, &m_constantBuffer);
+  // Camera constant buffers
+  Global::CameraConstantBuffer cameraConstantBuffer;
 
-    // Camera constant buffers v2
-    Global::CameraPerFrame cameraConstantBufferPerFrame;
+  cameraConstantBuffer.world = DirectX::XMMatrixIdentity();
+  cameraConstantBuffer.view = DirectX::XMMatrixTranspose(m_camera.GetViewMatrix());
+  cameraConstantBuffer.projection = DirectX::XMMatrixTranspose(m_camera.GetProjectionMatrix());
 
-    //cameraConstantBuffer.world = DirectX::XMMatrixIdentity();
-    cameraConstantBufferPerFrame.view = DirectX::XMMatrixTranspose(m_camera.GetViewMatrix());
-    cameraConstantBufferPerFrame.projection = DirectX::XMMatrixTranspose(m_camera.GetProjectionMatrix());
+  D3D11_BUFFER_DESC cbd = {};
+  cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cbd.Usage = D3D11_USAGE_DYNAMIC;
+  cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+  cbd.MiscFlags = 0;
+  cbd.ByteWidth = sizeof(Global::CameraConstantBuffer);
+  cbd.StructureByteStride = 0;
 
-    D3D11_BUFFER_DESC cbd_v2 = {};
-    cbd_v2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbd_v2.Usage = D3D11_USAGE_DYNAMIC;
-    cbd_v2.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    cbd_v2.MiscFlags = 0;
-    cbd_v2.ByteWidth = sizeof(Global::CameraPerFrame);
-    cbd_v2.StructureByteStride = 0;
+  D3D11_SUBRESOURCE_DATA csd = {};
+  csd.pSysMem = &cameraConstantBuffer;
 
-    D3D11_SUBRESOURCE_DATA csd_v2 = {};
-    csd_v2.pSysMem = &cameraConstantBufferPerFrame;
+  m_d3dDevice->CreateBuffer(&cbd, &csd, &m_constantBuffer);
 
-    m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerFrame);
+  // Camera constant buffers v2
+  Global::CameraPerFrame cameraConstantBufferPerFrame;
 
-    Global::CameraPerObject cameraConstantBufferPerObject;
-    cameraConstantBufferPerObject.world = DirectX::XMMatrixIdentity();
+  //cameraConstantBuffer.world = DirectX::XMMatrixIdentity();
+  cameraConstantBufferPerFrame.view = DirectX::XMMatrixTranspose(m_camera.GetViewMatrix());
+  cameraConstantBufferPerFrame.projection = DirectX::XMMatrixTranspose(m_camera.GetProjectionMatrix());
 
-    cbd_v2.ByteWidth = sizeof(Global::CameraPerObject);
+  D3D11_BUFFER_DESC cbd_v2 = {};
+  cbd_v2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cbd_v2.Usage = D3D11_USAGE_DYNAMIC;
+  cbd_v2.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+  cbd_v2.MiscFlags = 0;
+  cbd_v2.ByteWidth = sizeof(Global::CameraPerFrame);
+  cbd_v2.StructureByteStride = 0;
 
-    csd_v2.pSysMem = &cameraConstantBufferPerObject;
+  D3D11_SUBRESOURCE_DATA csd_v2 = {};
+  csd_v2.pSysMem = &cameraConstantBufferPerFrame;
 
-    m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerObject);
+  m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerFrame);
 
-    // Frame constant buffers
-    Global::FrameConstantBuffer frameConstantBuffer;
+  Global::CameraPerObject cameraConstantBufferPerObject;
+  cameraConstantBufferPerObject.world = DirectX::XMMatrixIdentity();
 
-    frameConstantBuffer.frameID = DirectX::XMFLOAT2(1, 0);
-    frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(2, 1); // Two frames on X axis and one frame on Y
-    frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(1, 0, 0, 0);
+  cbd_v2.ByteWidth = sizeof(Global::CameraPerObject);
 
-    cbd = {};
-    cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbd.Usage = D3D11_USAGE_DYNAMIC;
-    cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    cbd.MiscFlags = 0;
-    cbd.ByteWidth = sizeof(Global::FrameConstantBuffer);
-    cbd.StructureByteStride = 0;
+  csd_v2.pSysMem = &cameraConstantBufferPerObject;
 
-    csd = {};
-    csd.pSysMem = &frameConstantBuffer;
+  m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerObject);
 
-    m_d3dDevice->CreateBuffer(&cbd, &csd, &m_frameBuffer);
+  // Frame constant buffers
+  Global::FrameConstantBuffer frameConstantBuffer;
 
-    ID3D11Buffer* geometryShaderBuffers[2] = { m_constantBuffer.Get(), m_frameBuffer.Get() };
-    m_shaderManager->BindConstantBuffersToGeometryShader(ShaderManager::GeometryShader::Billboard, geometryShaderBuffers, 2);
+  frameConstantBuffer.frameID = DirectX::XMFLOAT2(1, 0);
+  frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(2, 1); // Two frames on X axis and one frame on Y
+  frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(1, 0, 0, 0);
 
-    ID3D11Buffer* vertexShaderBuffers[2] = { m_cameraPerFrame.Get(), m_cameraPerObject.Get() };
-    m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Instanced, vertexShaderBuffers, 2);
+  cbd = {};
+  cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cbd.Usage = D3D11_USAGE_DYNAMIC;
+  cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+  cbd.MiscFlags = 0;
+  cbd.ByteWidth = sizeof(Global::FrameConstantBuffer);
+  cbd.StructureByteStride = 0;
 
-    //ID3D11Buffer* vertexShaderBuffers_v2[1] = {m_constantBuffer.Get()};
-    m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Indexed, vertexShaderBuffers, 2);
+  csd = {};
+  csd.pSysMem = &frameConstantBuffer;
+
+  m_d3dDevice->CreateBuffer(&cbd, &csd, &m_frameBuffer);
+
+  ID3D11Buffer* geometryShaderBuffers[2] = { m_constantBuffer.Get(), m_frameBuffer.Get() };
+  m_shaderManager->BindConstantBuffersToGeometryShader(ShaderManager::GeometryShader::Billboard, geometryShaderBuffers, 2);
+
+  ID3D11Buffer* vertexShaderBuffers[2] = { m_cameraPerFrame.Get(), m_cameraPerObject.Get() };
+  m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Instanced, vertexShaderBuffers, 2);
+
+  //ID3D11Buffer* vertexShaderBuffers_v2[1] = {m_constantBuffer.Get()};
+  m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Indexed, vertexShaderBuffers, 2);
 
 
-    // TODO: Change the timer settings if you want something other than the default variable timestep mode.
-    // e.g. for 60 FPS fixed timestep update logic, call:
-    //m_timer.SetFixedTimeStep(true);
-    //m_timer.SetTargetElapsedSeconds(1.0 / 60);
+  // TODO: Change the timer settings if you want something other than the default variable timestep mode.
+  // e.g. for 60 FPS fixed timestep update logic, call:
+  //m_timer.SetFixedTimeStep(true);
+  //m_timer.SetTargetElapsedSeconds(1.0 / 60);
 }
 
 // Executes the basic game loop.
 void Game::Tick()
 {
-    m_timer.Tick([&]()
-    {
-        Update(m_timer);
-    });
+  m_timer.Tick([&]()
+  {
+      Update(m_timer);
+  });
 
-    Render();
+  Render();
 }
 
 void Game::Update(DX::StepTimer const& timer)
@@ -157,8 +174,8 @@ void Game::Update(DX::StepTimer const& timer)
   const unsigned int pacmanX = static_cast<unsigned int>(round(pacmanPosition.x * 100.0f));
   const unsigned int pacmanZ = static_cast<unsigned int>(round(pacmanPosition.z * 100.0f));
 
-  bool isVerticallyAligned = (pacmanZ - 50) % 100 == 0 ? true : false;
-  bool isHorizontallyAligned = (pacmanX - 50) % 100 == 0 ? true : false;
+  bool isVerticallyAligned = (pacmanZ - 50) % 100 < 5 ? true : false;
+  bool isHorizontallyAligned = (pacmanX - 50) % 100 < 5 ? true : false;
 
   if (isVerticallyAligned)
   {
@@ -274,39 +291,42 @@ void Game::Update(DX::StepTimer const& timer)
 
   // Ghosts
   UpdatePositionOfBlinky();
+  UpdatePositionOfPinky();
+  UpdatePositionOfInky();
+  UpdatePositionOfClyde();
 }
 
-// Draws the scene.
 void Game::Render()
 {
-    // Don't try to render anything before the first Update.
-    if (m_timer.GetFrameCount() == 0)
-    {
-        return;
-    }
+  // Don't try to render anything before the first Update.
+  if (m_timer.GetFrameCount() == 0)
+  {
+      return;
+  }
 
-    Clear();
+  Clear();
 
-    DrawWorld();
-    DrawSprites();
+  DrawWorld();
+  DrawSprites();
+  DrawDebug();
 
-    Present();
+  Present();
 }
 
 // Helper method to clear the back buffers.
 void Game::Clear()
 {
-    // Clear the views.
-    m_d3dContext->ClearRenderTargetView(m_renderTargetView.Get(), Colors::Black);
-    m_d3dContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+  // Clear the views.
+  m_d3dContext->ClearRenderTargetView(m_renderTargetView.Get(), Colors::Black);
+  m_d3dContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    m_d3dContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+  m_d3dContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
 
-    // Set the viewport.
-    CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(m_outputWidth), static_cast<float>(m_outputHeight));
-    m_d3dContext->RSSetViewports(1, &viewport);
+  // Set the viewport.
+  CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(m_outputWidth), static_cast<float>(m_outputHeight));
+  m_d3dContext->RSSetViewports(1, &viewport);
 
-    m_shaderManager->ClearShadersFromThePipeline();
+  m_shaderManager->ClearShadersFromThePipeline();
 }
 
 // Presents the back buffer contents to the screen.
@@ -405,6 +425,8 @@ void Game::DrawSprites()
   m_dots.Draw(m_d3dContext.Get());
 
   // Draw pacman
+  m_d3dContext->PSSetShaderResources(0, 1, m_pacManShaderResourceView.GetAddressOf());
+
   if (m_timer.GetFrameCount() % 10 == 0)
     m_pacman.Update(2, 0);
 
@@ -421,26 +443,28 @@ void Game::DrawSprites()
   m_pacman.Draw(m_d3dContext.Get());
 
   // Draw ghosts
-  uint8_t ghostDirection = 0;
+  m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
+
+  uint8_t blinkyDirection = 0;
 
   switch (m_blinky.GetMovement())
   {
     case Character::Movement::Up:
-      ghostDirection = 0;
+      blinkyDirection = 0;
       break;
     case Character::Movement::Right:
-      ghostDirection = 6;
+      blinkyDirection = 6;
       break;
     case Character::Movement::Down:
-      ghostDirection = 2;
+      blinkyDirection = 2;
       break;
     case Character::Movement::Left:
-      ghostDirection = 4;
+      blinkyDirection = 4;
       break;
   }
 
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_blinky.Update(2, ghostDirection);
+    m_blinky.Update(2, blinkyDirection);
 
   frameConstantBuffer.frameID = DirectX::XMFLOAT2(static_cast<float>(m_blinky.GetFrame()), m_blinky.GetRowInSheet());
   frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(8, 4);
@@ -453,94 +477,321 @@ void Game::DrawSprites()
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
   m_blinky.Draw(m_d3dContext.Get());
-}
 
-void Game::UpdatePositionOfBlinky()
-{
-  m_blinky.SetRowInSheet(0);
+  // Pinky
+  uint8_t pinkyDirection = 0;
 
-  m_framesForMovement++;
-
-  const DirectX::XMFLOAT3& blinkyPosPrevious = m_blinky.GetPosition();
-
-  // Blinky follows pacman
-  switch (m_blinky.GetMovement())
+  switch (m_pinky.GetMovement())
   {
-    case Character::Movement::Left:
-      m_blinky.AdjustPosition(-Global::ghostSpeed, 0, 0);
+    case Character::Movement::Up:
+      pinkyDirection = 0;
       break;
     case Character::Movement::Right:
-      m_blinky.AdjustPosition(Global::ghostSpeed, 0, 0);
-      break;
-    case Character::Movement::Up:
-      m_blinky.AdjustPosition(0, 0, Global::ghostSpeed);
+      pinkyDirection = 6;
       break;
     case Character::Movement::Down:
-      m_blinky.AdjustPosition(0, 0, -Global::ghostSpeed);
+      pinkyDirection = 2;
+      break;
+    case Character::Movement::Left:
+      pinkyDirection = 4;
+      break;
+  }
+
+  if (m_timer.GetFrameCount() % 10 == 0)
+    m_pinky.Update(2, pinkyDirection);
+
+  frameConstantBuffer.frameID = DirectX::XMFLOAT2(static_cast<float>(m_pinky.GetFrame()), m_pinky.GetRowInSheet());
+  frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(8, 4);
+  frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(Global::pacManSize, 0, 0, 0); // TODO: ghost size?
+
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+
+  cameraPerObjectConstantBuffer.world = m_pinky.GetWorldMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+
+  m_pinky.Draw(m_d3dContext.Get());
+
+  // Inky
+  uint8_t inkyDirection = 0;
+
+  switch (m_inky.GetMovement())
+  {
+    case Character::Movement::Up:
+      inkyDirection = 0;
+      break;
+    case Character::Movement::Right:
+      inkyDirection = 6;
+      break;
+    case Character::Movement::Down:
+      inkyDirection = 2;
+      break;
+    case Character::Movement::Left:
+      inkyDirection = 4;
+      break;
+  }
+
+  if (m_timer.GetFrameCount() % 10 == 0)
+    m_inky.Update(2, inkyDirection);
+
+  frameConstantBuffer.frameID = DirectX::XMFLOAT2(static_cast<float>(m_inky.GetFrame()), m_inky.GetRowInSheet());
+  frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(8, 4);
+  frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(Global::pacManSize, 0, 0, 0); // TODO: ghost size?
+
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+
+  cameraPerObjectConstantBuffer.world = m_inky.GetWorldMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+
+  m_inky.Draw(m_d3dContext.Get());
+
+  // Clyde
+  uint8_t clydeDirection = 0;
+
+  switch (m_clyde.GetMovement())
+  {
+    case Character::Movement::Up:
+      clydeDirection = 0;
+      break;
+    case Character::Movement::Right:
+      clydeDirection = 6;
+      break;
+    case Character::Movement::Down:
+      clydeDirection = 2;
+      break;
+    case Character::Movement::Left:
+      clydeDirection = 4;
+      break;
+  }
+
+  if (m_timer.GetFrameCount() % 10 == 0)
+    m_clyde.Update(2, clydeDirection);
+
+  frameConstantBuffer.frameID = DirectX::XMFLOAT2(static_cast<float>(m_clyde.GetFrame()), m_clyde.GetRowInSheet());
+  frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(8, 4);
+  frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(Global::pacManSize, 0, 0, 0); // TODO: ghost size?
+
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+
+  cameraPerObjectConstantBuffer.world = m_clyde.GetWorldMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+
+  m_clyde.Draw(m_d3dContext.Get());
+}
+
+void Game::DrawDebug()
+{
+  if (!m_debugDraw)
+    return;
+
+  for (auto& debugPoint : m_debugPoints)
+  {
+    // Create dummy character to represent a target place
+    Character dummy;
+    dummy.Init(m_d3dDevice.Get(), debugPoint.col.x, debugPoint.col.y, debugPoint.col.z);
+    dummy.SetPosition(debugPoint.pos.x, debugPoint.pos.y, debugPoint.pos.z);
+
+    m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Instanced);
+    m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard);
+    m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Color);
+
+    // TODO this should not be necessary but what the heck
+    Global::FrameConstantBuffer frameConstantBuffer;
+    frameConstantBuffer.frameID = DirectX::XMFLOAT2(0, 0);
+    frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(1, 1);
+    frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(0.25f, 0, 0, 0);
+
+    m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+
+    Global::CameraPerObject cameraPerObjectConstantBuffer;
+    cameraPerObjectConstantBuffer.world = dummy.GetWorldMatrix();
+
+    m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+
+    dummy.Draw(m_d3dContext.Get());
+  }
+
+  m_debugPoints.clear();
+}
+
+void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& character)
+{
+  if (m_debugDraw)
+  {
+    if (&character == &m_blinky)
+      m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}});
+    else if (&character == &m_pinky)
+      m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.6f, 0.8f}});
+    else if (&character == &m_inky)
+      m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {0.2f, 1.0f, 1.0f}});
+    else if (&character == &m_clyde)
+      m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.8f, 0.2f}});
+    else
+      m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {0.0, 0.0, 0.0}});
+  }
+
+  character.IncreaseFrameCounter();
+
+  switch (character.GetMovement())
+  {
+    case Character::Movement::Left:
+      character.AdjustPosition(-Global::ghostSpeed, 0, 0);
+      break;
+    case Character::Movement::Right:
+      character.AdjustPosition(Global::ghostSpeed, 0, 0);
+      break;
+    case Character::Movement::Up:
+      character.AdjustPosition(0, 0, Global::ghostSpeed);
+      break;
+    case Character::Movement::Down:
+      character.AdjustPosition(0, 0, -Global::ghostSpeed);
       break;
     default:
       // Should not happen
       break;
   }
 
-  const DirectX::XMFLOAT3& blinkyPosCurrent = m_blinky.GetPosition();
+  const DirectX::XMFLOAT3& characterCurrentPos = character.GetPosition();
 
-  bool isAligned = (fmod(blinkyPosCurrent.x - 0.5f, 1.0f) < Global::ghostSpeed) && (fmod(blinkyPosCurrent.z - 0.5f, 1.0f) < Global::ghostSpeed);
+  bool isAligned = (fmod(characterCurrentPos.x - 0.5f, 1.0f) < Global::ghostSpeed) && (fmod(characterCurrentPos.z - 0.5f, 1.0f) < Global::ghostSpeed);
 
   if (isAligned)
   {
-    bool moves[Direction::_Count] = {false, false, false, false};
+    bool moves[Character::Direction::_Count] = {false, false, false, false};
 
-    moves[Direction::Up]    = m_world.IsPassable(static_cast<uint8_t>(blinkyPosCurrent.x), static_cast<uint8_t>(blinkyPosCurrent.z + 1.0f));
-    moves[Direction::Right] = m_world.IsPassable(static_cast<uint8_t>(blinkyPosCurrent.x + 1.0f), static_cast<uint8_t>(blinkyPosCurrent.z));
-    moves[Direction::Down]  = m_world.IsPassable(static_cast<uint8_t>(blinkyPosCurrent.x), static_cast<uint8_t>(blinkyPosCurrent.z - 1.0f));
-    moves[Direction::Left]  = m_world.IsPassable(static_cast<uint8_t>(blinkyPosCurrent.x - 1.0f), static_cast<uint8_t>(blinkyPosCurrent.z));
+    moves[Character::Direction::Up]    = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x), static_cast<uint8_t>(characterCurrentPos.z + 1.0f));
+    moves[Character::Direction::Right] = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x + 1.0f), static_cast<uint8_t>(characterCurrentPos.z));
+    moves[Character::Direction::Down]  = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x), static_cast<uint8_t>(characterCurrentPos.z - 1.0f));
+    moves[Character::Direction::Left]  = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x - 1.0f), static_cast<uint8_t>(characterCurrentPos.z));
 
-    const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
-    std::array<float, Direction::_Count> distances = {FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX};
+    std::array<float, Character::Direction::_Count> distances = {FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX};
 
-    if (moves[Direction::Up])
-      distances[Direction::Up] = sqrt((pacmanPos.x - blinkyPosCurrent.x) * (pacmanPos.x - blinkyPosCurrent.x) + (pacmanPos.z - (blinkyPosCurrent.z + 1.0f)) * (pacmanPos.z - (blinkyPosCurrent.z + 1.0f)));
+    if (moves[Character::Direction::Up])
+      distances[Character::Direction::Up] = sqrt((posX - characterCurrentPos.x) * (posX - characterCurrentPos.x) + (posZ - (characterCurrentPos.z + 1.0f)) * (posZ - (characterCurrentPos.z + 1.0f)));
 
-    if (moves[Direction::Down])
-      distances[Direction::Down] = sqrt((pacmanPos.x - blinkyPosCurrent.x) * (pacmanPos.x - blinkyPosCurrent.x) + (pacmanPos.z - (blinkyPosCurrent.z - 1.0f)) * (pacmanPos.z - (blinkyPosCurrent.z - 1.0f)));
+    if (moves[Character::Direction::Down])
+      distances[Character::Direction::Down] = sqrt((posX - characterCurrentPos.x) * (posX - characterCurrentPos.x) + (posZ - (characterCurrentPos.z - 1.0f)) * (posZ - (characterCurrentPos.z - 1.0f)));
 
-    if (moves[Direction::Left])
-      distances[Direction::Left] = sqrt((pacmanPos.x - (blinkyPosCurrent.x - 1.0f)) * (pacmanPos.x - (blinkyPosCurrent.x - 1.0f)) + (pacmanPos.z - blinkyPosCurrent.z) * (pacmanPos.z - blinkyPosCurrent.z));
+    if (moves[Character::Direction::Left])
+      distances[Character::Direction::Left] = sqrt((posX - (characterCurrentPos.x - 1.0f)) * (posX - (characterCurrentPos.x - 1.0f)) + (posZ - characterCurrentPos.z) * (posZ - characterCurrentPos.z));
 
-    if (moves[Direction::Right])
-      distances[Direction::Right] = sqrt((pacmanPos.x - (blinkyPosCurrent.x + 1.0f)) * (pacmanPos.x - (blinkyPosCurrent.x + 1.0f)) + (pacmanPos.z - blinkyPosCurrent.z) * (pacmanPos.z - blinkyPosCurrent.z));
+    if (moves[Character::Direction::Right])
+      distances[Character::Direction::Right] = sqrt((posX - (characterCurrentPos.x + 1.0f)) * (posX - (characterCurrentPos.x + 1.0f)) + (posZ - characterCurrentPos.z) * (posZ - characterCurrentPos.z));
 
-    const Character::Movement blinkyMovement = m_blinky.GetMovement();
+    const Character::Movement characterMovement = character.GetMovement();
 
-    //if (moves[static_cast<uint8_t>(blinkyMovement)])
-    //{
-      switch (blinkyMovement)
-      {
-        case Character::Movement::Up:
-          distances[Direction::Down] = FLT_MAX;
-          break;
-        case Character::Movement::Down:
-          distances[Direction::Up] = FLT_MAX;
-          break;
-        case Character::Movement::Left:
-          distances[Direction::Right] = FLT_MAX;
-          break;
-        case Character::Movement::Right:
-          distances[Direction::Left] = FLT_MAX;
-          break;
-      }
-    //}
+    switch (characterMovement)
+    {
+      case Character::Movement::Up:
+        distances[Character::Direction::Down] = FLT_MAX;
+        break;
+      case Character::Movement::Down:
+        distances[Character::Direction::Up] = FLT_MAX;
+        break;
+      case Character::Movement::Left:
+        distances[Character::Direction::Right] = FLT_MAX;
+        break;
+      case Character::Movement::Right:
+        distances[Character::Direction::Left] = FLT_MAX;
+        break;
+    }
 
     Character::Movement newMoment = static_cast<Character::Movement>(std::min_element(distances.begin(), distances.end()) - distances.begin());
 
-    if (newMoment != blinkyMovement && m_framesForMovement >= Global::minFramesPerDirection)
+    if (newMoment != characterMovement && character.GetNumberOfFrames() >= Global::minFramesPerDirection)
     {
-      m_blinky.AlignToMap();
-      m_blinky.SetMovement(newMoment);
+      character.AlignToMap();
+      character.SetMovement(newMoment);
 
-      m_framesForMovement = 0;
+      character.ResetFrameCounter();
     }
+  }
+}
+
+void Game::UpdatePositionOfBlinky()
+{
+  const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
+
+  m_blinky.SetRowInSheet(0);
+  MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_blinky);
+}
+
+void Game::UpdatePositionOfPinky()
+{
+  DirectX::XMFLOAT3 pacmanPos = m_pacman.GetPosition();
+
+  switch (m_pacman.GetFacingDirection())
+  {
+    case Character::Direction::Left:
+      pacmanPos.x -= 4;
+      break;
+    case Character::Direction::Right:
+      pacmanPos.x += 4;
+      break;
+    case Character::Direction::Up:
+      pacmanPos.z += 4;
+      break;
+    case Character::Direction::Down:
+      pacmanPos.z -= 4;
+      break;
+  }
+
+  m_pinky.SetRowInSheet(1);
+  MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_pinky);
+}
+
+void Game::UpdatePositionOfInky()
+{
+  DirectX::XMFLOAT3 pacmanPos = m_pacman.GetPosition();
+
+  switch (m_pacman.GetFacingDirection())
+  {
+    case Character::Direction::Left:
+      pacmanPos.x -= 2;
+      break;
+    case Character::Direction::Right:
+      pacmanPos.x += 2;
+      break;
+    case Character::Direction::Up:
+      pacmanPos.z += 2;
+      break;
+    case Character::Direction::Down:
+      pacmanPos.z -= 2;
+      break;
+  }
+
+  const DirectX::XMFLOAT3 blinkyPos = m_blinky.GetPosition();
+
+  float finalPosX = 0;
+  float finalPosZ = 0;
+
+  finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
+  finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
+
+  m_inky.SetRowInSheet(2);
+  MoveCharacterTowardsPosition(finalPosX, finalPosZ, m_inky);
+}
+
+void Game::UpdatePositionOfClyde()
+{
+  m_clyde.SetRowInSheet(3);
+
+  const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
+  const DirectX::XMFLOAT3& clydePos = m_clyde.GetPosition();
+
+  float distance = sqrt((clydePos.x - pacmanPos.x) * (clydePos.x - pacmanPos.x) + (clydePos.z - pacmanPos.z) * (clydePos.z - pacmanPos.z));
+
+  if (distance > 8)
+  {
+    // Behave as blinky
+    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_clyde);
+  }
+  else
+  {
+    // Scatter
+    MoveCharacterTowardsPosition(0.0f, 0.0f, m_clyde);
   }
 }
 
