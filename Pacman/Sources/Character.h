@@ -24,6 +24,7 @@ public:
     Down,
     Left,
     Stop,
+    InHouse,
     Dead // TODO
   };
 
@@ -65,6 +66,8 @@ public:
   void IncreaseFrameCounter();
   uint8_t GetNumberOfFrames();
   void ResetFrameCounter();
+
+  void RevereseMovementDirection();
 
 private:
   uint8_t m_currentFrame;

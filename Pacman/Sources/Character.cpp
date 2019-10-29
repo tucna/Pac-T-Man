@@ -207,3 +207,14 @@ void Character::ResetFrameCounter()
 {
   m_frameCounter = 0;
 }
+
+void Character::RevereseMovementDirection()
+{
+  switch (m_movement)
+  {
+    case Movement::Left:  SetMovement(Character::Movement::Right); break;
+    case Movement::Right: SetMovement(Character::Movement::Left); break;
+    case Movement::Up:    SetMovement(Character::Movement::Down); break;
+    case Movement::Down:  SetMovement(Character::Movement::Up); break;
+  }
+}

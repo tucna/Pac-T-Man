@@ -15,7 +15,8 @@ Game::Game() noexcept :
   m_outputHeight(600),
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
-  m_debugDraw(false)
+  m_debugDraw(false),
+  m_currentMode(Mode::Scatter)
 {
 }
 
@@ -39,18 +40,19 @@ void Game::Initialize(HWND window, int width, int height)
   m_blinky.SetMovement(Character::Movement::Left);
 
   m_pinky.Init(m_d3dDevice.Get());
-  //m_pinky.SetPosition(10.5f, 0.3f, 11.5f); TODO: correct position
-  m_pinky.SetPosition(13.5f, 0.3f, 13.5f);
-  //m_pinky.SetMovement(Character::Movement::Stop);
-  m_pinky.SetMovement(Character::Movement::Left);
+  m_pinky.SetPosition(11.5f, 0.3f, 13.5f);
+  //m_pinky.SetPosition(10.5f, 0.3f, 11.5f);
+  //m_pinky.SetMovement(Character::Movement::InHouse);
 
   m_inky.Init(m_d3dDevice.Get());
   m_inky.SetPosition(12.5f, 0.3f, 13.5f);
-  m_inky.SetMovement(Character::Movement::Left);
+  //m_inky.SetPosition(9.5f, 0.3f, 11.5f);
+  //m_inky.SetMovement(Character::Movement::InHouse);
 
   m_clyde.Init(m_d3dDevice.Get());
-  m_clyde.SetPosition(11.5f, 0.3f, 13.5f);
-  m_clyde.SetMovement(Character::Movement::Left);
+  m_clyde.SetPosition(13.5f, 0.3f, 13.5f);
+  //m_clyde.SetPosition(11.5f, 0.3f, 11.5f);
+  //m_clyde.SetMovement(Character::Movement::InHouse);
 
   // TODO Check HR
   CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf());
@@ -163,7 +165,26 @@ void Game::Tick()
 
 void Game::Update(DX::StepTimer const& timer)
 {
-  (void)timer;
+  if (timer.GetTotalSeconds() > 7 && timer.GetTotalSeconds() <= 27)
+  {
+    if (m_currentMode != Mode::Chase)
+    {
+      m_blinky.RevereseMovementDirection();
+      m_pinky.RevereseMovementDirection();
+      m_inky.RevereseMovementDirection();
+      m_clyde.RevereseMovementDirection();
+    }
+
+    m_currentMode = Mode::Chase;
+  }
+  else if (timer.GetTotalSeconds() > 27 && timer.GetTotalSeconds() <= 34)
+    m_currentMode = Mode::Scatter;
+  else if (timer.GetTotalSeconds() > 34 && timer.GetTotalSeconds() <= 54)
+    m_currentMode = Mode::Chase;
+  else if (timer.GetTotalSeconds() > 54 && timer.GetTotalSeconds() <= 59)
+    m_currentMode = Mode::Scatter;
+  else if (timer.GetTotalSeconds() > 59)
+    m_currentMode = Mode::Chase;
 
   auto kb = m_keyboard->GetState();
 
@@ -364,20 +385,20 @@ void Game::Clear()
 // Presents the back buffer contents to the screen.
 void Game::Present()
 {
-    // The first argument instructs DXGI to block until VSync, putting the application
-    // to sleep until the next VSync. This ensures we don't waste any cycles rendering
-    // frames that will never be displayed to the screen.
-    HRESULT hr = m_swapChain->Present(1, 0);
+  // The first argument instructs DXGI to block until VSync, putting the application
+  // to sleep until the next VSync. This ensures we don't waste any cycles rendering
+  // frames that will never be displayed to the screen.
+  HRESULT hr = m_swapChain->Present(1, 0);
 
-    // If the device was reset we must completely reinitialize the renderer.
-    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
-    {
-        OnDeviceLost();
-    }
-    else
-    {
-        DX::ThrowIfFailed(hr);
-    }
+  // If the device was reset we must completely reinitialize the renderer.
+  if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
+  {
+    OnDeviceLost();
+  }
+  else
+  {
+    DX::ThrowIfFailed(hr);
+  }
 }
 
 // Message handlers
@@ -388,43 +409,34 @@ void Game::OnActivated()
 
 void Game::OnDeactivated()
 {
-    // TODO: Game is becoming background window.
 }
 
 void Game::OnSuspending()
 {
-    // TODO: Game is being power-suspended (or minimized).
 }
 
 void Game::OnResuming()
 {
-    m_timer.ResetElapsedTime();
-
-    // TODO: Game is being power-resumed (or returning from minimize).
+  m_timer.ResetElapsedTime();
 }
 
 void Game::OnWindowSizeChanged(int width, int height)
 {
-    m_outputWidth = std::max(width, 1);
-    m_outputHeight = std::max(height, 1);
+  m_outputWidth = std::max(width, 1);
+  m_outputHeight = std::max(height, 1);
 
-    CreateResources();
-
-    // TODO: Game window is being resized.
+  CreateResources();
 }
 
-// Properties
 void Game::GetDefaultSize(int& width, int& height) const
 {
-    // TODO: Change to desired default window size (note minimum size is 320x200).
-    width = 800;
-    height = 600;
+  width = 800;
+  height = 600;
 }
 
 void Game::DrawWorld()
 {
   m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Indexed);
-  //m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Flat);
   m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Phong);
 
   Global::CameraPerObject cameraPerObjectConstantBuffer;
@@ -765,85 +777,124 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& chara
 
 void Game::UpdatePositionOfBlinky()
 {
-  const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
+  if (m_currentMode == Mode::Chase)
+  {
+    const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
 
-  m_blinky.SetRowInSheet(0);
-  MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_blinky);
+    m_blinky.SetRowInSheet(0);
+    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_blinky);
+  }
+  else
+  {
+    MoveCharacterTowardsPosition(18.5f, 21.5f, m_blinky);
+  }
 }
 
 void Game::UpdatePositionOfPinky()
 {
-  DirectX::XMFLOAT3 pacmanPos = m_pacman.GetPosition();
-
-  switch (m_pacman.GetFacingDirection())
-  {
-    case Character::Direction::Left:
-      pacmanPos.x -= 4;
-      break;
-    case Character::Direction::Right:
-      pacmanPos.x += 4;
-      break;
-    case Character::Direction::Up:
-      pacmanPos.z += 4;
-      break;
-    case Character::Direction::Down:
-      pacmanPos.z -= 4;
-      break;
-  }
-
   m_pinky.SetRowInSheet(1);
-  MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_pinky);
+
+  if (m_pinky.GetMovement() == Character::Movement::InHouse)
+    return;
+
+  if (m_currentMode == Mode::Chase)
+  {
+    DirectX::XMFLOAT3 pacmanPos = m_pacman.GetPosition();
+
+    switch (m_pacman.GetFacingDirection())
+    {
+      case Character::Direction::Left:
+        pacmanPos.x -= 4;
+        break;
+      case Character::Direction::Right:
+        pacmanPos.x += 4;
+        break;
+      case Character::Direction::Up:
+        pacmanPos.z += 4;
+        break;
+      case Character::Direction::Down:
+        pacmanPos.z -= 4;
+        break;
+    }
+
+    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_pinky);
+  }
+  else
+  {
+    MoveCharacterTowardsPosition(2.5f, 21.5f, m_pinky);
+  }
 }
 
 void Game::UpdatePositionOfInky()
 {
-  DirectX::XMFLOAT3 pacmanPos = m_pacman.GetPosition();
-
-  switch (m_pacman.GetFacingDirection())
-  {
-    case Character::Direction::Left:
-      pacmanPos.x -= 2;
-      break;
-    case Character::Direction::Right:
-      pacmanPos.x += 2;
-      break;
-    case Character::Direction::Up:
-      pacmanPos.z += 2;
-      break;
-    case Character::Direction::Down:
-      pacmanPos.z -= 2;
-      break;
-  }
-
-  const DirectX::XMFLOAT3 blinkyPos = m_blinky.GetPosition();
-
-  float finalPosX = 0;
-  float finalPosZ = 0;
-
-  finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
-  finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
-
   m_inky.SetRowInSheet(2);
-  MoveCharacterTowardsPosition(finalPosX, finalPosZ, m_inky);
+
+  if (m_inky.GetMovement() == Character::Movement::InHouse)
+    return;
+
+  if (m_currentMode == Mode::Chase)
+  {
+    DirectX::XMFLOAT3 pacmanPos = m_pacman.GetPosition();
+
+    switch (m_pacman.GetFacingDirection())
+    {
+      case Character::Direction::Left:
+        pacmanPos.x -= 2;
+        break;
+      case Character::Direction::Right:
+        pacmanPos.x += 2;
+        break;
+      case Character::Direction::Up:
+        pacmanPos.z += 2;
+        break;
+      case Character::Direction::Down:
+        pacmanPos.z -= 2;
+        break;
+    }
+
+    const DirectX::XMFLOAT3 blinkyPos = m_blinky.GetPosition();
+
+    float finalPosX = 0;
+    float finalPosZ = 0;
+
+    finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
+    finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
+
+    MoveCharacterTowardsPosition(finalPosX, finalPosZ, m_inky);
+  }
+  else
+  {
+    MoveCharacterTowardsPosition(21.5f, 0.0f, m_inky);
+  }
 }
 
 void Game::UpdatePositionOfClyde()
 {
   m_clyde.SetRowInSheet(3);
 
-  const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
-  const DirectX::XMFLOAT3& clydePos = m_clyde.GetPosition();
+  if (m_clyde.GetMovement() == Character::Movement::InHouse)
+    return;
 
-  float distance = sqrt((clydePos.x - pacmanPos.x) * (clydePos.x - pacmanPos.x) + (clydePos.z - pacmanPos.z) * (clydePos.z - pacmanPos.z));
-
-  if (distance > 8)
+  if (m_currentMode == Mode::Chase)
   {
-    // Behave as blinky
-    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_clyde);
+    const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
+    const DirectX::XMFLOAT3& clydePos = m_clyde.GetPosition();
+
+    float distance = sqrt((clydePos.x - pacmanPos.x) * (clydePos.x - pacmanPos.x) + (clydePos.z - pacmanPos.z) * (clydePos.z - pacmanPos.z));
+
+    if (distance > 8)
+    {
+      // Behave as blinky
+      MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_clyde);
+    }
+    else
+    {
+      // Scatter
+      MoveCharacterTowardsPosition(0.0f, 0.0f, m_clyde);
+    }
   }
   else
   {
-    // Scatter
     MoveCharacterTowardsPosition(0.0f, 0.0f, m_clyde);
   }
 }
@@ -1015,15 +1066,13 @@ void Game::CreateResources()
 
 void Game::OnDeviceLost()
 {
-    // TODO: Add Direct3D resource cleanup here.
+  m_depthStencilView.Reset();
+  m_renderTargetView.Reset();
+  m_swapChain.Reset();
+  m_d3dContext.Reset();
+  m_d3dDevice.Reset();
 
-    m_depthStencilView.Reset();
-    m_renderTargetView.Reset();
-    m_swapChain.Reset();
-    m_d3dContext.Reset();
-    m_d3dDevice.Reset();
+  CreateDevice();
 
-    CreateDevice();
-
-    CreateResources();
+  CreateResources();
 }
