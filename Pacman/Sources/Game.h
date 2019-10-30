@@ -13,7 +13,7 @@
 class Game
 {
 
-  TODO> fix camera, fix types (there should be XMFLOAT4 as member not XMVECTOR - XMVECTOR should be used just for processing and be converted to it), write type strong enum array initialization
+  //TODO> fix camera, fix types (there should be XMFLOAT4 as member not XMVECTOR - XMVECTOR should be used just for processing and be converted to it), write type strong enum array initialization
 
 public:
   enum Characters
