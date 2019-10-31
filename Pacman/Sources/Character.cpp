@@ -12,7 +12,8 @@ Character::Character() :
   m_frameCounter(0),
   m_facingDirection(Direction::Left),
   m_spriteSheetColumns(0),
-  m_spriteSheetRows(0)
+  m_spriteSheetRows(0),
+  m_spriteXAddition(0)
 {
   UpdateWorldMatrix();
 }
@@ -47,9 +48,28 @@ void Character::SetMovement(Movement movement)
     m_facingDirection = static_cast<Direction>(static_cast<uint8_t>(movement));
 }
 
-void Character::Update(uint8_t coefMod, uint8_t coefAdd)
+void Character::Update(uint8_t coefMod)
 {
-  m_currentFrame = ++m_currentFrame % coefMod + coefAdd;
+  switch (m_movement)
+  {
+  case Movement::Up:
+    m_spriteXAddition = 0;
+    break;
+  case Movement::Right:
+    m_spriteXAddition = 6;
+    break;
+  case Movement::Down:
+    m_spriteXAddition = 2;
+    break;
+  case Movement::Left:
+    m_spriteXAddition = 4;
+    break;
+  default:
+    // No change of the coeficient
+    break;
+  }
+
+  m_currentFrame = ++m_currentFrame % coefMod + m_spriteXAddition;
 }
 
 void Character::Init(ID3D11Device1* device, float r, float g, float b)

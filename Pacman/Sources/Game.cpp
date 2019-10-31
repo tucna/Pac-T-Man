@@ -34,7 +34,7 @@ void Game::Initialize(HWND window, int width, int height)
 
   m_pacman.Init(m_d3dDevice.Get());
   m_pacman.SetPosition(10.5f, 0.25f, 9.5f);
-  m_pacman.SetColumnsAndRowsOfAssociatedSpriteSheet(2, 4);
+  m_pacman.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 1);
   m_pacman.SetSpriteScaleFactor(Global::pacManSize);
 
   m_blinky.Init(m_d3dDevice.Get());
@@ -309,22 +309,24 @@ void Game::Update(DX::StepTimer const& timer)
     break;
   }
 
+  m_pacman.SetSpriteY(0);
+
   switch (m_pacman.GetMovement())
   {
   case Character::Movement::Left:
-    m_pacman.SetSpriteY(0);
+    m_pacman.SetSpriteXAddition(4);
     m_pacman.AdjustPosition(-Global::pacManSpeed, 0, 0);
     break;
   case Character::Movement::Right:
-    m_pacman.SetSpriteY(1);
+    m_pacman.SetSpriteXAddition(6);
     m_pacman.AdjustPosition(Global::pacManSpeed, 0, 0);
     break;
   case Character::Movement::Up:
-    m_pacman.SetSpriteY(2);
+    m_pacman.SetSpriteXAddition(0);
     m_pacman.AdjustPosition(0, 0, Global::pacManSpeed);
     break;
   case Character::Movement::Down:
-    m_pacman.SetSpriteY(3);
+    m_pacman.SetSpriteXAddition(2);
     m_pacman.AdjustPosition(0, 0, -Global::pacManSpeed);
     break;
   default:
@@ -441,8 +443,8 @@ void Game::DrawSprites()
   m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard);
   m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Texture);
 
-  Global::SpriteConstantBuffer frameConstantBuffer = { 0, 0, 1, 1, DirectX::XMFLOAT4(0.2f, 0, 0, 0) };
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+  Global::SpriteConstantBuffer spriteConstantBuffer = { 0, 0, 1, 1, DirectX::XMFLOAT4(0.2f, 0, 0, 0) };
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
   Global::CameraPerObject cameraPerObjectConstantBuffer;
   cameraPerObjectConstantBuffer.world = m_dots.GetWorldMatrix();
@@ -455,10 +457,10 @@ void Game::DrawSprites()
   m_d3dContext->PSSetShaderResources(0, 1, m_pacManShaderResourceView.GetAddressOf());
 
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_pacman.Update(2, 0);
+    m_pacman.Update(2);
 
-  SetSpriteConstantBufferForCharacter(frameConstantBuffer, m_pacman);
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_pacman);
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
   cameraPerObjectConstantBuffer.world = m_pacman.GetWorldMatrix();
 
@@ -469,29 +471,11 @@ void Game::DrawSprites()
   // Draw ghosts
   m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
 
-  uint8_t blinkyDirection = 0;
-
-  switch (m_blinky.GetMovement())
-  {
-  case Character::Movement::Up:
-    blinkyDirection = 0;
-    break;
-  case Character::Movement::Right:
-    blinkyDirection = 6;
-    break;
-  case Character::Movement::Down:
-    blinkyDirection = 2;
-    break;
-  case Character::Movement::Left:
-    blinkyDirection = 4;
-    break;
-  }
-
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_blinky.Update(2, blinkyDirection);
+    m_blinky.Update(2);
 
-  SetSpriteConstantBufferForCharacter(frameConstantBuffer, m_blinky);
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_blinky);
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
   cameraPerObjectConstantBuffer.world = m_blinky.GetWorldMatrix();
 
@@ -500,29 +484,11 @@ void Game::DrawSprites()
   m_blinky.Draw(m_d3dContext.Get());
 
   // Pinky
-  uint8_t pinkyDirection = 0;
-
-  switch (m_pinky.GetMovement())
-  {
-  case Character::Movement::Up:
-    pinkyDirection = 0;
-    break;
-  case Character::Movement::Right:
-    pinkyDirection = 6;
-    break;
-  case Character::Movement::Down:
-    pinkyDirection = 2;
-    break;
-  case Character::Movement::Left:
-    pinkyDirection = 4;
-    break;
-  }
-
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_pinky.Update(2, pinkyDirection);
+    m_pinky.Update(2);
 
-  SetSpriteConstantBufferForCharacter(frameConstantBuffer, m_pinky);
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_pinky);
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
   cameraPerObjectConstantBuffer.world = m_pinky.GetWorldMatrix();
 
@@ -531,29 +497,11 @@ void Game::DrawSprites()
   m_pinky.Draw(m_d3dContext.Get());
 
   // Inky
-  uint8_t inkyDirection = 0;
-
-  switch (m_inky.GetMovement())
-  {
-  case Character::Movement::Up:
-    inkyDirection = 0;
-    break;
-  case Character::Movement::Right:
-    inkyDirection = 6;
-    break;
-  case Character::Movement::Down:
-    inkyDirection = 2;
-    break;
-  case Character::Movement::Left:
-    inkyDirection = 4;
-    break;
-  }
-
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_inky.Update(2, inkyDirection);
+    m_inky.Update(2);
 
-  SetSpriteConstantBufferForCharacter(frameConstantBuffer, m_inky);
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_inky);
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
   cameraPerObjectConstantBuffer.world = m_inky.GetWorldMatrix();
 
@@ -562,29 +510,11 @@ void Game::DrawSprites()
   m_inky.Draw(m_d3dContext.Get());
 
   // Clyde
-  uint8_t clydeDirection = 0;
-
-  switch (m_clyde.GetMovement())
-  {
-  case Character::Movement::Up:
-    clydeDirection = 0;
-    break;
-  case Character::Movement::Right:
-    clydeDirection = 6;
-    break;
-  case Character::Movement::Down:
-    clydeDirection = 2;
-    break;
-  case Character::Movement::Left:
-    clydeDirection = 4;
-    break;
-  }
-
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_clyde.Update(2, clydeDirection);
+    m_clyde.Update(2);
 
-  SetSpriteConstantBufferForCharacter(frameConstantBuffer, m_clyde);
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_clyde);
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
   cameraPerObjectConstantBuffer.world = m_clyde.GetWorldMatrix();
 

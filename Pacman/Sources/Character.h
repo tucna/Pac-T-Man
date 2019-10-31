@@ -37,7 +37,7 @@ public:
   ~Character();
 
   void AdjustPosition(float x, float y, float z);
-  void Update(uint8_t coefMod, uint8_t coefAdd);
+  void Update(uint8_t coefMod);
   void Init(ID3D11Device1* device, float r, float g, float b);
   void Init(ID3D11Device1* device);
   void Draw(ID3D11DeviceContext1* context);
@@ -53,6 +53,7 @@ public:
   void SetSpriteY(uint8_t spriteY) { m_spriteY = spriteY; }
   void SetColumnsAndRowsOfAssociatedSpriteSheet(uint8_t columns, uint8_t rows);
   void SetSpriteScaleFactor(float scale) { m_spriteScaleFactor = scale; }
+  void SetSpriteXAddition(uint8_t xAddition) { m_spriteXAddition = xAddition; }
 
   const DirectX::XMMATRIX& GetWorldMatrix() const { return m_worldMatrix; }
   const DirectX::XMFLOAT3& GetPosition() const { return m_position; }
@@ -90,6 +91,7 @@ private:
   uint8_t m_frameCounter;
   uint8_t m_spriteSheetColumns;
   uint8_t m_spriteSheetRows;
+  uint8_t m_spriteXAddition;
 
   float m_spriteScaleFactor;
 };
