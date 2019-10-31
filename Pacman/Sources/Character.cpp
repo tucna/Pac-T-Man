@@ -84,7 +84,7 @@ void Character::Update(uint8_t coefMod, uint8_t coefAdd)
   m_currentFrame = ++m_currentFrame % coefMod + coefAdd;
 }
 
-void Character::Init(ID3D11Device1 * device, float r, float g, float b)
+void Character::Init(ID3D11Device1* device, float r, float g, float b)
 {
   m_vertices.push_back({{0,0,0}, {0.0, 1.0, 0.0}, {r, g, b}});
 
@@ -183,7 +183,7 @@ void Character::AlignToMap()
   m_position.z = floor(m_position.z) + 0.5f;
 }
 
-DirectX::XMMATRIX Character::GetWorldMatrix() const noexcept
+const DirectX::XMMATRIX& Character::GetWorldMatrix() const noexcept
 {
   return DirectX::XMMatrixTranspose(
     DirectX::XMMatrixTranslation(

@@ -20,7 +20,7 @@ public:
 
   void Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context);
 
-  DirectX::XMMATRIX GetWorldMatrix() const noexcept;
+  const DirectX::XMMATRIX& GetWorldMatrix() const noexcept;
 
 private:
   uint8_t m_dots[Global::worldSize][Global::worldSize];

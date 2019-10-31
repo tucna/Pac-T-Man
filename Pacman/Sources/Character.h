@@ -61,7 +61,7 @@ public:
 
   void AlignToMap();
 
-  DirectX::XMMATRIX GetWorldMatrix() const noexcept;
+  const DirectX::XMMATRIX& GetWorldMatrix() const noexcept;
 
   void IncreaseFrameCounter();
   uint8_t GetNumberOfFrames();

@@ -170,7 +170,7 @@ void Dots::Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context)
   }
 }
 
-DirectX::XMMATRIX Dots::GetWorldMatrix() const noexcept
+const DirectX::XMMATRIX& Dots::GetWorldMatrix() const noexcept
 {
   return DirectX::XMMatrixIdentity();
 }
