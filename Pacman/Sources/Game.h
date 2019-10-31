@@ -16,13 +16,14 @@ class Game
   //TODO> fix camera, fix types (there should be XMFLOAT4 as member not XMVECTOR - XMVECTOR should be used just for processing and be converted to it), write type strong enum array initialization
 
 public:
-  enum Characters
+  enum class Characters
   {
     Pacman,
     Blinky,
     Pinky,
     Inky,
-    Clyde
+    Clyde,
+    _Count
   };
 
   enum class Mode
@@ -85,7 +86,7 @@ private:
   Microsoft::WRL::ComPtr<IDXGISwapChain1>         m_swapChain;
   Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  m_renderTargetView;
   Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_depthStencilView;
-  Microsoft::WRL::ComPtr<ID3D11Buffer>            m_constantBuffer;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>            m_projectionMatrixConstantBuffer;
   Microsoft::WRL::ComPtr<ID3D11Buffer>            m_frameBuffer;
 
   Microsoft::WRL::ComPtr<ID3D11Buffer>            m_cameraPerFrame;

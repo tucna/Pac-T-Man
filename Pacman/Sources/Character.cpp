@@ -6,7 +6,7 @@ using namespace DirectX;
 
 Character::Character() :
   m_currentFrame(0),
-  m_direction(0),
+  m_spriteY(0),
   m_position(0, 0, 0),
   m_movement(Movement::Stop),
   m_frameCounter(0),

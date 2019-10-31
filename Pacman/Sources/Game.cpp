@@ -76,24 +76,20 @@ void Game::Initialize(HWND window, int width, int height)
   m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f); // Here or to resize?
 
   // Camera constant buffers
-  Global::CameraConstantBuffer cameraConstantBuffer;
-
-  cameraConstantBuffer.world = DirectX::XMMatrixIdentity();
-  cameraConstantBuffer.view = DirectX::XMMatrixTranspose(m_camera.GetViewMatrix());
-  cameraConstantBuffer.projection = DirectX::XMMatrixTranspose(m_camera.GetProjectionMatrix());
+  XMMATRIX projection = DirectX::XMMatrixTranspose(m_camera.GetProjectionMatrix());
 
   D3D11_BUFFER_DESC cbd = {};
   cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
   cbd.Usage = D3D11_USAGE_DYNAMIC;
   cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
   cbd.MiscFlags = 0;
-  cbd.ByteWidth = sizeof(Global::CameraConstantBuffer);
+  cbd.ByteWidth = sizeof(XMMATRIX);
   cbd.StructureByteStride = 0;
 
   D3D11_SUBRESOURCE_DATA csd = {};
-  csd.pSysMem = &cameraConstantBuffer;
+  csd.pSysMem = &projection;
 
-  m_d3dDevice->CreateBuffer(&cbd, &csd, &m_constantBuffer);
+  m_d3dDevice->CreateBuffer(&cbd, &csd, &m_projectionMatrixConstantBuffer);
 
   // Camera constant buffers v2
   Global::CameraPerFrame cameraConstantBufferPerFrame;
@@ -140,7 +136,7 @@ void Game::Initialize(HWND window, int width, int height)
 
   m_d3dDevice->CreateBuffer(&cbd, &csd, &m_frameBuffer);
 
-  ID3D11Buffer* geometryShaderBuffers[2] = { m_constantBuffer.Get(), m_frameBuffer.Get() };
+  ID3D11Buffer* geometryShaderBuffers[2] = { m_projectionMatrixConstantBuffer.Get(), m_frameBuffer.Get() };
   m_shaderManager->BindConstantBuffersToGeometryShader(ShaderManager::GeometryShader::Billboard, geometryShaderBuffers, 2);
 
   ID3D11Buffer* vertexShaderBuffers[2] = { m_cameraPerFrame.Get(), m_cameraPerObject.Get() };
@@ -606,8 +602,8 @@ void Game::DrawDebug()
   {
     // Create dummy character to represent a target place
     Character dummy;
-    dummy.Init(m_d3dDevice.Get(), debugPoint.col.x, debugPoint.col.y, debugPoint.col.z);
-    dummy.SetPosition(debugPoint.pos.x, debugPoint.pos.y, debugPoint.pos.z);
+    dummy.Init(m_d3dDevice.Get(), debugPoint.color.x, debugPoint.color.y, debugPoint.color.z);
+    dummy.SetPosition(debugPoint.position.x, debugPoint.position.y, debugPoint.position.z);
 
     m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Instanced);
     m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard);

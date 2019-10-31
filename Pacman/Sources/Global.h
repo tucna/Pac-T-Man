@@ -2,6 +2,7 @@
 
 namespace Global
 {
+
 constexpr uint8_t worldSize = 21;
 constexpr uint8_t minFramesPerDirection = 3;
 
@@ -13,16 +14,9 @@ constexpr float pacManHalfSize = pacManSize / 2.0f;
 
 struct Vertex
 {
-  DirectX::XMFLOAT3 pos;
-  DirectX::XMFLOAT3 n;
-  DirectX::XMFLOAT3 col;
-};
-
-struct CameraConstantBuffer
-{
-  DirectX::XMMATRIX world;
-  DirectX::XMMATRIX view;
-  DirectX::XMMATRIX projection;
+  DirectX::XMFLOAT3 position;
+  DirectX::XMFLOAT3 normal;
+  DirectX::XMFLOAT3 color;
 };
 
 struct CameraPerFrame
@@ -46,5 +40,5 @@ struct SpriteConstantBuffer
   DirectX::XMFLOAT4 billboardSize_0_0_0;
 };
 
-static_assert((sizeof(SpriteConstantBuffer) % 16) == 0, "SpriteConstantBuffer is not alligned!");
+static_assert((sizeof(SpriteConstantBuffer) % 16) == 0, "SpriteConstantBuffer is not aligned!");
 }

@@ -50,7 +50,7 @@ public:
   void SetPosition(float x, float y, float z);
   void SetMovement(Movement movement);
 
-  void SetSpriteY(uint8_t direction) { m_direction = direction; }
+  void SetSpriteY(uint8_t spriteY) { m_spriteY = spriteY; }
   void SetColumnsAndRowsOfAssociatedSpriteSheet(uint8_t columns, uint8_t rows);
   void SetSpriteScaleFactor(float scale) { m_spriteScaleFactor = scale; }
 
@@ -63,7 +63,7 @@ public:
   float GetSpriteScaleFactor() const { return m_spriteScaleFactor; }
 
   uint8_t GetNumberOfFrames() const { return m_frameCounter; }
-  uint8_t GetSpriteY() const { return m_direction; }
+  uint8_t GetSpriteY() const { return m_spriteY; }
   uint8_t GetSpriteX() const { return m_currentFrame; }
   uint8_t GetSpriteSheetColumns() const { return m_spriteSheetColumns; }
   uint8_t GetSpriteSheetRows() const { return m_spriteSheetRows; }
@@ -71,26 +71,23 @@ public:
 private:
   void UpdateWorldMatrix();
 
-  uint8_t m_currentFrame;
-  uint8_t m_direction;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>          m_vertexBuffer;
+  Microsoft::WRL::ComPtr<ID3D11SamplerState>    m_samplerState;
+  Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_cullNone;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>          m_instanceBuffer;
 
   DirectX::XMMATRIX m_worldMatrix;
-
   DirectX::XMFLOAT3 m_position;
 
-  Microsoft::WRL::ComPtr<ID3D11Buffer>              m_vertexBuffer;
-  Microsoft::WRL::ComPtr<ID3D11SamplerState>        m_samplerState;
-  Microsoft::WRL::ComPtr<ID3D11RasterizerState>     m_cullNone;
-  Microsoft::WRL::ComPtr<ID3D11Buffer>              m_instanceBuffer;
-
-  std::vector<InstanceType>   m_instances;
+  std::vector<InstanceType> m_instances;
   std::vector<Global::Vertex> m_vertices;
 
   Movement m_movement;
   Direction m_facingDirection;
 
+  uint8_t m_currentFrame;
+  uint8_t m_spriteY;
   uint8_t m_frameCounter;
-
   uint8_t m_spriteSheetColumns;
   uint8_t m_spriteSheetRows;
 
