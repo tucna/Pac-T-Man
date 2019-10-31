@@ -25,56 +25,48 @@ public:
     Left,
     Stop,
     InHouse,
-    Dead // TODO
+    Dead
   };
 
   struct InstanceType
   {
-    DirectX::XMFLOAT3 newPosition;
+    DirectX::XMFLOAT3 position;
   };
 
   Character();
   ~Character();
 
-  void SetPosition(float x, float y, float z);
-  void SetFrame(uint8_t frameID);
-
   void AdjustPosition(float x, float y, float z);
-
-  DirectX::XMFLOAT3 GetPosition();
-
-  uint8_t GetFrame() const;
-
-  void SetRowInSheet(uint8_t direction);
-  uint8_t GetRowInSheet() const;
-
-  void SetMovement(Movement movement);
-  Movement GetMovement() const;
-  Direction GetFacingDirection() const;
-  void SetFacingDirection(Direction direction);
-
   void Update(uint8_t coefMod, uint8_t coefAdd);
-
   void Init(ID3D11Device1* device, float r, float g, float b);
   void Init(ID3D11Device1* device);
   void Draw(ID3D11DeviceContext1* context);
-
   void AlignToMap();
 
-  const DirectX::XMMATRIX& GetWorldMatrix() const noexcept;
-
   void IncreaseFrameCounter();
-  uint8_t GetNumberOfFrames();
   void ResetFrameCounter();
-
   void RevereseMovementDirection();
 
+  void SetPosition(float x, float y, float z);
+  void SetMovement(Movement movement);
+
+  void SetSpriteY(uint8_t direction) { m_direction = direction; }
   void SetColumnsAndRowsOfAssociatedSpriteSheet(uint8_t columns, uint8_t rows);
+  void SetSpriteScaleFactor(float scale) { m_spriteScaleFactor = scale; }
+
+  const DirectX::XMMATRIX& GetWorldMatrix() const { return m_worldMatrix; }
+  const DirectX::XMFLOAT3& GetPosition() const { return m_position; }
+
+  Direction GetFacingDirection() const { return m_facingDirection; }
+  Movement GetMovement() const { return m_movement; }
+
+  float GetSpriteScaleFactor() const { return m_spriteScaleFactor; }
+
+  uint8_t GetNumberOfFrames() const { return m_frameCounter; }
+  uint8_t GetSpriteY() const { return m_direction; }
+  uint8_t GetSpriteX() const { return m_currentFrame; }
   uint8_t GetSpriteSheetColumns() const { return m_spriteSheetColumns; }
   uint8_t GetSpriteSheetRows() const { return m_spriteSheetRows; }
-
-  void SetSpriteScaleFactor(float scale) { m_spriteScaleFactor = scale; }
-  float GetSpriteScaleFactor() const { return m_spriteScaleFactor; }
 
 private:
   void UpdateWorldMatrix();

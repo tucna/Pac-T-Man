@@ -58,6 +58,7 @@ void Camera::SetLookAtPos(XMFLOAT3 lookAtPos)
   if (lookAtPos.y != 0.0f)
   {
     const float distance = sqrt(lookAtPos.x * lookAtPos.x + lookAtPos.z * lookAtPos.z);
+
     pitch = atan(lookAtPos.y / distance);
   }
 

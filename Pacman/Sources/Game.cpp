@@ -125,18 +125,14 @@ void Game::Initialize(HWND window, int width, int height)
   m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerObject);
 
   // Frame constant buffers
-  Global::FrameConstantBuffer frameConstantBuffer;
-
-  frameConstantBuffer.frameID = DirectX::XMFLOAT2(1, 0);
-  frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(2, 1); // Two frames on X axis and one frame on Y
-  frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(1, 0, 0, 0);
+  Global::SpriteConstantBuffer frameConstantBuffer = {};
 
   cbd = {};
   cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
   cbd.Usage = D3D11_USAGE_DYNAMIC;
   cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
   cbd.MiscFlags = 0;
-  cbd.ByteWidth = sizeof(Global::FrameConstantBuffer);
+  cbd.ByteWidth = sizeof(Global::SpriteConstantBuffer);
   cbd.StructureByteStride = 0;
 
   csd = {};
@@ -320,19 +316,19 @@ void Game::Update(DX::StepTimer const& timer)
   switch (m_pacman.GetMovement())
   {
   case Character::Movement::Left:
-    m_pacman.SetRowInSheet(0);
+    m_pacman.SetSpriteY(0);
     m_pacman.AdjustPosition(-Global::pacManSpeed, 0, 0);
     break;
   case Character::Movement::Right:
-    m_pacman.SetRowInSheet(1);
+    m_pacman.SetSpriteY(1);
     m_pacman.AdjustPosition(Global::pacManSpeed, 0, 0);
     break;
   case Character::Movement::Up:
-    m_pacman.SetRowInSheet(2);
+    m_pacman.SetSpriteY(2);
     m_pacman.AdjustPosition(0, 0, Global::pacManSpeed);
     break;
   case Character::Movement::Down:
-    m_pacman.SetRowInSheet(3);
+    m_pacman.SetSpriteY(3);
     m_pacman.AdjustPosition(0, 0, -Global::pacManSpeed);
     break;
   default:
@@ -449,11 +445,7 @@ void Game::DrawSprites()
   m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard);
   m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Texture);
 
-  Global::FrameConstantBuffer frameConstantBuffer;
-  frameConstantBuffer.frameID = DirectX::XMFLOAT2(0, 0);
-  frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(1, 1);
-  frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(0.2f, 0, 0, 0);
-
+  Global::SpriteConstantBuffer frameConstantBuffer = { 0, 0, 1, 1, DirectX::XMFLOAT4(0.2f, 0, 0, 0) };
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
 
   Global::CameraPerObject cameraPerObjectConstantBuffer;
@@ -622,11 +614,7 @@ void Game::DrawDebug()
     m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Color);
 
     // TODO this should not be necessary but what the heck
-    Global::FrameConstantBuffer frameConstantBuffer;
-    frameConstantBuffer.frameID = DirectX::XMFLOAT2(0, 0);
-    frameConstantBuffer.framesNumber = DirectX::XMFLOAT2(1, 1);
-    frameConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(0.25f, 0, 0, 0);
-
+    Global::SpriteConstantBuffer frameConstantBuffer = { 0, 0, 1, 1, DirectX::XMFLOAT4(0.25f, 0, 0, 0) };
     m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
 
     Global::CameraPerObject cameraPerObjectConstantBuffer;
@@ -761,7 +749,7 @@ void Game::UpdatePositionOfBlinky()
   {
     const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
 
-    m_blinky.SetRowInSheet(0);
+    m_blinky.SetSpriteY(0);
     MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_blinky);
   }
   else
@@ -772,7 +760,7 @@ void Game::UpdatePositionOfBlinky()
 
 void Game::UpdatePositionOfPinky()
 {
-  m_pinky.SetRowInSheet(1);
+  m_pinky.SetSpriteY(1);
 
   if (m_pinky.GetMovement() == Character::Movement::InHouse)
     return;
@@ -807,7 +795,7 @@ void Game::UpdatePositionOfPinky()
 
 void Game::UpdatePositionOfInky()
 {
-  m_inky.SetRowInSheet(2);
+  m_inky.SetSpriteY(2);
 
   if (m_inky.GetMovement() == Character::Movement::InHouse)
     return;
@@ -850,7 +838,7 @@ void Game::UpdatePositionOfInky()
 
 void Game::UpdatePositionOfClyde()
 {
-  m_clyde.SetRowInSheet(3);
+  m_clyde.SetSpriteY(3);
 
   if (m_clyde.GetMovement() == Character::Movement::InHouse)
     return;
@@ -1057,9 +1045,11 @@ void Game::OnDeviceLost()
   CreateResources();
 }
 
-void Game::SetSpriteConstantBufferForCharacter(Global::FrameConstantBuffer& spriteConstantBuffer, const Character& character)
+void Game::SetSpriteConstantBufferForCharacter(Global::SpriteConstantBuffer& spriteConstantBuffer, const Character& character)
 {
-  spriteConstantBuffer.frameID = DirectX::XMFLOAT2(static_cast<float>(character.GetFrame()), character.GetRowInSheet());
-  spriteConstantBuffer.framesNumber = DirectX::XMFLOAT2(character.GetSpriteSheetColumns(), character.GetSpriteSheetRows());
+  spriteConstantBuffer.spriteX = character.GetSpriteX();
+  spriteConstantBuffer.spriteY = character.GetSpriteY();
+  spriteConstantBuffer.spriteSheetColumns = character.GetSpriteSheetColumns();
+  spriteConstantBuffer.spriteSheetRows = character.GetSpriteSheetRows();
   spriteConstantBuffer.billboardSize_0_0_0 = DirectX::XMFLOAT4(character.GetSpriteScaleFactor(), 0, 0, 0);
 }

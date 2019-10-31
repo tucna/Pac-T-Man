@@ -36,22 +36,15 @@ struct CameraPerObject
   DirectX::XMMATRIX world;
 };
 
-struct FrameConstantBuffer
+struct SpriteConstantBuffer
 {
-  //DirectX::XMVECTOR spriteX_spriteY_spriteColumns_spriteRows;
-  //DirectX::XMVECTOR billboardSize_0_0_0;
-
-  /*
   uint32_t spriteX;
   uint32_t spriteY;
   uint32_t spriteSheetColumns;
   uint32_t spriteSheetRows;
-  */
 
-  DirectX::XMFLOAT2 frameID;
-  DirectX::XMFLOAT2 framesNumber;
   DirectX::XMFLOAT4 billboardSize_0_0_0;
 };
 
-static_assert((sizeof(FrameConstantBuffer) % 16) == 0, "FrameConstantBuffer is not alligned!");
+static_assert((sizeof(SpriteConstantBuffer) % 16) == 0, "SpriteConstantBuffer is not alligned!");
 }

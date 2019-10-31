@@ -30,11 +30,6 @@ void Character::SetPosition(float x, float y, float z)
   UpdateWorldMatrix();
 }
 
-void Character::SetFrame(uint8_t frameID)
-{
-  m_currentFrame = frameID;
-}
-
 void Character::AdjustPosition(float x, float y, float z)
 {
   m_position.x += x;
@@ -44,48 +39,12 @@ void Character::AdjustPosition(float x, float y, float z)
   UpdateWorldMatrix();
 }
 
-XMFLOAT3 Character::GetPosition()
-{
-  return m_position;
-}
-
-uint8_t Character::GetFrame() const
-{
-  return m_currentFrame;
-}
-
-void Character::SetRowInSheet(uint8_t direction)
-{
-  m_direction = direction;
-}
-
-uint8_t Character::GetRowInSheet() const
-{
-  return m_direction;
-}
-
 void Character::SetMovement(Movement movement)
 {
   m_movement = movement;
 
   if (movement != Movement::Stop && movement != Movement::Dead)
     m_facingDirection = static_cast<Direction>(static_cast<uint8_t>(movement));
-}
-
-Character::Movement Character::GetMovement() const
-{
-  return m_movement;
-}
-
-Character::Direction Character::GetFacingDirection() const
-{
-  // TODO
-  return m_facingDirection;
-}
-
-void Character::SetFacingDirection(Direction direction)
-{
-  m_facingDirection = direction;
 }
 
 void Character::Update(uint8_t coefMod, uint8_t coefAdd)
@@ -108,7 +67,8 @@ void Character::Init(ID3D11Device1* device, float r, float g, float b)
 
   D3D11_SUBRESOURCE_DATA sd = {};
   sd.pSysMem = m_vertices.data();
-  device->CreateBuffer(&bd, &sd, &m_vertexBuffer);
+
+  DX::ThrowIfFailed(device->CreateBuffer(&bd, &sd, &m_vertexBuffer));
 
   // Rasterizer
   D3D11_RASTERIZER_DESC cmdesc = {};
@@ -116,8 +76,7 @@ void Character::Init(ID3D11Device1* device, float r, float g, float b)
   cmdesc.FrontCounterClockwise = false;
   cmdesc.CullMode = D3D11_CULL_NONE;
 
-  // TUCNA check HR
-  device->CreateRasterizerState(&cmdesc, m_cullNone.GetAddressOf());
+  DX::ThrowIfFailed(device->CreateRasterizerState(&cmdesc, m_cullNone.GetAddressOf()));
 
   // Sampler
   D3D11_SAMPLER_DESC sampDesc = {};
@@ -150,7 +109,7 @@ void Character::Init(ID3D11Device1* device, float r, float g, float b)
   instanceData.SysMemSlicePitch = 0;
 
   // Create the instance buffer.
-  device->CreateBuffer(&instanceBufferDesc, &instanceData, m_instanceBuffer.GetAddressOf());
+  DX::ThrowIfFailed(device->CreateBuffer(&instanceBufferDesc, &instanceData, m_instanceBuffer.GetAddressOf()));
 }
 
 void Character::Init(ID3D11Device1* device)
@@ -194,19 +153,9 @@ void Character::AlignToMap()
   UpdateWorldMatrix();
 }
 
-const XMMATRIX& Character::GetWorldMatrix() const noexcept
-{
-  return m_worldMatrix;
-}
-
 void Character::IncreaseFrameCounter()
 {
   m_frameCounter++;
-}
-
-uint8_t Character::GetNumberOfFrames()
-{
-  return m_frameCounter;
 }
 
 void Character::ResetFrameCounter()

@@ -71,7 +71,7 @@ private:
 
   void OnDeviceLost();
 
-  void SetSpriteConstantBufferForCharacter(Global::FrameConstantBuffer& spriteConstantBuffer, const Character& character);
+  void SetSpriteConstantBufferForCharacter(Global::SpriteConstantBuffer& spriteConstantBuffer, const Character& character);
 
   // Device resources
   HWND                                            m_window;
