@@ -28,6 +28,7 @@ Dots::Dots() :
     {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 {
+  m_worldMatrix = DirectX::XMMatrixIdentity();
 }
 
 Dots::~Dots()
@@ -172,5 +173,5 @@ void Dots::Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context)
 
 const DirectX::XMMATRIX& Dots::GetWorldMatrix() const noexcept
 {
-  return DirectX::XMMatrixIdentity();
+  return m_worldMatrix;
 }

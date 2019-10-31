@@ -13,7 +13,7 @@ public:
   void Init(ID3D11Device1* device);
   void Draw(ID3D11DeviceContext1* context);
 
-  DirectX::XMMATRIX GetWorldMatrix() const noexcept;
+  const DirectX::XMMATRIX& GetWorldMatrix() const noexcept;
 
   bool IsPassable(uint8_t column, uint8_t row);
 
@@ -21,6 +21,8 @@ private:
   void Generate(ID3D11Device1* device);
 
   const uint8_t m_map[Global::worldSize][Global::worldSize];
+
+  DirectX::XMMATRIX m_worldMatrix;
 
   std::vector<Global::Vertex> m_vertices;
   std::vector<unsigned short> m_indices;

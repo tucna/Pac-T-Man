@@ -43,10 +43,10 @@ public:
 
   DirectX::XMFLOAT3 GetPosition();
 
-  uint8_t GetFrame();
+  uint8_t GetFrame() const;
 
   void SetRowInSheet(uint8_t direction);
-  uint8_t GetRowInSheet();
+  uint8_t GetRowInSheet() const;
 
   void SetMovement(Movement movement);
   Movement GetMovement() const;
@@ -69,9 +69,20 @@ public:
 
   void RevereseMovementDirection();
 
+  void SetColumnsAndRowsOfAssociatedSpriteSheet(uint8_t columns, uint8_t rows);
+  uint8_t GetSpriteSheetColumns() const { return m_spriteSheetColumns; }
+  uint8_t GetSpriteSheetRows() const { return m_spriteSheetRows; }
+
+  void SetSpriteScaleFactor(float scale) { m_spriteScaleFactor = scale; }
+  float GetSpriteScaleFactor() const { return m_spriteScaleFactor; }
+
 private:
+  void UpdateWorldMatrix();
+
   uint8_t m_currentFrame;
   uint8_t m_direction;
+
+  DirectX::XMMATRIX m_worldMatrix;
 
   DirectX::XMFLOAT3 m_position;
 
@@ -87,5 +98,10 @@ private:
   Direction m_facingDirection;
 
   uint8_t m_frameCounter;
+
+  uint8_t m_spriteSheetColumns;
+  uint8_t m_spriteSheetRows;
+
+  float m_spriteScaleFactor;
 };
 

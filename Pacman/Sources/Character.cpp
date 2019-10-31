@@ -2,14 +2,19 @@
 
 #include "Character.h"
 
+using namespace DirectX;
+
 Character::Character() :
   m_currentFrame(0),
   m_direction(0),
   m_position(0, 0, 0),
   m_movement(Movement::Stop),
   m_frameCounter(0),
-  m_facingDirection(Direction::Left)
+  m_facingDirection(Direction::Left),
+  m_spriteSheetColumns(0),
+  m_spriteSheetRows(0)
 {
+  UpdateWorldMatrix();
 }
 
 Character::~Character()
@@ -21,6 +26,8 @@ void Character::SetPosition(float x, float y, float z)
   m_position.x = x;
   m_position.y = y;
   m_position.z = z;
+
+  UpdateWorldMatrix();
 }
 
 void Character::SetFrame(uint8_t frameID)
@@ -33,14 +40,16 @@ void Character::AdjustPosition(float x, float y, float z)
   m_position.x += x;
   m_position.y += y;
   m_position.z += z;
+
+  UpdateWorldMatrix();
 }
 
-DirectX::XMFLOAT3 Character::GetPosition()
+XMFLOAT3 Character::GetPosition()
 {
   return m_position;
 }
 
-uint8_t Character::GetFrame()
+uint8_t Character::GetFrame() const
 {
   return m_currentFrame;
 }
@@ -50,7 +59,7 @@ void Character::SetRowInSheet(uint8_t direction)
   m_direction = direction;
 }
 
-uint8_t Character::GetRowInSheet()
+uint8_t Character::GetRowInSheet() const
 {
   return m_direction;
 }
@@ -181,16 +190,13 @@ void Character::AlignToMap()
 {
   m_position.x = floor(m_position.x) + 0.5f;
   m_position.z = floor(m_position.z) + 0.5f;
+
+  UpdateWorldMatrix();
 }
 
-const DirectX::XMMATRIX& Character::GetWorldMatrix() const noexcept
+const XMMATRIX& Character::GetWorldMatrix() const noexcept
 {
-  return DirectX::XMMatrixTranspose(
-    DirectX::XMMatrixTranslation(
-      m_position.x,
-      m_position.y,
-      m_position.z
-    ));
+  return m_worldMatrix;
 }
 
 void Character::IncreaseFrameCounter()
@@ -217,4 +223,15 @@ void Character::RevereseMovementDirection()
     case Movement::Up:    SetMovement(Character::Movement::Down); break;
     case Movement::Down:  SetMovement(Character::Movement::Up); break;
   }
+}
+
+void Character::SetColumnsAndRowsOfAssociatedSpriteSheet(uint8_t columns, uint8_t rows)
+{
+  m_spriteSheetColumns = columns;
+  m_spriteSheetRows = rows;
+}
+
+void Character::UpdateWorldMatrix()
+{
+  m_worldMatrix = XMMatrixTranspose(XMMatrixTranslation(m_position.x, m_position.y, m_position.z));
 }

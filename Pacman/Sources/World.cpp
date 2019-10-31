@@ -27,6 +27,7 @@ World::World() :
     {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0}}
 {
+  m_worldMatrix = DirectX::XMMatrixIdentity();
 }
 
 World::~World()
@@ -174,9 +175,9 @@ void World::Draw(ID3D11DeviceContext1* context)
   context->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
-DirectX::XMMATRIX World::GetWorldMatrix() const noexcept
+const DirectX::XMMATRIX& World::GetWorldMatrix() const noexcept
 {
-  return DirectX::XMMatrixIdentity();
+  return m_worldMatrix;
 }
 
 bool World::IsPassable(uint8_t column, uint8_t row)

@@ -47,7 +47,7 @@ public:
   void OnWindowSizeChanged(int width, int height);
 
   // Properties
-  void GetDefaultSize( int& width, int& height ) const;
+  void GetDefaultSize(int& width, int& height) const;
 
 private:
   void DrawWorld();
@@ -70,6 +70,8 @@ private:
   void CreateResources();
 
   void OnDeviceLost();
+
+  void SetSpriteConstantBufferForCharacter(Global::FrameConstantBuffer& spriteConstantBuffer, const Character& character);
 
   // Device resources
   HWND                                            m_window;

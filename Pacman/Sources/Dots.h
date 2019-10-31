@@ -25,6 +25,8 @@ public:
 private:
   uint8_t m_dots[Global::worldSize][Global::worldSize];
 
+  DirectX::XMMATRIX m_worldMatrix;
+
   unsigned short m_numberOfDots;
 
   std::vector<Global::Vertex> m_vertices;
