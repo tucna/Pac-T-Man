@@ -32,45 +32,48 @@ void Game::Initialize(HWND window, int width, int height)
   m_world.Init(m_d3dDevice.Get());
   m_dots.Init(m_d3dDevice.Get());
 
-  m_pacman.Init(m_d3dDevice.Get());
-  m_pacman.SetPosition(10.5f, 0.25f, 9.5f);
-  m_pacman.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 1);
-  m_pacman.SetSpriteScaleFactor(Global::pacManSize);
-  m_pacman.SetFramesPerState(2);
+  m_characters[Characters::Pacman] = std::make_unique<Character>();
+  m_characters[Characters::Pacman]->Init(m_d3dDevice.Get());
+  m_characters[Characters::Pacman]->SetPosition(10.5f, 0.25f, 9.5f);
+  m_characters[Characters::Pacman]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 1);
+  m_characters[Characters::Pacman]->SetSpriteScaleFactor(Global::pacManSize);
+  m_characters[Characters::Pacman]->SetFramesPerState(2);
 
-  m_blinky.Init(m_d3dDevice.Get());
-  m_blinky.SetPosition(10.5f, 0.3f, 13.5f);
-  m_blinky.SetMovement(Character::Movement::Left);
-  m_blinky.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
-  m_blinky.SetSpriteScaleFactor(Global::ghostSize);
-  m_blinky.SetFramesPerState(2);
+  m_characters[Characters::Blinky] = std::make_unique<Character>();
+  m_characters[Characters::Blinky]->Init(m_d3dDevice.Get());
+  m_characters[Characters::Blinky]->SetPosition(10.5f, 0.3f, 13.5f);
+  m_characters[Characters::Blinky]->SetMovement(Character::Movement::Left);
+  m_characters[Characters::Blinky]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
+  m_characters[Characters::Blinky]->SetSpriteScaleFactor(Global::ghostSize);
+  m_characters[Characters::Blinky]->SetFramesPerState(2);
 
-  m_pinky.Init(m_d3dDevice.Get());
-  m_pinky.SetPosition(11.5f, 0.3f, 13.5f);
-  m_pinky.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
-  m_pinky.SetSpriteScaleFactor(Global::ghostSize);
-  m_pinky.SetFramesPerState(2);
-  //m_pinky.SetPosition(10.5f, 0.3f, 11.5f);
-  //m_pinky.SetMovement(Character::Movement::InHouse);
+  m_characters[Characters::Pinky] = std::make_unique<Character>();
+  m_characters[Characters::Pinky]->Init(m_d3dDevice.Get());
+  m_characters[Characters::Pinky]->SetPosition(11.5f, 0.3f, 13.5f);
+  m_characters[Characters::Pinky]->SetMovement(Character::Movement::Left);
+  m_characters[Characters::Pinky]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
+  m_characters[Characters::Pinky]->SetSpriteScaleFactor(Global::ghostSize);
+  m_characters[Characters::Pinky]->SetFramesPerState(2);
 
-  m_inky.Init(m_d3dDevice.Get());
-  m_inky.SetPosition(12.5f, 0.3f, 13.5f);
-  m_inky.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
-  m_inky.SetSpriteScaleFactor(Global::ghostSize);
-  m_inky.SetFramesPerState(2);
-  //m_inky.SetPosition(9.5f, 0.3f, 11.5f);
-  //m_inky.SetMovement(Character::Movement::InHouse);
+  m_characters[Characters::Inky] = std::make_unique<Character>();
+  m_characters[Characters::Inky]->Init(m_d3dDevice.Get());
+  m_characters[Characters::Inky]->SetPosition(12.5f, 0.3f, 13.5f);
+  m_characters[Characters::Inky]->SetMovement(Character::Movement::Left);
+  m_characters[Characters::Inky]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
+  m_characters[Characters::Inky]->SetSpriteScaleFactor(Global::ghostSize);
+  m_characters[Characters::Inky]->SetFramesPerState(2);
 
-  m_clyde.Init(m_d3dDevice.Get());
-  m_clyde.SetPosition(13.5f, 0.3f, 13.5f);
-  m_clyde.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
-  m_clyde.SetSpriteScaleFactor(Global::ghostSize);
-  m_clyde.SetFramesPerState(2);
-  //m_clyde.SetPosition(11.5f, 0.3f, 11.5f);
-  //m_clyde.SetMovement(Character::Movement::InHouse);
+  m_characters[Characters::Clyde] = std::make_unique<Character>();
+  m_characters[Characters::Clyde]->Init(m_d3dDevice.Get());
+  m_characters[Characters::Clyde]->SetPosition(13.5f, 0.3f, 13.5f);
+  m_characters[Characters::Clyde]->SetMovement(Character::Movement::Left);
+  m_characters[Characters::Clyde]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
+  m_characters[Characters::Clyde]->SetSpriteScaleFactor(Global::ghostSize);
+  m_characters[Characters::Clyde]->SetFramesPerState(2);
 
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf()));
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf()));
+
   m_keyboard = std::make_unique<Keyboard>();
 
   m_camera.SetPosition(10.5f, 15.0f, 10.5f);
@@ -164,10 +167,10 @@ void Game::Update(DX::StepTimer const& timer)
   {
     if (m_currentMode != Mode::Chase)
     {
-      m_blinky.RevereseMovementDirection();
-      m_pinky.RevereseMovementDirection();
-      m_inky.RevereseMovementDirection();
-      m_clyde.RevereseMovementDirection();
+      m_characters[Characters::Blinky]->RevereseMovementDirection();
+      m_characters[Characters::Pinky]->RevereseMovementDirection();
+      m_characters[Characters::Inky]->RevereseMovementDirection();
+      m_characters[Characters::Clyde]->RevereseMovementDirection();
     }
 
     m_currentMode = Mode::Chase;
@@ -186,8 +189,8 @@ void Game::Update(DX::StepTimer const& timer)
   if (kb.Escape)
     ExitGame();
 
-  const Character::Movement pacmanMovement = m_pacman.GetMovement();
-  const DirectX::XMFLOAT3& pacmanPosCurrent = m_pacman.GetPosition();
+  const Character::Movement pacmanMovement = m_characters[Characters::Pacman]->GetMovement();
+  const DirectX::XMFLOAT3& pacmanPosCurrent = m_characters[Characters::Pacman]->GetPosition();
 
   if (pacmanMovement == Character::Movement::Left)
   {
@@ -195,7 +198,7 @@ void Game::Update(DX::StepTimer const& timer)
 
     if (teleport)
     {
-      m_pacman.SetPosition(20.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
+      m_characters[Characters::Pacman]->SetPosition(20.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
       return;
     }
   }
@@ -205,7 +208,7 @@ void Game::Update(DX::StepTimer const& timer)
 
     if (teleport)
     {
-      m_pacman.SetPosition(0.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
+      m_characters[Characters::Pacman]->SetPosition(0.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
       return;
     }
   }
@@ -234,77 +237,77 @@ void Game::Update(DX::StepTimer const& timer)
   case Character::Movement::Right:
     if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x + Global::pacManHalfSize), static_cast<uint8_t>(pacmanPosCurrent.z)))
     {
-      if (m_pacmanMovementRequest != m_pacman.GetMovement())
-        m_pacman.AlignToMap();
+      if (m_pacmanMovementRequest != m_characters[Characters::Pacman]->GetMovement())
+        m_characters[Characters::Pacman]->AlignToMap();
 
-      m_pacman.SetMovement(m_pacmanMovementRequest);
+      m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
     }
     else
     {
-      if (m_pacmanMovementRequest == m_pacman.GetMovement())
+      if (m_pacmanMovementRequest == m_characters[Characters::Pacman]->GetMovement())
       {
-        m_pacman.AlignToMap();
-        m_pacman.SetMovement(Character::Movement::Stop);
+        m_characters[Characters::Pacman]->AlignToMap();
+        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
       }
       else
-        m_pacmanMovementRequest = m_pacman.GetMovement();
+        m_pacmanMovementRequest = m_characters[Characters::Pacman]->GetMovement();
     }
     break;
   case Character::Movement::Left:
     if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x - (Global::pacManHalfSize + Global::pacManSpeed)), static_cast<uint8_t>(pacmanPosCurrent.z)))
     {
-      if (m_pacmanMovementRequest != m_pacman.GetMovement())
-        m_pacman.AlignToMap();
+      if (m_pacmanMovementRequest != m_characters[Characters::Pacman]->GetMovement())
+        m_characters[Characters::Pacman]->AlignToMap();
 
-      m_pacman.SetMovement(m_pacmanMovementRequest);
+      m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
     }
     else
     {
-      if (m_pacmanMovementRequest == m_pacman.GetMovement())
+      if (m_pacmanMovementRequest == m_characters[Characters::Pacman]->GetMovement())
       {
-        m_pacman.AlignToMap();
-        m_pacman.SetMovement(Character::Movement::Stop);
+        m_characters[Characters::Pacman]->AlignToMap();
+        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
       }
       else
-        m_pacmanMovementRequest = m_pacman.GetMovement();
+        m_pacmanMovementRequest = m_characters[Characters::Pacman]->GetMovement();
     }
     break;
   case Character::Movement::Up:
     if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z + (Global::pacManHalfSize + Global::pacManSpeed))))
     {
-      if (m_pacmanMovementRequest != m_pacman.GetMovement())
-        m_pacman.AlignToMap();
+      if (m_pacmanMovementRequest != m_characters[Characters::Pacman]->GetMovement())
+        m_characters[Characters::Pacman]->AlignToMap();
 
-      m_pacman.SetMovement(m_pacmanMovementRequest);
+      m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
     }
     else
     {
-      if (m_pacmanMovementRequest == m_pacman.GetMovement())
+      if (m_pacmanMovementRequest == m_characters[Characters::Pacman]->GetMovement())
       {
-        m_pacman.AlignToMap();
-        m_pacman.SetMovement(Character::Movement::Stop);
+        m_characters[Characters::Pacman]->AlignToMap();
+        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
       }
       else
-        m_pacmanMovementRequest = m_pacman.GetMovement();
+        m_pacmanMovementRequest = m_characters[Characters::Pacman]->GetMovement();
     }
     break;
   case Character::Movement::Down:
     if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z - (Global::pacManHalfSize + Global::pacManSpeed))))
     {
-      if (m_pacmanMovementRequest != m_pacman.GetMovement())
-        m_pacman.AlignToMap();
+      if (m_pacmanMovementRequest != m_characters[Characters::Pacman]->GetMovement())
+        m_characters[Characters::Pacman]->AlignToMap();
 
-      m_pacman.SetMovement(m_pacmanMovementRequest);
+      m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
     }
     else
     {
-      if (m_pacmanMovementRequest == m_pacman.GetMovement())
+      if (m_pacmanMovementRequest == m_characters[Characters::Pacman]->GetMovement())
       {
-        m_pacman.AlignToMap();
-        m_pacman.SetMovement(Character::Movement::Stop);
+        m_characters[Characters::Pacman]->AlignToMap();
+        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
       }
       else
-        m_pacmanMovementRequest = m_pacman.GetMovement();
+        m_pacmanMovementRequest = m_characters[Characters::Pacman]->GetMovement();
     }
     break;
   default:
@@ -312,25 +315,25 @@ void Game::Update(DX::StepTimer const& timer)
     break;
   }
 
-  m_pacman.SetSpriteY(0);
+  m_characters[Characters::Pacman]->SetSpriteY(0);
 
-  switch (m_pacman.GetMovement())
+  switch (m_characters[Characters::Pacman]->GetMovement())
   {
   case Character::Movement::Left:
-    m_pacman.SetSpriteXAddition(4);
-    m_pacman.AdjustPosition(-Global::pacManSpeed, 0, 0);
+    m_characters[Characters::Pacman]->SetSpriteXAddition(4);
+    m_characters[Characters::Pacman]->AdjustPosition(-Global::pacManSpeed, 0, 0);
     break;
   case Character::Movement::Right:
-    m_pacman.SetSpriteXAddition(6);
-    m_pacman.AdjustPosition(Global::pacManSpeed, 0, 0);
+    m_characters[Characters::Pacman]->SetSpriteXAddition(6);
+    m_characters[Characters::Pacman]->AdjustPosition(Global::pacManSpeed, 0, 0);
     break;
   case Character::Movement::Up:
-    m_pacman.SetSpriteXAddition(0);
-    m_pacman.AdjustPosition(0, 0, Global::pacManSpeed);
+    m_characters[Characters::Pacman]->SetSpriteXAddition(0);
+    m_characters[Characters::Pacman]->AdjustPosition(0, 0, Global::pacManSpeed);
     break;
   case Character::Movement::Down:
-    m_pacman.SetSpriteXAddition(2);
-    m_pacman.AdjustPosition(0, 0, -Global::pacManSpeed);
+    m_characters[Characters::Pacman]->SetSpriteXAddition(2);
+    m_characters[Characters::Pacman]->AdjustPosition(0, 0, -Global::pacManSpeed);
     break;
   default:
     // Nothing
@@ -460,70 +463,70 @@ void Game::DrawSprites()
   m_d3dContext->PSSetShaderResources(0, 1, m_pacManShaderResourceView.GetAddressOf());
 
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_pacman.Update();
+    m_characters[Characters::Pacman]->Update();
 
-  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_pacman);
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Pacman]);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
-  cameraPerObjectConstantBuffer.world = m_pacman.GetWorldMatrix();
+  cameraPerObjectConstantBuffer.world = m_characters[Characters::Pacman]->GetWorldMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-  m_pacman.Draw(m_d3dContext.Get());
+  m_characters[Characters::Pacman]->Draw(m_d3dContext.Get());
 
   // Draw ghosts
   m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
 
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_blinky.Update();
+    m_characters[Characters::Blinky]->Update();
 
-  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_blinky);
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Blinky]);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
-  cameraPerObjectConstantBuffer.world = m_blinky.GetWorldMatrix();
+  cameraPerObjectConstantBuffer.world = m_characters[Characters::Blinky]->GetWorldMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-  m_blinky.Draw(m_d3dContext.Get());
+  m_characters[Characters::Blinky]->Draw(m_d3dContext.Get());
 
   // Pinky
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_pinky.Update();
+    m_characters[Characters::Pinky]->Update();
 
-  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_pinky);
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Pinky]);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
-  cameraPerObjectConstantBuffer.world = m_pinky.GetWorldMatrix();
+  cameraPerObjectConstantBuffer.world = m_characters[Characters::Pinky]->GetWorldMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-  m_pinky.Draw(m_d3dContext.Get());
+  m_characters[Characters::Pinky]->Draw(m_d3dContext.Get());
 
   // Inky
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_inky.Update();
+    m_characters[Characters::Inky]->Update();
 
-  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_inky);
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Inky]);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
-  cameraPerObjectConstantBuffer.world = m_inky.GetWorldMatrix();
+  cameraPerObjectConstantBuffer.world = m_characters[Characters::Inky]->GetWorldMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-  m_inky.Draw(m_d3dContext.Get());
+  m_characters[Characters::Inky]->Draw(m_d3dContext.Get());
 
   // Clyde
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_clyde.Update();
+    m_characters[Characters::Clyde]->Update();
 
-  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_clyde);
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Clyde]);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
-  cameraPerObjectConstantBuffer.world = m_clyde.GetWorldMatrix();
+  cameraPerObjectConstantBuffer.world = m_characters[Characters::Clyde]->GetWorldMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-  m_clyde.Draw(m_d3dContext.Get());
+  m_characters[Characters::Clyde]->Draw(m_d3dContext.Get());
 }
 
 void Game::DrawDebug()
@@ -559,6 +562,7 @@ void Game::DrawDebug()
 
 void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& character)
 {
+  /* TODO
   if (m_debugDraw)
   {
     if (&character == &m_blinky)
@@ -572,6 +576,7 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& chara
     else
       m_debugPoints.push_back({ {posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {0.0, 0.0, 0.0} });
   }
+  */
 
   character.IncreaseFrameCounter();
 
@@ -676,29 +681,29 @@ void Game::UpdatePositionOfBlinky()
 {
   if (m_currentMode == Mode::Chase)
   {
-    const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
+    const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
 
-    m_blinky.SetSpriteY(0);
-    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_blinky);
+    m_characters[Characters::Blinky]->SetSpriteY(0);
+    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *m_characters[Characters::Blinky]);
   }
   else
   {
-    MoveCharacterTowardsPosition(18.5f, 21.5f, m_blinky);
+    MoveCharacterTowardsPosition(18.5f, 21.5f, *m_characters[Characters::Blinky]);
   }
 }
 
 void Game::UpdatePositionOfPinky()
 {
-  m_pinky.SetSpriteY(1);
+  m_characters[Characters::Pinky]->SetSpriteY(1);
 
-  if (m_pinky.GetMovement() == Character::Movement::InHouse)
+  if (m_characters[Characters::Pinky]->GetMovement() == Character::Movement::InHouse)
     return;
 
   if (m_currentMode == Mode::Chase)
   {
-    DirectX::XMFLOAT3 pacmanPos = m_pacman.GetPosition();
+    DirectX::XMFLOAT3 pacmanPos = m_characters[Characters::Pacman]->GetPosition();
 
-    switch (m_pacman.GetFacingDirection())
+    switch (m_characters[Characters::Pacman]->GetFacingDirection())
     {
     case Character::Direction::Left:
       pacmanPos.x -= 4;
@@ -714,26 +719,26 @@ void Game::UpdatePositionOfPinky()
       break;
     }
 
-    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_pinky);
+    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *m_characters[Characters::Pinky]);
   }
   else
   {
-    MoveCharacterTowardsPosition(2.5f, 21.5f, m_pinky);
+    MoveCharacterTowardsPosition(2.5f, 21.5f, *m_characters[Characters::Pinky]);
   }
 }
 
 void Game::UpdatePositionOfInky()
 {
-  m_inky.SetSpriteY(2);
+  m_characters[Characters::Inky]->SetSpriteY(2);
 
-  if (m_inky.GetMovement() == Character::Movement::InHouse)
+  if (m_characters[Characters::Inky]->GetMovement() == Character::Movement::InHouse)
     return;
 
   if (m_currentMode == Mode::Chase)
   {
-    DirectX::XMFLOAT3 pacmanPos = m_pacman.GetPosition();
+    DirectX::XMFLOAT3 pacmanPos = m_characters[Characters::Pacman]->GetPosition();
 
-    switch (m_pacman.GetFacingDirection())
+    switch (m_characters[Characters::Pacman]->GetFacingDirection())
     {
     case Character::Direction::Left:
       pacmanPos.x -= 2;
@@ -749,7 +754,7 @@ void Game::UpdatePositionOfInky()
       break;
     }
 
-    const DirectX::XMFLOAT3 blinkyPos = m_blinky.GetPosition();
+    const DirectX::XMFLOAT3 blinkyPos = m_characters[Characters::Blinky]->GetPosition();
 
     float finalPosX = 0;
     float finalPosZ = 0;
@@ -757,42 +762,42 @@ void Game::UpdatePositionOfInky()
     finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
     finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
 
-    MoveCharacterTowardsPosition(finalPosX, finalPosZ, m_inky);
+    MoveCharacterTowardsPosition(finalPosX, finalPosZ, *m_characters[Characters::Inky]);
   }
   else
   {
-    MoveCharacterTowardsPosition(21.5f, 0.0f, m_inky);
+    MoveCharacterTowardsPosition(21.5f, 0.0f, *m_characters[Characters::Inky]);
   }
 }
 
 void Game::UpdatePositionOfClyde()
 {
-  m_clyde.SetSpriteY(3);
+  m_characters[Characters::Clyde]->SetSpriteY(3);
 
-  if (m_clyde.GetMovement() == Character::Movement::InHouse)
+  if (m_characters[Characters::Clyde]->GetMovement() == Character::Movement::InHouse)
     return;
 
   if (m_currentMode == Mode::Chase)
   {
-    const DirectX::XMFLOAT3& pacmanPos = m_pacman.GetPosition();
-    const DirectX::XMFLOAT3& clydePos = m_clyde.GetPosition();
+    const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
+    const DirectX::XMFLOAT3& clydePos = m_characters[Characters::Clyde]->GetPosition();
 
     float distance = sqrt((clydePos.x - pacmanPos.x) * (clydePos.x - pacmanPos.x) + (clydePos.z - pacmanPos.z) * (clydePos.z - pacmanPos.z));
 
     if (distance > 8)
     {
       // Behave as blinky
-      MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, m_clyde);
+      MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *m_characters[Characters::Clyde]);
     }
     else
     {
       // Scatter
-      MoveCharacterTowardsPosition(0.0f, 0.0f, m_clyde);
+      MoveCharacterTowardsPosition(0.0f, 0.0f, *m_characters[Characters::Clyde]);
     }
   }
   else
   {
-    MoveCharacterTowardsPosition(0.0f, 0.0f, m_clyde);
+    MoveCharacterTowardsPosition(0.0f, 0.0f, *m_characters[Characters::Clyde]);
   }
 }
 

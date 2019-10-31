@@ -110,7 +110,7 @@ void Character::Init(ID3D11Device1* device, float r, float g, float b)
   sampDesc.MaxLOD = 0;
 
   //Create the Sample State
-  device->CreateSamplerState(&sampDesc, m_samplerState.GetAddressOf());
+  DX::ThrowIfFailed(device->CreateSamplerState(&sampDesc, m_samplerState.GetAddressOf()));
 
   // Instances
   m_instances.push_back({{0,0,0}});

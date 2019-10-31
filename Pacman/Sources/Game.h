@@ -16,7 +16,7 @@ class Game
   //TODO> fix camera, fix types (there should be XMFLOAT4 as member not XMVECTOR - XMVECTOR should be used just for processing and be converted to it), write type strong enum array initialization
 
 public:
-  enum class Characters
+  enum Characters
   {
     Pacman,
     Blinky,
@@ -98,15 +98,9 @@ private:
   Camera                                          m_camera;
   Dots                                            m_dots;
   World                                           m_world;
-  Character                                       m_pacman;
 
-  Character m_blinky;
-  Character m_pinky;
-  Character m_inky;
-  Character m_clyde;
 
   std::unique_ptr<ShaderManager>                  m_shaderManager;
-
   std::unique_ptr<DirectX::Keyboard>              m_keyboard;
 
   Character::Movement m_pacmanMovementRequest;
@@ -120,4 +114,6 @@ private:
   bool m_debugDraw;
   std::vector<Global::Vertex> m_debugPoints;
   Mode m_currentMode;
+
+  std::array<std::unique_ptr<Character>, static_cast<uint8_t>(Characters::_Count)> m_characters;
 };

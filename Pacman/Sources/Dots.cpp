@@ -88,8 +88,7 @@ void Dots::Init(ID3D11Device1* device)
   cmdesc.FrontCounterClockwise = false;
   cmdesc.CullMode = D3D11_CULL_NONE;
 
-  // TUCNA check HR
-  device->CreateRasterizerState(&cmdesc, m_cullNone.GetAddressOf());
+  DX::ThrowIfFailed(device->CreateRasterizerState(&cmdesc, m_cullNone.GetAddressOf()));
 
   // Texture - check HR
   DirectX::CreateWICTextureFromFile(device, nullptr, L"Resources/dot.png", m_resource.GetAddressOf(), m_shaderResourceView.GetAddressOf());
