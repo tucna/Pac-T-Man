@@ -21,13 +21,13 @@ struct Vertex
 
 struct CameraPerFrame
 {
-  DirectX::XMMATRIX view;
-  DirectX::XMMATRIX projection;
+  DirectX::XMFLOAT4X4 view;
+  DirectX::XMFLOAT4X4 projection;
 };
 
 struct CameraPerObject
 {
-  DirectX::XMMATRIX world;
+  DirectX::XMFLOAT4X4 world;
 };
 
 struct SpriteConstantBuffer

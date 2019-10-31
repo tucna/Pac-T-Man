@@ -36,17 +36,20 @@ void Game::Initialize(HWND window, int width, int height)
   m_pacman.SetPosition(10.5f, 0.25f, 9.5f);
   m_pacman.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 1);
   m_pacman.SetSpriteScaleFactor(Global::pacManSize);
+  m_pacman.SetFramesPerState(2);
 
   m_blinky.Init(m_d3dDevice.Get());
   m_blinky.SetPosition(10.5f, 0.3f, 13.5f);
   m_blinky.SetMovement(Character::Movement::Left);
   m_blinky.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
   m_blinky.SetSpriteScaleFactor(Global::ghostSize);
+  m_blinky.SetFramesPerState(2);
 
   m_pinky.Init(m_d3dDevice.Get());
   m_pinky.SetPosition(11.5f, 0.3f, 13.5f);
   m_pinky.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
   m_pinky.SetSpriteScaleFactor(Global::ghostSize);
+  m_pinky.SetFramesPerState(2);
   //m_pinky.SetPosition(10.5f, 0.3f, 11.5f);
   //m_pinky.SetMovement(Character::Movement::InHouse);
 
@@ -54,6 +57,7 @@ void Game::Initialize(HWND window, int width, int height)
   m_inky.SetPosition(12.5f, 0.3f, 13.5f);
   m_inky.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
   m_inky.SetSpriteScaleFactor(Global::ghostSize);
+  m_inky.SetFramesPerState(2);
   //m_inky.SetPosition(9.5f, 0.3f, 11.5f);
   //m_inky.SetMovement(Character::Movement::InHouse);
 
@@ -61,6 +65,7 @@ void Game::Initialize(HWND window, int width, int height)
   m_clyde.SetPosition(13.5f, 0.3f, 13.5f);
   m_clyde.SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
   m_clyde.SetSpriteScaleFactor(Global::ghostSize);
+  m_clyde.SetFramesPerState(2);
   //m_clyde.SetPosition(11.5f, 0.3f, 11.5f);
   //m_clyde.SetMovement(Character::Movement::InHouse);
 
@@ -91,12 +96,10 @@ void Game::Initialize(HWND window, int width, int height)
 
   m_d3dDevice->CreateBuffer(&cbd, &csd, &m_projectionMatrixConstantBuffer);
 
-  // Camera constant buffers v2
-  Global::CameraPerFrame cameraConstantBufferPerFrame;
-
-  //cameraConstantBuffer.world = DirectX::XMMatrixIdentity();
-  cameraConstantBufferPerFrame.view = DirectX::XMMatrixTranspose(m_camera.GetViewMatrix());
-  cameraConstantBufferPerFrame.projection = DirectX::XMMatrixTranspose(m_camera.GetProjectionMatrix());
+  // Camera constant buffers
+  Global::CameraPerFrame cameraConstantBufferPerFrame = {};
+  XMStoreFloat4x4(&cameraConstantBufferPerFrame.view, XMMatrixTranspose(m_camera.GetViewMatrix()));
+  XMStoreFloat4x4(&cameraConstantBufferPerFrame.projection, XMMatrixTranspose(m_camera.GetProjectionMatrix()));
 
   D3D11_BUFFER_DESC cbd_v2 = {};
   cbd_v2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -112,7 +115,7 @@ void Game::Initialize(HWND window, int width, int height)
   m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerFrame);
 
   Global::CameraPerObject cameraConstantBufferPerObject;
-  cameraConstantBufferPerObject.world = DirectX::XMMatrixIdentity();
+  XMStoreFloat4x4(&cameraConstantBufferPerObject.world, DirectX::XMMatrixIdentity());
 
   cbd_v2.ByteWidth = sizeof(Global::CameraPerObject);
 
@@ -429,7 +432,7 @@ void Game::DrawWorld()
   m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Phong);
 
   Global::CameraPerObject cameraPerObjectConstantBuffer;
-  cameraPerObjectConstantBuffer.world = m_world.GetWorldMatrix();
+  XMStoreFloat4x4(&cameraPerObjectConstantBuffer.world, m_world.GetWorldMatrix());
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
@@ -446,8 +449,8 @@ void Game::DrawSprites()
   Global::SpriteConstantBuffer spriteConstantBuffer = { 0, 0, 1, 1, DirectX::XMFLOAT4(0.2f, 0, 0, 0) };
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
-  Global::CameraPerObject cameraPerObjectConstantBuffer;
-  cameraPerObjectConstantBuffer.world = m_dots.GetWorldMatrix();
+  Global::CameraPerObject cameraPerObjectConstantBuffer = {};
+  XMStoreFloat4x4(&cameraPerObjectConstantBuffer.world, m_dots.GetWorldMatrix());
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
@@ -457,7 +460,7 @@ void Game::DrawSprites()
   m_d3dContext->PSSetShaderResources(0, 1, m_pacManShaderResourceView.GetAddressOf());
 
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_pacman.Update(2);
+    m_pacman.Update();
 
   SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_pacman);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
@@ -472,7 +475,7 @@ void Game::DrawSprites()
   m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
 
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_blinky.Update(2);
+    m_blinky.Update();
 
   SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_blinky);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
@@ -485,7 +488,7 @@ void Game::DrawSprites()
 
   // Pinky
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_pinky.Update(2);
+    m_pinky.Update();
 
   SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_pinky);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
@@ -498,7 +501,7 @@ void Game::DrawSprites()
 
   // Inky
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_inky.Update(2);
+    m_inky.Update();
 
   SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_inky);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
@@ -511,7 +514,7 @@ void Game::DrawSprites()
 
   // Clyde
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_clyde.Update(2);
+    m_clyde.Update();
 
   SetSpriteConstantBufferForCharacter(spriteConstantBuffer, m_clyde);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
