@@ -79,30 +79,30 @@ void Game::Initialize(HWND window, int width, int height)
   m_camera.SetPosition(10.5f, 15.0f, 10.5f);
   //m_camera.SetPosition(10.5f, 5.0f, -2.5f);
   //m_camera.SetPosition(3, 2, 3);
-  m_camera.SetLookAtPos(XMFLOAT3(10.5, 0, 10.5));
+  m_camera.SetLookAtPos(10.5, 0, 10.5);
 
   m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f); // Here or to resize?
 
   // Camera constant buffers
-  XMMATRIX projection = DirectX::XMMatrixTranspose(m_camera.GetProjectionMatrix());
+  XMFLOAT4X4 projection = m_camera.GetProjectionMatrix();
 
   D3D11_BUFFER_DESC cbd = {};
   cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
   cbd.Usage = D3D11_USAGE_DYNAMIC;
   cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
   cbd.MiscFlags = 0;
-  cbd.ByteWidth = sizeof(XMMATRIX);
+  cbd.ByteWidth = sizeof(XMFLOAT4X4);
   cbd.StructureByteStride = 0;
 
   D3D11_SUBRESOURCE_DATA csd = {};
   csd.pSysMem = &projection;
 
-  m_d3dDevice->CreateBuffer(&cbd, &csd, &m_projectionMatrixConstantBuffer);
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_projectionMatrixConstantBuffer));
 
   // Camera constant buffers
   Global::CameraPerFrame cameraConstantBufferPerFrame = {};
-  XMStoreFloat4x4(&cameraConstantBufferPerFrame.view, XMMatrixTranspose(m_camera.GetViewMatrix()));
-  XMStoreFloat4x4(&cameraConstantBufferPerFrame.projection, XMMatrixTranspose(m_camera.GetProjectionMatrix()));
+  cameraConstantBufferPerFrame.view = m_camera.GetViewMatrix();
+  cameraConstantBufferPerFrame.projection = m_camera.GetProjectionMatrix();
 
   D3D11_BUFFER_DESC cbd_v2 = {};
   cbd_v2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -124,7 +124,7 @@ void Game::Initialize(HWND window, int width, int height)
 
   csd_v2.pSysMem = &cameraConstantBufferPerObject;
 
-  m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerObject);
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerObject));
 
   // Frame constant buffers
   Global::SpriteConstantBuffer frameConstantBuffer = {};
@@ -150,7 +150,6 @@ void Game::Initialize(HWND window, int width, int height)
   m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Indexed, vertexShaderBuffers, 2);
 }
 
-// Executes the basic game loop.
 void Game::Tick()
 {
   m_timer.Tick([&]()

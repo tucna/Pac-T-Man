@@ -5,18 +5,16 @@
 class Camera
 {
 public:
-  Camera();
+  explicit Camera();
   ~Camera();
 
   void SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ);
-
-  const DirectX::XMMATRIX& GetViewMatrix() const;
-  const DirectX::XMMATRIX& GetProjectionMatrix() const;
-
   void SetPosition(float x, float y, float z);
   void SetRotation(float x, float y, float z);
+  void SetLookAtPos(float x, float y, float z);
 
-  void SetLookAtPos(DirectX::XMFLOAT3 lookAtPos);
+  const DirectX::XMFLOAT4X4& GetViewMatrix() const { return m_viewMatrix; }
+  const DirectX::XMFLOAT4X4& GetProjectionMatrix() const { return m_projectionMatrix; }
 
 private:
   void UpdateViewMatrix();
@@ -27,8 +25,6 @@ private:
   DirectX::XMFLOAT3 m_position;
   DirectX::XMFLOAT3 m_rotation;
 
-  DirectX::XMMATRIX m_viewMatrix;
-  DirectX::XMMATRIX m_projectionMatrix;
-
+  DirectX::XMFLOAT4X4 m_viewMatrix;
+  DirectX::XMFLOAT4X4 m_projectionMatrix;
 };
-

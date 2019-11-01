@@ -25,10 +25,14 @@ struct CameraPerFrame
   DirectX::XMFLOAT4X4 projection;
 };
 
+static_assert((sizeof(CameraPerFrame) % 16) == 0, "CameraPerFrame is not aligned!");
+
 struct CameraPerObject
 {
   DirectX::XMFLOAT4X4 world;
 };
+
+static_assert((sizeof(CameraPerObject) % 16) == 0, "CameraPerObject is not aligned!");
 
 struct SpriteConstantBuffer
 {

@@ -14,20 +14,11 @@ Camera::~Camera()
 {
 }
 
-const XMMATRIX& Camera::GetViewMatrix() const
-{
-  return m_viewMatrix;
-}
-
-const XMMATRIX& Camera::GetProjectionMatrix() const
-{
-  return m_projectionMatrix;
-}
-
 void Camera::SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ)
 {
   float fovRadians = (fovDegrees / 360.0f) * XM_2PI;
-  m_projectionMatrix = XMMatrixPerspectiveFovLH(fovRadians, aspectRatio, nearZ, farZ);
+
+  XMStoreFloat4x4(&m_projectionMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(fovRadians, aspectRatio, nearZ, farZ)));
 }
 
 void Camera::SetPosition(float x, float y, float z)
@@ -48,11 +39,13 @@ void Camera::SetRotation(float x, float y, float z)
   UpdateViewMatrix();
 }
 
-void Camera::SetLookAtPos(XMFLOAT3 lookAtPos)
+void Camera::SetLookAtPos(float x, float y, float z)
 {
-  lookAtPos.x = m_position.x - lookAtPos.x;
-  lookAtPos.y = m_position.y - lookAtPos.y;
-  lookAtPos.z = m_position.z - lookAtPos.z;
+  XMFLOAT3 lookAtPos = {};
+
+  lookAtPos.x = m_position.x - x;
+  lookAtPos.y = m_position.y - y;
+  lookAtPos.z = m_position.z - z;
 
   float pitch = 0.0f;
   if (lookAtPos.y != 0.0f)
@@ -80,5 +73,6 @@ void Camera::UpdateViewMatrix()
   XMVECTOR upDir = XMVector3TransformCoord(upVector, camRotationMatrix);
 
   camTarget += positionVector;
-  m_viewMatrix = XMMatrixLookAtLH(positionVector, camTarget, upDir);
+
+  XMStoreFloat4x4(&m_viewMatrix, XMMatrixTranspose(XMMatrixLookAtLH(positionVector, camTarget, upDir)));
 }
