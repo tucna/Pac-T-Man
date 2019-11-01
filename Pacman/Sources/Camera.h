@@ -21,13 +21,14 @@ public:
 private:
   void UpdateViewMatrix();
 
+  const DirectX::XMVECTOR forwardVector = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+  const DirectX::XMVECTOR upVector = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
   DirectX::XMFLOAT3 m_position;
   DirectX::XMFLOAT3 m_rotation;
 
   DirectX::XMMATRIX m_viewMatrix;
   DirectX::XMMATRIX m_projectionMatrix;
 
-  const DirectX::XMVECTOR forwardVector = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-  const DirectX::XMVECTOR upVector = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 };
 

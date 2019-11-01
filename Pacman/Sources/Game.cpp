@@ -453,7 +453,7 @@ void Game::DrawSprites()
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
   Global::CameraPerObject cameraPerObjectConstantBuffer = {};
-  XMStoreFloat4x4(&cameraPerObjectConstantBuffer.world, m_dots.GetWorldMatrix());
+  cameraPerObjectConstantBuffer.world = m_dots.GetWorldMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
