@@ -435,7 +435,7 @@ void Game::DrawWorld()
   m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Phong);
 
   Global::CameraPerObject cameraPerObjectConstantBuffer;
-  XMStoreFloat4x4(&cameraPerObjectConstantBuffer.world, m_world.GetWorldMatrix());
+  cameraPerObjectConstantBuffer.world = m_world.GetWorldMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 

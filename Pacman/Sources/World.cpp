@@ -3,6 +3,8 @@
 #include "Global.h"
 #include "World.h"
 
+using namespace DirectX;
+
 World::World() :
   m_map{
     {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
@@ -27,7 +29,7 @@ World::World() :
     {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0}}
 {
-  m_worldMatrix = DirectX::XMMatrixIdentity();
+  XMStoreFloat4x4(&m_worldMatrix, DirectX::XMMatrixIdentity()); // No need to transpose identity matrix
 }
 
 World::~World()
@@ -38,8 +40,8 @@ void World::Generate(ID3D11Device1* device)
 {
   size_t numberOfCubes = 0;
 
-  for (int z = 0; z != Global::worldSize; z++)
-    for (int x = 0; x != Global::worldSize; x++)
+  for (uint32_t z = 0; z != Global::worldSize; z++)
+    for (uint32_t x = 0; x != Global::worldSize; x++)
     {
       if (m_map[z][x] == 1)
       {
@@ -80,7 +82,7 @@ void World::Generate(ID3D11Device1* device)
       }
     }
 
-  for (unsigned short i = 0; i != numberOfCubes; i++) // 148 - 149
+  for (uint16_t i = 0; i != numberOfCubes; i++)
   {
     constexpr uint8_t c = 19;
 
@@ -131,7 +133,7 @@ void World::Generate(ID3D11Device1* device)
 
   D3D11_SUBRESOURCE_DATA sd = {};
   sd.pSysMem = m_vertices.data();
-  device->CreateBuffer(&bd, &sd, &m_vertexBuffer);
+  DX::ThrowIfFailed(device->CreateBuffer(&bd, &sd, &m_vertexBuffer));
 
   // Index buffer
   D3D11_BUFFER_DESC ibd = {};
@@ -139,12 +141,12 @@ void World::Generate(ID3D11Device1* device)
   ibd.Usage = D3D11_USAGE_DEFAULT;
   ibd.CPUAccessFlags = 0;
   ibd.MiscFlags = 0;
-  ibd.ByteWidth = UINT(m_indices.size() * sizeof(unsigned short));
-  ibd.StructureByteStride = sizeof(unsigned short);
+  ibd.ByteWidth = UINT(m_indices.size() * sizeof(uint16_t));
+  ibd.StructureByteStride = sizeof(uint16_t);
 
   D3D11_SUBRESOURCE_DATA isd = {};
   isd.pSysMem = m_indices.data();
-  device->CreateBuffer(&ibd, &isd, &m_indexBuffer);
+  DX::ThrowIfFailed(device->CreateBuffer(&ibd, &isd, &m_indexBuffer));
 }
 
 void World::Init(ID3D11Device1* device)
@@ -156,8 +158,7 @@ void World::Init(ID3D11Device1* device)
   cmdesc.CullMode = D3D11_CULL_BACK;
   cmdesc.FrontCounterClockwise = false;
 
-  // TUCNA check HR
-  device->CreateRasterizerState(&cmdesc, m_cullCW.GetAddressOf());
+  DX::ThrowIfFailed(device->CreateRasterizerState(&cmdesc, m_cullCW.GetAddressOf()));
 }
 
 void World::Draw(ID3D11DeviceContext1* context)
@@ -173,11 +174,6 @@ void World::Draw(ID3D11DeviceContext1* context)
   context->RSSetState(m_cullCW.Get());
 
   context->DrawIndexed((UINT)m_indices.size(), 0, 0);
-}
-
-const DirectX::XMMATRIX& World::GetWorldMatrix() const noexcept
-{
-  return m_worldMatrix;
 }
 
 bool World::IsPassable(uint8_t column, uint8_t row)
