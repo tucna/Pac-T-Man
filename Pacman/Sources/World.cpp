@@ -36,91 +36,88 @@ World::~World()
 {
 }
 
+void World::AddBlock(uint8_t x, uint8_t z, bool north, bool west, bool south, bool east)
+{
+  const float fX = static_cast<float>(x);
+  const float fZ = static_cast<float>(z);
+
+  auto AddIndces = [&]()
+  {
+    uint16_t lastIndex = m_indices.empty() ? 0 : m_indices.back() + 1;
+    m_indices.push_back(lastIndex + 0);
+    m_indices.push_back(lastIndex + 1);
+    m_indices.push_back(lastIndex + 2);
+    m_indices.push_back(lastIndex + 0);
+    m_indices.push_back(lastIndex + 2);
+    m_indices.push_back(lastIndex + 3);
+  };
+
+  // Top side
+  m_vertices.push_back({{fX    , 0.5, fZ    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{fX    , 0.5, fZ + 1}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{fX + 1, 0.5, fZ + 1}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{fX + 1, 0.5, fZ    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+
+  AddIndces();
+
+  // 2st side
+  if (west)
+  {
+    m_vertices.push_back({{fX    , 0.0, fZ    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX    , 0.0, fZ + 1}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX    , 0.5, fZ + 1}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX    , 0.5, fZ    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+
+    AddIndces();
+  }
+
+  // 3rd side
+  if (north)
+  {
+    m_vertices.push_back({{fX    , 0.0, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX + 1, 0.0, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX + 1, 0.5, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX    , 0.5, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+
+    AddIndces();
+  }
+
+  // 4th side
+  if (east)
+  {
+    m_vertices.push_back({{fX + 1, 0.0, fZ + 1}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX + 1, 0.0, fZ    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX + 1, 0.5, fZ    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX + 1, 0.5, fZ + 1}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+
+    AddIndces();
+  }
+
+  // 5st side
+  if (south)
+  {
+    m_vertices.push_back({{fX + 1, 0.0, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX    , 0.0, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX    , 0.5, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX + 1, 0.5, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
+
+    AddIndces();
+  }
+}
+
 void World::Generate(ID3D11Device1* device)
 {
-  size_t numberOfCubes = 0;
-
-  for (uint32_t z = 0; z != Global::worldSize; z++)
-    for (uint32_t x = 0; x != Global::worldSize; x++)
-    {
+  for (uint8_t z = 0; z != Global::worldSize; z++)
+    for (uint8_t x = 0; x != Global::worldSize; x++)
       if (m_map[z][x] == 1)
       {
-        float fX = static_cast<float>(x);
-        float fZ = static_cast<float>(z);
+        bool north = m_map[std::min(z + 1, 21)][x] == 1 ? false : true;
+        bool south = m_map[std::max(z - 1, 0)][x] == 1 ? false : true;
+        bool east = m_map[z][std::min(x + 1, 21)] == 1 ? false : true;
+        bool west = m_map[z][std::max(x - 1, 0)] == 1 ? false : true;
 
-        // 1st
-        m_vertices.push_back({{fX    , 0.5, fZ    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-        m_vertices.push_back({{fX    , 0.5, fZ + 1}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-        m_vertices.push_back({{fX + 1, 0.5, fZ + 1}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-        m_vertices.push_back({{fX + 1, 0.5, fZ    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-
-        // 2st
-        m_vertices.push_back({{fX    , 0.0, fZ    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX    , 0.0, fZ + 1}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX    , 0.5, fZ + 1}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX    , 0.5, fZ    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-
-        // 3rd
-        m_vertices.push_back({{fX    , 0.0, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX + 1, 0.0, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX + 1, 0.5, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX    , 0.5, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-
-        // 4th
-        m_vertices.push_back({{fX + 1, 0.0, fZ + 1}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX + 1, 0.0, fZ    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX + 1, 0.5, fZ    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX + 1, 0.5, fZ + 1}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-
-        // 5st
-        m_vertices.push_back({{fX + 1, 0.0, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX    , 0.0, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX    , 0.5, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
-        m_vertices.push_back({{fX + 1, 0.5, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
-
-        numberOfCubes++;
+        AddBlock(x, z, north, west, south, east);
       }
-    }
-
-  for (uint16_t i = 0; i != numberOfCubes; i++)
-  {
-    constexpr uint8_t c = 19;
-
-    m_indices.push_back((c * i) + i + 0);
-    m_indices.push_back((c * i) + i + 1);
-    m_indices.push_back((c * i) + i + 2);
-    m_indices.push_back((c * i) + i + 0);
-    m_indices.push_back((c * i) + i + 2);
-    m_indices.push_back((c * i) + i + 3);
-
-    m_indices.push_back((c * i) + i + 4);
-    m_indices.push_back((c * i) + i + 5);
-    m_indices.push_back((c * i) + i + 6);
-    m_indices.push_back((c * i) + i + 4);
-    m_indices.push_back((c * i) + i + 6);
-    m_indices.push_back((c * i) + i + 7);
-
-    m_indices.push_back((c * i) + i + 8 );
-    m_indices.push_back((c * i) + i + 9 );
-    m_indices.push_back((c * i) + i + 10);
-    m_indices.push_back((c * i) + i + 8 );
-    m_indices.push_back((c * i) + i + 10);
-    m_indices.push_back((c * i) + i + 11);
-
-    m_indices.push_back((c * i) + i + 12);
-    m_indices.push_back((c * i) + i + 13);
-    m_indices.push_back((c * i) + i + 14);
-    m_indices.push_back((c * i) + i + 12);
-    m_indices.push_back((c * i) + i + 14);
-    m_indices.push_back((c * i) + i + 15);
-
-    m_indices.push_back((c * i) + i + 16);
-    m_indices.push_back((c * i) + i + 17);
-    m_indices.push_back((c * i) + i + 18);
-    m_indices.push_back((c * i) + i + 16);
-    m_indices.push_back((c * i) + i + 18);
-    m_indices.push_back((c * i) + i + 19);
-  }
 
   // Vertex buffer
   D3D11_BUFFER_DESC bd = {};
