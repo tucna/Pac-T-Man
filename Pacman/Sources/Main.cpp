@@ -53,7 +53,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
       return 1;
 
     // Create window
-    int w, h;
+    uint16_t w, h;
     g_game->GetDefaultSize(w, h);
 
     RECT rc = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };
@@ -76,7 +76,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     GetClientRect(hwnd, &rc);
 
-    g_game->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top);
+    g_game->Initialize(hwnd, static_cast<uint16_t>(rc.right - rc.left), static_cast<uint16_t>(rc.bottom - rc.top));
   }
 
   // Main message loop
@@ -98,7 +98,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
   CoUninitialize();
 
-  return (int)msg.wParam;
+  return static_cast<int>(msg.wParam);
 }
 
 // Windows procedure
@@ -163,7 +163,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       RECT rc;
       GetClientRect(hWnd, &rc);
 
-      game->OnWindowSizeChanged(rc.right - rc.left, rc.bottom - rc.top);
+      game->OnWindowSizeChanged(static_cast<uint16_t>(rc.right - rc.left), static_cast<uint16_t>(rc.bottom - rc.top));
     }
     break;
 
@@ -229,8 +229,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         SetWindowLongPtr(hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
         SetWindowLongPtr(hWnd, GWL_EXSTYLE, 0);
 
-        int width = 800;
-        int height = 600;
+        uint16_t width = 800;
+        uint16_t height = 600;
+
         if (game)
           game->GetDefaultSize(width, height);
 

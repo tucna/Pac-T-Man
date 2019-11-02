@@ -20,11 +20,13 @@ Game::Game() noexcept :
 {
 }
 
-void Game::Initialize(HWND window, int width, int height)
+void Game::Initialize(HWND window, uint16_t width, uint16_t height)
 {
+  assert(width > 1 && height > 1);
+
   m_window = window;
-  m_outputWidth = std::max(width, 1);
-  m_outputHeight = std::max(height, 1);
+  m_outputWidth = width;
+  m_outputHeight = height;
 
   CreateDevice();
   CreateResources();
@@ -32,44 +34,25 @@ void Game::Initialize(HWND window, int width, int height)
   m_world.Init(m_d3dDevice.Get());
   m_dots.Init(m_d3dDevice.Get());
 
-  m_characters[Characters::Pacman] = std::make_unique<Character>();
-  m_characters[Characters::Pacman]->Init(m_d3dDevice.Get());
+  for (auto& character : m_characters)
+  {
+    character = std::make_unique<Character>();
+    character->Init(m_d3dDevice.Get());
+    character->SetMovement(Character::Movement::Left);
+    character->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
+    character->SetSpriteScaleFactor(Global::ghostSize);
+    character->SetFramesPerState(2);
+  }
+
+  m_characters[Characters::Blinky]->SetPosition(10.5f, 0.3f, 13.5f);
+  m_characters[Characters::Pinky]->SetPosition(11.5f, 0.3f, 13.5f);
+  m_characters[Characters::Inky]->SetPosition(12.5f, 0.3f, 13.5f);
+  m_characters[Characters::Clyde]->SetPosition(13.5f, 0.3f, 13.5f);
+
   m_characters[Characters::Pacman]->SetPosition(10.5f, 0.25f, 9.5f);
   m_characters[Characters::Pacman]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 1);
   m_characters[Characters::Pacman]->SetSpriteScaleFactor(Global::pacManSize);
-  m_characters[Characters::Pacman]->SetFramesPerState(2);
-
-  m_characters[Characters::Blinky] = std::make_unique<Character>();
-  m_characters[Characters::Blinky]->Init(m_d3dDevice.Get());
-  m_characters[Characters::Blinky]->SetPosition(10.5f, 0.3f, 13.5f);
-  m_characters[Characters::Blinky]->SetMovement(Character::Movement::Left);
-  m_characters[Characters::Blinky]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
-  m_characters[Characters::Blinky]->SetSpriteScaleFactor(Global::ghostSize);
-  m_characters[Characters::Blinky]->SetFramesPerState(2);
-
-  m_characters[Characters::Pinky] = std::make_unique<Character>();
-  m_characters[Characters::Pinky]->Init(m_d3dDevice.Get());
-  m_characters[Characters::Pinky]->SetPosition(11.5f, 0.3f, 13.5f);
-  m_characters[Characters::Pinky]->SetMovement(Character::Movement::Left);
-  m_characters[Characters::Pinky]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
-  m_characters[Characters::Pinky]->SetSpriteScaleFactor(Global::ghostSize);
-  m_characters[Characters::Pinky]->SetFramesPerState(2);
-
-  m_characters[Characters::Inky] = std::make_unique<Character>();
-  m_characters[Characters::Inky]->Init(m_d3dDevice.Get());
-  m_characters[Characters::Inky]->SetPosition(12.5f, 0.3f, 13.5f);
-  m_characters[Characters::Inky]->SetMovement(Character::Movement::Left);
-  m_characters[Characters::Inky]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
-  m_characters[Characters::Inky]->SetSpriteScaleFactor(Global::ghostSize);
-  m_characters[Characters::Inky]->SetFramesPerState(2);
-
-  m_characters[Characters::Clyde] = std::make_unique<Character>();
-  m_characters[Characters::Clyde]->Init(m_d3dDevice.Get());
-  m_characters[Characters::Clyde]->SetPosition(13.5f, 0.3f, 13.5f);
-  m_characters[Characters::Clyde]->SetMovement(Character::Movement::Left);
-  m_characters[Characters::Clyde]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
-  m_characters[Characters::Clyde]->SetSpriteScaleFactor(Global::ghostSize);
-  m_characters[Characters::Clyde]->SetFramesPerState(2);
+  m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
 
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf()));
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf()));
@@ -83,7 +66,6 @@ void Game::Initialize(HWND window, int width, int height)
 
   m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f); // Here or to resize?
 
-  // Camera constant buffers
   XMFLOAT4X4 projection = m_camera.GetProjectionMatrix();
 
   D3D11_BUFFER_DESC cbd = {};
@@ -99,32 +81,31 @@ void Game::Initialize(HWND window, int width, int height)
 
   DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_projectionMatrixConstantBuffer));
 
-  // Camera constant buffers
   Global::CameraPerFrame cameraConstantBufferPerFrame = {};
   cameraConstantBufferPerFrame.view = m_camera.GetViewMatrix();
   cameraConstantBufferPerFrame.projection = m_camera.GetProjectionMatrix();
 
-  D3D11_BUFFER_DESC cbd_v2 = {};
-  cbd_v2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-  cbd_v2.Usage = D3D11_USAGE_DYNAMIC;
-  cbd_v2.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-  cbd_v2.MiscFlags = 0;
-  cbd_v2.ByteWidth = sizeof(Global::CameraPerFrame);
-  cbd_v2.StructureByteStride = 0;
+  cbd = {};
+  cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cbd.Usage = D3D11_USAGE_DYNAMIC;
+  cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+  cbd.MiscFlags = 0;
+  cbd.ByteWidth = sizeof(Global::CameraPerFrame);
+  cbd.StructureByteStride = 0;
 
-  D3D11_SUBRESOURCE_DATA csd_v2 = {};
-  csd_v2.pSysMem = &cameraConstantBufferPerFrame;
+  csd = {};
+  csd.pSysMem = &cameraConstantBufferPerFrame;
 
-  m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerFrame);
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_cameraPerFrame));
 
   Global::CameraPerObject cameraConstantBufferPerObject;
   XMStoreFloat4x4(&cameraConstantBufferPerObject.world, DirectX::XMMatrixIdentity());
 
-  cbd_v2.ByteWidth = sizeof(Global::CameraPerObject);
+  cbd.ByteWidth = sizeof(Global::CameraPerObject);
 
-  csd_v2.pSysMem = &cameraConstantBufferPerObject;
+  csd.pSysMem = &cameraConstantBufferPerObject;
 
-  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd_v2, &csd_v2, &m_cameraPerObject));
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_cameraPerObject));
 
   // Frame constant buffers
   Global::SpriteConstantBuffer frameConstantBuffer = {};
@@ -140,7 +121,7 @@ void Game::Initialize(HWND window, int width, int height)
   csd = {};
   csd.pSysMem = &frameConstantBuffer;
 
-  m_d3dDevice->CreateBuffer(&cbd, &csd, &m_frameBuffer);
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_frameBuffer));
 
   ID3D11Buffer* geometryShaderBuffers[2] = { m_projectionMatrixConstantBuffer.Get(), m_frameBuffer.Get() };
   m_shaderManager->BindConstantBuffersToGeometryShader(ShaderManager::GeometryShader::Billboard, geometryShaderBuffers, 2);
@@ -160,24 +141,29 @@ void Game::Tick()
   Render();
 }
 
-void Game::Update(DX::StepTimer const& timer)
+void Game::Update(const DX::StepTimer& timer)
 {
   if (timer.GetTotalSeconds() > 7 && timer.GetTotalSeconds() <= 27)
   {
     if (m_currentMode != Mode::Chase)
-    {
-      m_characters[Characters::Blinky]->RevereseMovementDirection();
-      m_characters[Characters::Pinky]->RevereseMovementDirection();
-      m_characters[Characters::Inky]->RevereseMovementDirection();
-      m_characters[Characters::Clyde]->RevereseMovementDirection();
-    }
+      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
 
     m_currentMode = Mode::Chase;
   }
   else if (timer.GetTotalSeconds() > 27 && timer.GetTotalSeconds() <= 34)
+  {
+    if (m_currentMode != Mode::Scatter)
+      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
+
     m_currentMode = Mode::Scatter;
+  }
   else if (timer.GetTotalSeconds() > 34 && timer.GetTotalSeconds() <= 54)
+  {
+    if (m_currentMode != Mode::Chase)
+      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
+
     m_currentMode = Mode::Chase;
+  }
   else if (timer.GetTotalSeconds() > 54 && timer.GetTotalSeconds() <= 59)
     m_currentMode = Mode::Scatter;
   else if (timer.GetTotalSeconds() > 59)
@@ -414,15 +400,17 @@ void Game::OnResuming()
   m_timer.ResetElapsedTime();
 }
 
-void Game::OnWindowSizeChanged(int width, int height)
+void Game::OnWindowSizeChanged(uint16_t width, uint16_t height)
 {
-  m_outputWidth = std::max(width, 1);
-  m_outputHeight = std::max(height, 1);
+  assert(width > 1 && height > 1);
+
+  m_outputWidth = width;
+  m_outputHeight = height;
 
   CreateResources();
 }
 
-void Game::GetDefaultSize(int& width, int& height) const
+void Game::GetDefaultSize(uint16_t& width, uint16_t& height) const
 {
   width = 800;
   height = 600;
@@ -477,55 +465,18 @@ void Game::DrawSprites()
   m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
 
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_characters[Characters::Blinky]->Update();
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->Update(); });
 
-  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Blinky]);
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
+  std::for_each(m_characters.begin() + 1, m_characters.end(), [&](auto& character)
+  {
+    SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *character);
+    m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
-  cameraPerObjectConstantBuffer.world = m_characters[Characters::Blinky]->GetWorldMatrix();
+    cameraPerObjectConstantBuffer.world = character->GetWorldMatrix();
+    m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
-
-  m_characters[Characters::Blinky]->Draw(m_d3dContext.Get());
-
-  // Pinky
-  if (m_timer.GetFrameCount() % 10 == 0)
-    m_characters[Characters::Pinky]->Update();
-
-  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Pinky]);
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
-
-  cameraPerObjectConstantBuffer.world = m_characters[Characters::Pinky]->GetWorldMatrix();
-
-  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
-
-  m_characters[Characters::Pinky]->Draw(m_d3dContext.Get());
-
-  // Inky
-  if (m_timer.GetFrameCount() % 10 == 0)
-    m_characters[Characters::Inky]->Update();
-
-  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Inky]);
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
-
-  cameraPerObjectConstantBuffer.world = m_characters[Characters::Inky]->GetWorldMatrix();
-
-  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
-
-  m_characters[Characters::Inky]->Draw(m_d3dContext.Get());
-
-  // Clyde
-  if (m_timer.GetFrameCount() % 10 == 0)
-    m_characters[Characters::Clyde]->Update();
-
-  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Clyde]);
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
-
-  cameraPerObjectConstantBuffer.world = m_characters[Characters::Clyde]->GetWorldMatrix();
-
-  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
-
-  m_characters[Characters::Clyde]->Draw(m_d3dContext.Get());
+    character->Draw(m_d3dContext.Get());
+  });
 }
 
 void Game::DrawDebug()
