@@ -178,25 +178,15 @@ void Game::Update(const DX::StepTimer& timer)
   const Character::Movement pacmanMovement = m_characters[Characters::Pacman]->GetMovement();
   const DirectX::XMFLOAT3& pacmanPosCurrent = m_characters[Characters::Pacman]->GetPosition();
 
-  if (pacmanMovement == Character::Movement::Left)
+  if (pacmanMovement == Character::Movement::Left && (pacmanPosCurrent.x - 0.5f) < Global::pacManSpeed)
   {
-    bool teleport = (pacmanPosCurrent.x - 0.5f) < Global::pacManSpeed ? true : false;
-
-    if (teleport)
-    {
-      m_characters[Characters::Pacman]->SetPosition(20.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
-      return;
-    }
+    m_characters[Characters::Pacman]->SetPosition(20.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
+    return;
   }
-  else if (pacmanMovement == Character::Movement::Right)
+  else if (pacmanMovement == Character::Movement::Right && (20.5f - pacmanPosCurrent.x) < Global::pacManSpeed)
   {
-    bool teleport = (20.5f - pacmanPosCurrent.x) < Global::pacManSpeed ? true : false;
-
-    if (teleport)
-    {
-      m_characters[Characters::Pacman]->SetPosition(0.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
-      return;
-    }
+    m_characters[Characters::Pacman]->SetPosition(0.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
+    return;
   }
 
   bool isHorizontallyAligned = (fmod(pacmanPosCurrent.x - 0.5f, 1.0f) < Global::pacManSpeed);

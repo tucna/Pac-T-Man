@@ -202,12 +202,12 @@
     <Manifest Include="Resources\settings.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Documents\Personal\ShaderManager\ShaderManager\ShaderManager.vcxproj">
-      <Project>{14e3cadb-d9e9-4cd9-9351-0f3bb8aec46d}</Project>
-    </ProjectReference>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ProjectReference Include="..\..\ShaderManager\ShaderManager\ShaderManager.vcxproj">
+      <Project>{14e3cadb-d9e9-4cd9-9351-0f3bb8aec46d}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28307.757
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pacman", "Pacman\Pacman.vcxproj", "{AC0EC65E-1F42-4131-98B5-B0ACE1D2105D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShaderManager", "..\..\Documents\Personal\ShaderManager\ShaderManager\ShaderManager.vcxproj", "{14E3CADB-D9E9-4CD9-9351-0F3BB8AEC46D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShaderManager", "..\ShaderManager\ShaderManager\ShaderManager.vcxproj", "{14E3CADB-D9E9-4CD9-9351-0F3BB8AEC46D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
