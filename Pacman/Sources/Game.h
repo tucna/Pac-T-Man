@@ -68,7 +68,7 @@ private:
   void OnDeviceLost();
 
   void SetSpriteConstantBufferForCharacter(Global::SpriteConstantBuffer& spriteConstantBuffer, const Character& character);
-  void MoveCharacterTowardsPosition(float posX, float posZ, Character& character);
+  void MoveCharacterTowardsPosition(float posX, float posZ, Characters characterID);
 
   D3D_FEATURE_LEVEL                                 m_featureLevel;
   Microsoft::WRL::ComPtr<ID3D11Device1>             m_d3dDevice;
@@ -85,7 +85,6 @@ private:
   Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>  m_pacManShaderResourceView;
   Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>  m_ghostsShaderResourceView;
 
-
   HWND m_window;
   DX::StepTimer m_timer;
   Character::Movement m_pacmanMovementRequest;
@@ -94,8 +93,8 @@ private:
   World m_world;
   Mode m_currentMode;
 
-  std::unique_ptr<ShaderManager>                  m_shaderManager;
-  std::unique_ptr<DirectX::Keyboard>              m_keyboard;
+  std::unique_ptr<ShaderManager> m_shaderManager;
+  std::unique_ptr<DirectX::Keyboard> m_keyboard;
   std::vector<Global::Vertex> m_debugPoints;
   std::array<std::unique_ptr<Character>, static_cast<uint8_t>(Characters::_Count)> m_characters;
 

@@ -15,7 +15,7 @@ Game::Game() noexcept :
   m_outputHeight(600),
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
-  m_debugDraw(false),
+  m_debugDraw(true),
   m_currentMode(Mode::Scatter)
 {
 }
@@ -44,15 +44,16 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
     character->SetFramesPerState(2);
   }
 
-  m_characters[Characters::Blinky]->SetPosition(10.5f, 0.3f, 13.5f);
-  m_characters[Characters::Pinky]->SetPosition(11.5f, 0.3f, 13.5f);
-  m_characters[Characters::Inky]->SetPosition(12.5f, 0.3f, 13.5f);
-  m_characters[Characters::Clyde]->SetPosition(13.5f, 0.3f, 13.5f);
+  m_characters[Characters::Blinky]->SetPosition(10.5f, 0.3f, 13.5f); m_characters[Characters::Blinky]->SetSpriteY(0);
+  m_characters[Characters::Pinky]->SetPosition(11.5f, 0.3f, 13.5f);  m_characters[Characters::Pinky]->SetSpriteY(1);
+  m_characters[Characters::Inky]->SetPosition(12.5f, 0.3f, 13.5f);   m_characters[Characters::Inky]->SetSpriteY(2);
+  m_characters[Characters::Clyde]->SetPosition(13.5f, 0.3f, 13.5f);  m_characters[Characters::Clyde]->SetSpriteY(3);
 
   m_characters[Characters::Pacman]->SetPosition(10.5f, 0.25f, 9.5f);
   m_characters[Characters::Pacman]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 1);
   m_characters[Characters::Pacman]->SetSpriteScaleFactor(Global::pacManSize);
   m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
+  m_characters[Characters::Pacman]->SetSpriteY(0);
 
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf()));
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf()));
@@ -143,33 +144,33 @@ void Game::Tick()
 
 void Game::Update(const DX::StepTimer& timer)
 {
-  if (timer.GetTotalSeconds() > 7 && timer.GetTotalSeconds() <= 27)
+  if (timer.GetTotalSeconds() > 7 && timer.GetTotalSeconds() <= 27 && m_currentMode != Mode::Chase)
   {
-    if (m_currentMode != Mode::Chase)
-      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
     m_currentMode = Mode::Chase;
   }
-  else if (timer.GetTotalSeconds() > 27 && timer.GetTotalSeconds() <= 34)
+  else if (timer.GetTotalSeconds() > 27 && timer.GetTotalSeconds() <= 34 && m_currentMode != Mode::Scatter)
   {
-    if (m_currentMode != Mode::Scatter)
-      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
     m_currentMode = Mode::Scatter;
   }
-  else if (timer.GetTotalSeconds() > 34 && timer.GetTotalSeconds() <= 54)
+  else if (timer.GetTotalSeconds() > 34 && timer.GetTotalSeconds() <= 54 && m_currentMode != Mode::Chase)
   {
-    if (m_currentMode != Mode::Chase)
-      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
     m_currentMode = Mode::Chase;
   }
-  else if (timer.GetTotalSeconds() > 54 && timer.GetTotalSeconds() <= 59)
+  else if (timer.GetTotalSeconds() > 54 && timer.GetTotalSeconds() <= 59 && m_currentMode != Mode::Scatter)
+  {
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
     m_currentMode = Mode::Scatter;
-  else if (timer.GetTotalSeconds() > 59)
+  }
+  else if (timer.GetTotalSeconds() > 59 && m_currentMode != Mode::Chase)
+  {
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
     m_currentMode = Mode::Chase;
+  }
 
-  auto kb = m_keyboard->GetState();
+  const auto& kb = m_keyboard->GetState();
 
   if (kb.Escape)
     ExitGame();
@@ -299,8 +300,6 @@ void Game::Update(const DX::StepTimer& timer)
     // Nothing
     break;
   }
-
-  m_characters[Characters::Pacman]->SetSpriteY(0);
 
   switch (m_characters[Characters::Pacman]->GetMovement())
   {
@@ -510,23 +509,26 @@ void Game::DrawDebug()
   m_debugPoints.clear();
 }
 
-void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& character)
+void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters characterID)
 {
-  /* TODO
+  Character& character = *m_characters[characterID];
+
   if (m_debugDraw)
-  {
-    if (&character == &m_blinky)
-      m_debugPoints.push_back({ {posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.0f, 0.0f} });
-    else if (&character == &m_pinky)
-      m_debugPoints.push_back({ {posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.6f, 0.8f} });
-    else if (&character == &m_inky)
-      m_debugPoints.push_back({ {posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {0.2f, 1.0f, 1.0f} });
-    else if (&character == &m_clyde)
-      m_debugPoints.push_back({ {posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.8f, 0.2f} });
-    else
-      m_debugPoints.push_back({ {posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {0.0, 0.0, 0.0} });
-  }
-  */
+    switch (characterID)
+    {
+      case Characters::Blinky:
+        m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}});
+        break;
+      case Characters::Pinky:
+        m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.6f, 0.8f}});
+        break;
+      case Characters::Inky:
+        m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {0.2f, 1.0f, 1.0f}});
+        break;
+      case Characters::Clyde:
+        m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.8f, 0.2f}});
+        break;
+    }
 
   character.IncreaseFrameCounter();
 
@@ -632,20 +634,16 @@ void Game::UpdatePositionOfBlinky()
   if (m_currentMode == Mode::Chase)
   {
     const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
-
-    m_characters[Characters::Blinky]->SetSpriteY(0);
-    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *m_characters[Characters::Blinky]);
+    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Blinky);
   }
   else
   {
-    MoveCharacterTowardsPosition(18.5f, 21.5f, *m_characters[Characters::Blinky]);
+    MoveCharacterTowardsPosition(18.5f, 21.5f, Characters::Blinky);
   }
 }
 
 void Game::UpdatePositionOfPinky()
 {
-  m_characters[Characters::Pinky]->SetSpriteY(1);
-
   if (m_characters[Characters::Pinky]->GetMovement() == Character::Movement::InHouse)
     return;
 
@@ -669,18 +667,16 @@ void Game::UpdatePositionOfPinky()
       break;
     }
 
-    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *m_characters[Characters::Pinky]);
+    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Pinky);
   }
   else
   {
-    MoveCharacterTowardsPosition(2.5f, 21.5f, *m_characters[Characters::Pinky]);
+    MoveCharacterTowardsPosition(2.5f, 21.5f, Characters::Pinky);
   }
 }
 
 void Game::UpdatePositionOfInky()
 {
-  m_characters[Characters::Inky]->SetSpriteY(2);
-
   if (m_characters[Characters::Inky]->GetMovement() == Character::Movement::InHouse)
     return;
 
@@ -712,18 +708,16 @@ void Game::UpdatePositionOfInky()
     finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
     finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
 
-    MoveCharacterTowardsPosition(finalPosX, finalPosZ, *m_characters[Characters::Inky]);
+    MoveCharacterTowardsPosition(finalPosX, finalPosZ, Characters::Inky);
   }
   else
   {
-    MoveCharacterTowardsPosition(21.5f, 0.0f, *m_characters[Characters::Inky]);
+    MoveCharacterTowardsPosition(21.5f, 0.0f, Characters::Inky);
   }
 }
 
 void Game::UpdatePositionOfClyde()
 {
-  m_characters[Characters::Clyde]->SetSpriteY(3);
-
   if (m_characters[Characters::Clyde]->GetMovement() == Character::Movement::InHouse)
     return;
 
@@ -737,17 +731,17 @@ void Game::UpdatePositionOfClyde()
     if (distance > 8)
     {
       // Behave as blinky
-      MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *m_characters[Characters::Clyde]);
+      MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Clyde);
     }
     else
     {
       // Scatter
-      MoveCharacterTowardsPosition(0.0f, 0.0f, *m_characters[Characters::Clyde]);
+      MoveCharacterTowardsPosition(0.0f, 0.0f, Characters::Clyde);
     }
   }
   else
   {
-    MoveCharacterTowardsPosition(0.0f, 0.0f, *m_characters[Characters::Clyde]);
+    MoveCharacterTowardsPosition(0.0f, 0.0f, Characters::Clyde);
   }
 }
 
