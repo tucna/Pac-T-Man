@@ -19,7 +19,7 @@ World::World() :
     {0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0},
     {2, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 2},
     {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-    {2, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 2},
+    {2, 1, 1, 1, 1, 0, 1, 0, 1, 1, 3, 1, 1, 0, 1, 0, 1, 1, 1, 1, 2},
     {0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0},
     {0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0},
     {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0},
@@ -36,7 +36,7 @@ World::~World()
 {
 }
 
-void World::AddBlock(uint8_t x, uint8_t z, bool north, bool west, bool south, bool east)
+void World::AddBlock(uint8_t x, uint8_t z, float depth, bool north, bool west, bool south, bool east)
 {
   const float fX = static_cast<float>(x);
   const float fZ = static_cast<float>(z);
@@ -54,8 +54,8 @@ void World::AddBlock(uint8_t x, uint8_t z, bool north, bool west, bool south, bo
 
   // Top side
   m_vertices.push_back({{fX    , 0.5, fZ    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-  m_vertices.push_back({{fX    , 0.5, fZ + 1}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-  m_vertices.push_back({{fX + 1, 0.5, fZ + 1}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{fX    , 0.5, fZ + depth}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{fX + 1, 0.5, fZ + depth}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
   m_vertices.push_back({{fX + 1, 0.5, fZ    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
 
   AddIndces();
@@ -64,8 +64,8 @@ void World::AddBlock(uint8_t x, uint8_t z, bool north, bool west, bool south, bo
   if (west)
   {
     m_vertices.push_back({{fX    , 0.0, fZ    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX    , 0.0, fZ + 1}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX    , 0.5, fZ + 1}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX    , 0.0, fZ + depth}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX    , 0.5, fZ + depth}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
     m_vertices.push_back({{fX    , 0.5, fZ    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
 
     AddIndces();
@@ -74,10 +74,10 @@ void World::AddBlock(uint8_t x, uint8_t z, bool north, bool west, bool south, bo
   // 3rd side
   if (north)
   {
-    m_vertices.push_back({{fX    , 0.0, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX + 1, 0.0, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX + 1, 0.5, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX    , 0.5, fZ + 1}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX    , 0.0, fZ + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX + 1, 0.0, fZ + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX + 1, 0.5, fZ + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX    , 0.5, fZ + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
 
     AddIndces();
   }
@@ -85,10 +85,10 @@ void World::AddBlock(uint8_t x, uint8_t z, bool north, bool west, bool south, bo
   // 4th side
   if (east)
   {
-    m_vertices.push_back({{fX + 1, 0.0, fZ + 1}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX + 1, 0.0, fZ + depth}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
     m_vertices.push_back({{fX + 1, 0.0, fZ    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
     m_vertices.push_back({{fX + 1, 0.5, fZ    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX + 1, 0.5, fZ + 1}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{fX + 1, 0.5, fZ + depth}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
 
     AddIndces();
   }
@@ -116,7 +116,11 @@ void World::Generate(ID3D11Device1* device)
         bool east = m_map[z][std::min(x + 1, 21)] == 1 ? false : true;
         bool west = m_map[z][std::max(x - 1, 0)] == 1 ? false : true;
 
-        AddBlock(x, z, north, west, south, east);
+        AddBlock(x, z, 1.0f, north, west, south, east);
+      }
+      else if (m_map[z][x] == 3)
+      {
+        AddBlock(x, z, 0.5f, true, false, true, false);
       }
 
   // Vertex buffer

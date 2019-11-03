@@ -18,7 +18,7 @@ public:
   const DirectX::XMFLOAT4X4& GetWorldMatrix() const { return m_worldMatrix; }
 
 private:
-  void AddBlock(uint8_t x, uint8_t z, bool north, bool west, bool south, bool east);
+  void AddBlock(uint8_t x, uint8_t z, float depth, bool north, bool west, bool south, bool east);
   void Generate(ID3D11Device1* device);
 
   const uint8_t m_map[Global::worldSize][Global::worldSize];

@@ -88,13 +88,15 @@ private:
   HWND m_window;
   DX::StepTimer m_timer;
   Character::Movement m_pacmanMovementRequest;
+  Mode m_currentMode;
+
   Camera m_camera;
   Dots m_dots;
   World m_world;
-  Mode m_currentMode;
 
   std::unique_ptr<ShaderManager> m_shaderManager;
   std::unique_ptr<DirectX::Keyboard> m_keyboard;
+
   std::vector<Global::Vertex> m_debugPoints;
   std::array<std::unique_ptr<Character>, static_cast<uint8_t>(Characters::_Count)> m_characters;
 

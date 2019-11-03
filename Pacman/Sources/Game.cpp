@@ -15,7 +15,7 @@ Game::Game() noexcept :
   m_outputHeight(600),
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
-  m_debugDraw(true),
+  m_debugDraw(false),
   m_currentMode(Mode::Scatter)
 {
 }
