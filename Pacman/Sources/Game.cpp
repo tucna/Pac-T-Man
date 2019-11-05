@@ -178,6 +178,7 @@ void Game::Update(const DX::StepTimer& timer)
   const Character::Movement pacmanMovement = m_characters[Characters::Pacman]->GetMovement();
   const DirectX::XMFLOAT3& pacmanPosCurrent = m_characters[Characters::Pacman]->GetPosition();
 
+  // Teleport handling
   if (pacmanMovement == Character::Movement::Left && (pacmanPosCurrent.x - 0.5f) < Global::pacManSpeed)
   {
     m_characters[Characters::Pacman]->SetPosition(20.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
@@ -208,83 +209,41 @@ void Game::Update(const DX::StepTimer& timer)
       m_pacmanMovementRequest = Character::Movement::Down;
   }
 
+  auto pacmanHandleMovement = [&](uint8_t addX, uint8_t addZ, bool alignment)
+  {
+    if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x + addX), static_cast<uint8_t>(pacmanPosCurrent.z + addZ)))
+    {
+      if (m_pacmanMovementRequest != pacmanMovement)
+      {
+        m_characters[Characters::Pacman]->AlignToMap();
+        m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
+      }
+    }
+    else if (alignment)
+    {
+      if (m_pacmanMovementRequest == pacmanMovement)
+      {
+        m_characters[Characters::Pacman]->AlignToMap();
+        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
+      }
+      else
+        m_pacmanMovementRequest = pacmanMovement;
+    }
+  };
+
   switch (m_pacmanMovementRequest)
   {
   case Character::Movement::Right:
-    if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x + Global::pacManHalfSize), static_cast<uint8_t>(pacmanPosCurrent.z)))
-    {
-      if (m_pacmanMovementRequest != m_characters[Characters::Pacman]->GetMovement())
-        m_characters[Characters::Pacman]->AlignToMap();
-
-      m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
-    }
-    else
-    {
-      if (m_pacmanMovementRequest == m_characters[Characters::Pacman]->GetMovement())
-      {
-        m_characters[Characters::Pacman]->AlignToMap();
-        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
-      }
-      else
-        m_pacmanMovementRequest = m_characters[Characters::Pacman]->GetMovement();
-    }
+    pacmanHandleMovement(1, 0, isHorizontallyAligned);
     break;
   case Character::Movement::Left:
-    if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x - (Global::pacManHalfSize + Global::pacManSpeed)), static_cast<uint8_t>(pacmanPosCurrent.z)))
-    {
-      if (m_pacmanMovementRequest != m_characters[Characters::Pacman]->GetMovement())
-        m_characters[Characters::Pacman]->AlignToMap();
-
-      m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
-    }
-    else
-    {
-      if (m_pacmanMovementRequest == m_characters[Characters::Pacman]->GetMovement())
-      {
-        m_characters[Characters::Pacman]->AlignToMap();
-        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
-      }
-      else
-        m_pacmanMovementRequest = m_characters[Characters::Pacman]->GetMovement();
-    }
+    pacmanHandleMovement(-1, 0, isHorizontallyAligned);
     break;
   case Character::Movement::Up:
-    if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z + (Global::pacManHalfSize + Global::pacManSpeed))))
-    {
-      if (m_pacmanMovementRequest != m_characters[Characters::Pacman]->GetMovement())
-        m_characters[Characters::Pacman]->AlignToMap();
-
-      m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
-    }
-    else
-    {
-      if (m_pacmanMovementRequest == m_characters[Characters::Pacman]->GetMovement())
-      {
-        m_characters[Characters::Pacman]->AlignToMap();
-        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
-      }
-      else
-        m_pacmanMovementRequest = m_characters[Characters::Pacman]->GetMovement();
-    }
+    pacmanHandleMovement(0, 1, isVerticallyAligned);
     break;
   case Character::Movement::Down:
-    if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z - (Global::pacManHalfSize + Global::pacManSpeed))))
-    {
-      if (m_pacmanMovementRequest != m_characters[Characters::Pacman]->GetMovement())
-        m_characters[Characters::Pacman]->AlignToMap();
-
-      m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
-    }
-    else
-    {
-      if (m_pacmanMovementRequest == m_characters[Characters::Pacman]->GetMovement())
-      {
-        m_characters[Characters::Pacman]->AlignToMap();
-        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
-      }
-      else
-        m_pacmanMovementRequest = m_characters[Characters::Pacman]->GetMovement();
-    }
+    pacmanHandleMovement(0, -1, isVerticallyAligned);
     break;
   default:
     // Nothing
