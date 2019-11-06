@@ -200,6 +200,7 @@ void Game::Update(const DX::StepTimer& timer)
   moves[Character::Direction::Down] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z - 1.0f));
   moves[Character::Direction::Left] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x - 1.0f), static_cast<uint8_t>(pacmanPosCurrent.z));
 
+
   if (isVerticallyAligned)
   {
     if (kb.Right && moves[Character::Direction::Right])
@@ -216,15 +217,15 @@ void Game::Update(const DX::StepTimer& timer)
       m_pacmanMovementRequest = Character::Movement::Down;
   }
 
-  auto pacmanHandleMovement = [&](int8_t addX, int8_t addZ, bool alignment)
+  auto pacmanHandleMovement = [&](bool isPassable, bool alignment)
   {
-    if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x + addX), static_cast<uint8_t>(pacmanPosCurrent.z + addZ)))
+    if (isPassable)
     {
-      if (m_pacmanMovementRequest != pacmanMovement)
-      {
+      if ((static_cast<uint8_t>(m_pacmanMovementRequest) + static_cast<uint8_t>(pacmanMovement)) % 2 > 0) // TODO: ugly way how to write "if directions are oposite
         m_characters[Characters::Pacman]->AlignToMap();
+
+      if (m_pacmanMovementRequest != pacmanMovement)
         m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
-      }
     }
     else if (alignment)
     {
@@ -241,16 +242,16 @@ void Game::Update(const DX::StepTimer& timer)
   switch (m_pacmanMovementRequest)
   {
   case Character::Movement::Right:
-    pacmanHandleMovement(1, 0, isHorizontallyAligned);
+    pacmanHandleMovement(moves[Character::Direction::Right], isHorizontallyAligned);
     break;
   case Character::Movement::Left:
-    pacmanHandleMovement(-1, 0, isHorizontallyAligned);
+    pacmanHandleMovement(moves[Character::Direction::Left], isHorizontallyAligned);
     break;
   case Character::Movement::Up:
-    pacmanHandleMovement(0, 1, isVerticallyAligned);
+    pacmanHandleMovement(moves[Character::Direction::Up], isVerticallyAligned);
     break;
   case Character::Movement::Down:
-    pacmanHandleMovement(0, -1, isVerticallyAligned);
+    pacmanHandleMovement(moves[Character::Direction::Down], isVerticallyAligned);
     break;
   default:
     // Nothing
