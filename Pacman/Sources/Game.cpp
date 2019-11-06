@@ -193,23 +193,30 @@ void Game::Update(const DX::StepTimer& timer)
   bool isHorizontallyAligned = (fmod(pacmanPosCurrent.x - 0.5f, 1.0f) < Global::pacManSpeed);
   bool isVerticallyAligned = (fmod(pacmanPosCurrent.z - 0.5f, 1.0f) < Global::pacManSpeed);
 
+  bool moves[Character::Direction::_Count] = {false, false, false, false};
+
+  moves[Character::Direction::Up] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z + 1.0f));
+  moves[Character::Direction::Right] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x + 1.0f), static_cast<uint8_t>(pacmanPosCurrent.z));
+  moves[Character::Direction::Down] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z - 1.0f));
+  moves[Character::Direction::Left] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x - 1.0f), static_cast<uint8_t>(pacmanPosCurrent.z));
+
   if (isVerticallyAligned)
   {
-    if (kb.Right)
+    if (kb.Right && moves[Character::Direction::Right])
       m_pacmanMovementRequest = Character::Movement::Right;
-    else if (kb.Left)
+    else if (kb.Left && moves[Character::Direction::Left])
       m_pacmanMovementRequest = Character::Movement::Left;
   }
 
   if (isHorizontallyAligned)
   {
-    if (kb.Up)
+    if (kb.Up && moves[Character::Direction::Up])
       m_pacmanMovementRequest = Character::Movement::Up;
-    else if (kb.Down)
+    else if (kb.Down && moves[Character::Direction::Down])
       m_pacmanMovementRequest = Character::Movement::Down;
   }
 
-  auto pacmanHandleMovement = [&](uint8_t addX, uint8_t addZ, bool alignment)
+  auto pacmanHandleMovement = [&](int8_t addX, int8_t addZ, bool alignment)
   {
     if (m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x + addX), static_cast<uint8_t>(pacmanPosCurrent.z + addZ)))
     {
@@ -253,19 +260,15 @@ void Game::Update(const DX::StepTimer& timer)
   switch (m_characters[Characters::Pacman]->GetMovement())
   {
   case Character::Movement::Left:
-    m_characters[Characters::Pacman]->SetSpriteXAddition(4);
     m_characters[Characters::Pacman]->AdjustPosition(-Global::pacManSpeed, 0, 0);
     break;
   case Character::Movement::Right:
-    m_characters[Characters::Pacman]->SetSpriteXAddition(6);
     m_characters[Characters::Pacman]->AdjustPosition(Global::pacManSpeed, 0, 0);
     break;
   case Character::Movement::Up:
-    m_characters[Characters::Pacman]->SetSpriteXAddition(0);
     m_characters[Characters::Pacman]->AdjustPosition(0, 0, Global::pacManSpeed);
     break;
   case Character::Movement::Down:
-    m_characters[Characters::Pacman]->SetSpriteXAddition(2);
     m_characters[Characters::Pacman]->AdjustPosition(0, 0, -Global::pacManSpeed);
     break;
   default:
