@@ -200,7 +200,6 @@ void Game::Update(const DX::StepTimer& timer)
   moves[Character::Direction::Down] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z - 1.0f));
   moves[Character::Direction::Left] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x - 1.0f), static_cast<uint8_t>(pacmanPosCurrent.z));
 
-
   if (isVerticallyAligned)
   {
     if (kb.Right && moves[Character::Direction::Right])
@@ -221,11 +220,14 @@ void Game::Update(const DX::StepTimer& timer)
   {
     if (isPassable)
     {
-      if ((static_cast<uint8_t>(m_pacmanMovementRequest) + static_cast<uint8_t>(pacmanMovement)) % 2 > 0) // TODO: ugly way how to write "if directions are oposite
+      if (!AreMovementsOppositeOrSame(m_pacmanMovementRequest, pacmanMovement))
         m_characters[Characters::Pacman]->AlignToMap();
 
       if (m_pacmanMovementRequest != pacmanMovement)
+      {
         m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
+        m_characters[Characters::Pacman]->Update(); // TUCNA todo
+      }
     }
     else if (alignment)
     {
@@ -580,6 +582,18 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
       character.ResetFrameCounter();
     }
   }
+}
+
+bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2)
+{
+  if (m1 == m2) return true;
+
+  if (m1 == Character::Movement::Up && m2 == Character::Movement::Down) return true;
+  if (m1 == Character::Movement::Right && m2 == Character::Movement::Left) return true;
+  if (m1 == Character::Movement::Down && m2 == Character::Movement::Up) return true;
+  if (m1 == Character::Movement::Left && m2 == Character::Movement::Right) return true;
+
+  return false;
 }
 
 void Game::UpdatePositionOfBlinky()

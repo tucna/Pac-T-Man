@@ -70,6 +70,8 @@ private:
   void SetSpriteConstantBufferForCharacter(Global::SpriteConstantBuffer& spriteConstantBuffer, const Character& character);
   void MoveCharacterTowardsPosition(float posX, float posZ, Characters characterID);
 
+  bool AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2);
+
   D3D_FEATURE_LEVEL                                 m_featureLevel;
   Microsoft::WRL::ComPtr<ID3D11Device1>             m_d3dDevice;
   Microsoft::WRL::ComPtr<ID3D11DeviceContext1>      m_d3dContext;
