@@ -224,10 +224,7 @@ void Game::Update(const DX::StepTimer& timer)
         m_characters[Characters::Pacman]->AlignToMap();
 
       if (m_pacmanMovementRequest != pacmanMovement)
-      {
         m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
-        m_characters[Characters::Pacman]->Update(); // TUCNA todo
-      }
     }
     else if (alignment)
     {
@@ -404,7 +401,7 @@ void Game::DrawSprites()
   m_d3dContext->PSSetShaderResources(0, 1, m_pacManShaderResourceView.GetAddressOf());
 
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_characters[Characters::Pacman]->Update();
+    m_characters[Characters::Pacman]->UpdateFrame();
 
   SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Pacman]);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
@@ -419,7 +416,7 @@ void Game::DrawSprites()
   m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
 
   if (m_timer.GetFrameCount() % 10 == 0)
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->Update(); });
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->UpdateFrame(); });
 
   std::for_each(m_characters.begin() + 1, m_characters.end(), [&](auto& character)
   {

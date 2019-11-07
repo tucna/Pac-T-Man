@@ -14,7 +14,7 @@ Character::Character() :
   m_spriteSheetColumns(0),
   m_spriteSheetRows(0),
   m_spriteXAddition(0),
-  m_framesPerState(0)
+  m_framesPerState(1)
 {
   UpdateWorldMatrix();
 }
@@ -43,13 +43,18 @@ void Character::AdjustPosition(float x, float y, float z)
 
 void Character::SetMovement(Movement movement)
 {
+  if (m_movement == movement)
+    return;
+
   m_movement = movement;
 
   if (movement != Movement::Stop && movement != Movement::Dead)
     m_facingDirection = static_cast<Direction>(static_cast<uint8_t>(movement));
+
+  UpdateFrame();
 }
 
-void Character::Update()
+void Character::UpdateFrame()
 {
   switch (m_movement)
   {
