@@ -10,6 +10,7 @@ public:
   struct InstanceType
   {
     DirectX::XMFLOAT3 position;
+    uint8_t sizeFlag;
   };
 
   explicit Dots();

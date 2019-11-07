@@ -316,7 +316,7 @@ void Game::DrawSprites()
   m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard);
   m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Texture);
 
-  Global::SpriteConstantBuffer spriteConstantBuffer = { 0, 0, 1, 1, DirectX::XMFLOAT4(0.2f, 0, 0, 0) };
+  Global::SpriteConstantBuffer spriteConstantBuffer = { 0, 0, 1, 1, DirectX::XMFLOAT4(0.2f, 0.4f, 0, 0) };
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
   Global::CameraPerObject cameraPerObjectConstantBuffer = {};

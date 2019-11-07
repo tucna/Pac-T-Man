@@ -118,7 +118,7 @@ void Character::Init(ID3D11Device1* device, float r, float g, float b)
   DX::ThrowIfFailed(device->CreateSamplerState(&sampDesc, m_samplerState.GetAddressOf()));
 
   // Instances
-  m_instances.push_back({{0,0,0}});
+  m_instances.push_back({{0,0,0}, 1});
 
   // Set up the description of the instance buffer.
   D3D11_BUFFER_DESC instanceBufferDesc = {};

@@ -13,7 +13,7 @@ Dots::Dots() :
     {0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0},
     {0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0},
     {0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0},
-    {0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0},
+    {0, 0, 2, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2, 0, 0},
     {0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0},
     {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
     {0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0},
@@ -26,7 +26,7 @@ Dots::Dots() :
     {0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0},
     {0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0},
     {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
-    {0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0},
+    {0, 0, 2, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 2, 0, 0},
     {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 {
@@ -123,8 +123,8 @@ void Dots::Init(ID3D11Device1* device)
 
   for (unsigned int z = 0; z != Global::worldSize; z++)
     for (unsigned int x = 0; x != Global::worldSize; x++)
-      if (m_dots[z][x] == 1)
-        m_instances.push_back({DirectX::XMFLOAT3(static_cast<float>(x) + 0.5f, 0.25f, static_cast<float>(z) + 0.5f)});
+      if (m_dots[z][x] > 0)
+        m_instances.push_back({DirectX::XMFLOAT3(static_cast<float>(x) + 0.5f, 0.25f, static_cast<float>(z) + 0.5f), m_dots[z][x]});
 
   // Set up the description of the instance buffer
   D3D11_BUFFER_DESC instanceBufferDesc = {};
@@ -146,7 +146,7 @@ void Dots::Init(ID3D11Device1* device)
 
 void Dots::Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context)
 {
-  if (m_dots[row][column] == 1)
+  if (m_dots[row][column] > 0)
   {
     m_dots[row][column] = 0;
 
@@ -154,8 +154,8 @@ void Dots::Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context)
 
     for (unsigned int z = 0; z != Global::worldSize; z++)
       for (unsigned int x = 0; x != Global::worldSize; x++)
-        if (m_dots[z][x] == 1)
-          m_instances.push_back({DirectX::XMFLOAT3(static_cast<float>(x) + 0.5f, 0.25f, static_cast<float>(z) + 0.5f)});
+        if (m_dots[z][x] > 0)
+          m_instances.push_back({DirectX::XMFLOAT3(static_cast<float>(x) + 0.5f, 0.25f, static_cast<float>(z) + 0.5f), m_dots[z][x]});
 
     if (m_instances.size() == 0)
     {
