@@ -39,7 +39,7 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
     character = std::make_unique<Character>();
     character->Init(m_d3dDevice.Get());
     character->SetMovement(Character::Movement::Left);
-    character->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 4);
+    character->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 5);
     character->SetSpriteScaleFactor(Global::ghostSize);
     character->SetFramesPerState(2);
   }
