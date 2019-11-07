@@ -59,77 +59,6 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf()));
 
   m_keyboard = std::make_unique<Keyboard>();
-
-  m_camera.SetPosition(10.5f, 15.0f, 10.5f);
-  //m_camera.SetPosition(10.5f, 5.0f, -2.5f);
-  //m_camera.SetPosition(3, 2, 3);
-  m_camera.SetLookAtPos(10.5, 0, 10.5);
-
-  m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f); // Here or to resize?
-
-  XMFLOAT4X4 projection = m_camera.GetProjectionMatrix();
-
-  D3D11_BUFFER_DESC cbd = {};
-  cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-  cbd.Usage = D3D11_USAGE_DYNAMIC;
-  cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-  cbd.MiscFlags = 0;
-  cbd.ByteWidth = sizeof(XMFLOAT4X4);
-  cbd.StructureByteStride = 0;
-
-  D3D11_SUBRESOURCE_DATA csd = {};
-  csd.pSysMem = &projection;
-
-  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_projectionMatrixConstantBuffer));
-
-  Global::CameraPerFrame cameraConstantBufferPerFrame = {};
-  cameraConstantBufferPerFrame.view = m_camera.GetViewMatrix();
-  cameraConstantBufferPerFrame.projection = m_camera.GetProjectionMatrix();
-
-  cbd = {};
-  cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-  cbd.Usage = D3D11_USAGE_DYNAMIC;
-  cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-  cbd.MiscFlags = 0;
-  cbd.ByteWidth = sizeof(Global::CameraPerFrame);
-  cbd.StructureByteStride = 0;
-
-  csd = {};
-  csd.pSysMem = &cameraConstantBufferPerFrame;
-
-  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_cameraPerFrame));
-
-  Global::CameraPerObject cameraConstantBufferPerObject;
-  XMStoreFloat4x4(&cameraConstantBufferPerObject.world, DirectX::XMMatrixIdentity());
-
-  cbd.ByteWidth = sizeof(Global::CameraPerObject);
-
-  csd.pSysMem = &cameraConstantBufferPerObject;
-
-  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_cameraPerObject));
-
-  // Frame constant buffers
-  Global::SpriteConstantBuffer frameConstantBuffer = {};
-
-  cbd = {};
-  cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-  cbd.Usage = D3D11_USAGE_DYNAMIC;
-  cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-  cbd.MiscFlags = 0;
-  cbd.ByteWidth = sizeof(Global::SpriteConstantBuffer);
-  cbd.StructureByteStride = 0;
-
-  csd = {};
-  csd.pSysMem = &frameConstantBuffer;
-
-  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_frameBuffer));
-
-  ID3D11Buffer* geometryShaderBuffers[2] = { m_projectionMatrixConstantBuffer.Get(), m_frameBuffer.Get() };
-  m_shaderManager->BindConstantBuffersToGeometryShader(ShaderManager::GeometryShader::Billboard, geometryShaderBuffers, 2);
-
-  ID3D11Buffer* vertexShaderBuffers[2] = { m_cameraPerFrame.Get(), m_cameraPerObject.Get() };
-  m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Instanced, vertexShaderBuffers, 2);
-  m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Indexed, vertexShaderBuffers, 2);
 }
 
 void Game::Tick()
@@ -871,7 +800,76 @@ void Game::CreateResources()
   CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
   DX::ThrowIfFailed(m_d3dDevice->CreateDepthStencilView(depthStencil.Get(), &depthStencilViewDesc, m_depthStencilView.ReleaseAndGetAddressOf()));
 
-  // TODO: Initialize windows-size dependent objects here.
+  // Initialize windows-size dependent objects here.
+  m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f);
+  m_camera.SetPosition(10.5f, 15.0f, 10.5f);
+  //m_camera.SetPosition(10.5f, 5.0f, -2.5f);
+  //m_camera.SetPosition(3, 2, 3);
+  m_camera.SetLookAtPos(10.5, 0, 10.5);
+
+  XMFLOAT4X4 projection = m_camera.GetProjectionMatrix();
+
+  D3D11_BUFFER_DESC cbd = {};
+  cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cbd.Usage = D3D11_USAGE_DYNAMIC;
+  cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+  cbd.MiscFlags = 0;
+  cbd.ByteWidth = sizeof(XMFLOAT4X4);
+  cbd.StructureByteStride = 0;
+
+  D3D11_SUBRESOURCE_DATA csd = {};
+  csd.pSysMem = &projection;
+
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_projectionMatrixConstantBuffer));
+
+  Global::CameraPerFrame cameraConstantBufferPerFrame = {};
+  cameraConstantBufferPerFrame.view = m_camera.GetViewMatrix();
+  cameraConstantBufferPerFrame.projection = m_camera.GetProjectionMatrix();
+
+  cbd = {};
+  cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cbd.Usage = D3D11_USAGE_DYNAMIC;
+  cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+  cbd.MiscFlags = 0;
+  cbd.ByteWidth = sizeof(Global::CameraPerFrame);
+  cbd.StructureByteStride = 0;
+
+  csd = {};
+  csd.pSysMem = &cameraConstantBufferPerFrame;
+
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_cameraPerFrame));
+
+  Global::CameraPerObject cameraConstantBufferPerObject;
+  XMStoreFloat4x4(&cameraConstantBufferPerObject.world, DirectX::XMMatrixIdentity());
+
+  cbd.ByteWidth = sizeof(Global::CameraPerObject);
+
+  csd.pSysMem = &cameraConstantBufferPerObject;
+
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_cameraPerObject));
+
+  // Frame constant buffers
+  Global::SpriteConstantBuffer frameConstantBuffer = {};
+
+  cbd = {};
+  cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cbd.Usage = D3D11_USAGE_DYNAMIC;
+  cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+  cbd.MiscFlags = 0;
+  cbd.ByteWidth = sizeof(Global::SpriteConstantBuffer);
+  cbd.StructureByteStride = 0;
+
+  csd = {};
+  csd.pSysMem = &frameConstantBuffer;
+
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_frameBuffer));
+
+  ID3D11Buffer* geometryShaderBuffers[2] = { m_projectionMatrixConstantBuffer.Get(), m_frameBuffer.Get() };
+  m_shaderManager->BindConstantBuffersToGeometryShader(ShaderManager::GeometryShader::Billboard, geometryShaderBuffers, 2);
+
+  ID3D11Buffer* vertexShaderBuffers[2] = { m_cameraPerFrame.Get(), m_cameraPerObject.Get() };
+  m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Instanced, vertexShaderBuffers, 2);
+  m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Indexed, vertexShaderBuffers, 2);
 }
 
 void Game::OnDeviceLost()
