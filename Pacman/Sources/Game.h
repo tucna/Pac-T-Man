@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ShaderManager/include/ShaderManager.h"
+#include "ShaderManager/ShaderManager.h"
 
 #include "Camera.h"
 #include "Dots.h"
