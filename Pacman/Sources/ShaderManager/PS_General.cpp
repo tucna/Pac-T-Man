@@ -14,7 +14,14 @@ PS_General::~PS_General()
 {
 }
 
-void PS_General::ActivateShader(ID3D11DeviceContext1 * context, ID3D11Buffer ** constantBuffers, uint8_t numberOfConstantBuffers)
+void PS_General::ActivateShader(ID3D11DeviceContext1* context)
 {
   context->PSSetShader(GetShader(), NULL, 0);
+}
+
+void PS_General::BindConstantBuffers(ID3D11DeviceContext1* context, ID3D11Buffer** constantBuffers, uint8_t numberOfConstantBuffers)
+{
+  (void)context;
+  (void)constantBuffers;
+  (void)numberOfConstantBuffers;
 }

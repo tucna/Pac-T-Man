@@ -23,10 +23,7 @@ public:
 
   enum class PixelShader
   {
-    Red,
     Color,
-    Normal,
-    Flat,
     Texture,
     Phong,
     _Count
@@ -35,8 +32,8 @@ public:
   ShaderManager(ID3D11Device1* device, ID3D11DeviceContext1* context);
   ~ShaderManager();
 
-  void SetVertexShader(VertexShader vertexShader, ID3D11Buffer** constantBuffers = nullptr, uint8_t numberOfConstantBuffers = 0);
-  void SetGeometryShader(GeometryShader geometryShader, ID3D11Buffer** constantBuffers = nullptr, uint8_t numberOfConstantBuffers = 0);
+  void SetVertexShader(VertexShader vertexShader);
+  void SetGeometryShader(GeometryShader geometryShader);
   void SetPixelShader(PixelShader pixelShader);
 
   void BindConstantBuffersToVertexShader(VertexShader vertexShader, ID3D11Buffer** constantBuffers, uint8_t numberOfConstantBuffers);

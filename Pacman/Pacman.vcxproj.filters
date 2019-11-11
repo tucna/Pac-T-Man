@@ -134,16 +134,7 @@
     <FxCompile Include="Sources\ShaderManager\PS_Color.hlsl">
       <Filter>Sources\Shader manager\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Sources\ShaderManager\PS_Flat.hlsl">
-      <Filter>Sources\Shader manager\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Sources\ShaderManager\PS_Normal.hlsl">
-      <Filter>Sources\Shader manager\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Sources\ShaderManager\PS_Phong.hlsl">
-      <Filter>Sources\Shader manager\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Sources\ShaderManager\PS_Red.hlsl">
       <Filter>Sources\Shader manager\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Sources\ShaderManager\PS_Texture.hlsl">

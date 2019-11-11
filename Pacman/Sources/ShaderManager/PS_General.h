@@ -9,5 +9,6 @@ public:
   ~PS_General();
 
   // From IShader
-  virtual void ActivateShader(ID3D11DeviceContext1* context, ID3D11Buffer** constantBuffers = nullptr, uint8_t numberOfConstantBuffers = 0) override;
+  virtual void ActivateShader(ID3D11DeviceContext1* context) override;
+  virtual void BindConstantBuffers(ID3D11DeviceContext1* context, ID3D11Buffer** constantBuffers, uint8_t numberOfConstantBuffers) override;
 };

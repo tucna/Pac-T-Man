@@ -25,11 +25,8 @@ VS_Instanced::~VS_Instanced()
 {
 }
 
-void VS_Instanced::ActivateShader(ID3D11DeviceContext1 * context, ID3D11Buffer ** constantBuffers, uint8_t numberOfConstantBuffers)
+void VS_Instanced::ActivateShader(ID3D11DeviceContext1* context)
 {
-  //if (constantBuffers && numberOfConstantBuffers > 0)
-  //  context->VSSetConstantBuffers(0, numberOfConstantBuffers, constantBuffers);
-
   context->IASetInputLayout(m_inputLayout.Get());
   context->VSSetShader(GetShader(), NULL, 0);
 }

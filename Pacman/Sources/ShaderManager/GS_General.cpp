@@ -14,7 +14,7 @@ GS_General::~GS_General()
 {
 }
 
-void GS_General::ActivateShader(ID3D11DeviceContext1* context, ID3D11Buffer** constantBuffers, uint8_t numberOfConstantBuffers)
+void GS_General::ActivateShader(ID3D11DeviceContext1* context)
 {
   context->GSSetShader(GetShader(), NULL, 0);
 }
