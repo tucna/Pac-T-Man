@@ -144,8 +144,10 @@ void Dots::Init(ID3D11Device1* device)
   DX::ThrowIfFailed(device->CreateBuffer(&instanceBufferDesc, &instanceData, m_instanceBuffer.GetAddressOf()));
 }
 
-void Dots::Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context)
+void Dots::Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context, uint8_t& dotEaten)
 {
+  dotEaten = m_dots[row][column];
+
   if (m_dots[row][column] > 0)
   {
     m_dots[row][column] = 0;

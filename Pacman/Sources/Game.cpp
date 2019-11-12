@@ -16,7 +16,8 @@ Game::Game() noexcept :
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
   m_debugDraw(false),
-  m_currentMode(Mode::Scatter)
+  m_currentMode(Mode::Scatter),
+  m_previousMode(Mode::Scatter)
 {
 }
 
@@ -44,10 +45,12 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
     character->SetFramesPerState(2);
   }
 
-  m_characters[Characters::Blinky]->SetPosition(10.5f, 0.3f, 13.5f); m_characters[Characters::Blinky]->SetSpriteY(0);
-  m_characters[Characters::Pinky]->SetPosition(11.5f, 0.3f, 13.5f);  m_characters[Characters::Pinky]->SetSpriteY(1);
-  m_characters[Characters::Inky]->SetPosition(12.5f, 0.3f, 13.5f);   m_characters[Characters::Inky]->SetSpriteY(2);
-  m_characters[Characters::Clyde]->SetPosition(13.5f, 0.3f, 13.5f);  m_characters[Characters::Clyde]->SetSpriteY(3);
+  m_characters[Characters::Blinky]->SetPosition(10.5f, 0.3f, 13.5f);
+  m_characters[Characters::Pinky]->SetPosition(11.5f, 0.3f, 13.5f);
+  m_characters[Characters::Inky]->SetPosition(12.5f, 0.3f, 13.5f);
+  m_characters[Characters::Clyde]->SetPosition(13.5f, 0.3f, 13.5f);
+
+  SetGhostsDefaultSprites();
 
   m_characters[Characters::Pacman]->SetPosition(10.5f, 0.25f, 9.5f);
   m_characters[Characters::Pacman]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 1);
@@ -73,30 +76,33 @@ void Game::Tick()
 
 void Game::Update(const DX::StepTimer& timer)
 {
-  if (timer.GetTotalSeconds() > 7 && timer.GetTotalSeconds() <= 27 && m_currentMode != Mode::Chase)
+  if (m_currentMode != Mode::Frightened)
   {
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-    m_currentMode = Mode::Chase;
-  }
-  else if (timer.GetTotalSeconds() > 27 && timer.GetTotalSeconds() <= 34 && m_currentMode != Mode::Scatter)
-  {
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-    m_currentMode = Mode::Scatter;
-  }
-  else if (timer.GetTotalSeconds() > 34 && timer.GetTotalSeconds() <= 54 && m_currentMode != Mode::Chase)
-  {
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-    m_currentMode = Mode::Chase;
-  }
-  else if (timer.GetTotalSeconds() > 54 && timer.GetTotalSeconds() <= 59 && m_currentMode != Mode::Scatter)
-  {
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-    m_currentMode = Mode::Scatter;
-  }
-  else if (timer.GetTotalSeconds() > 59 && m_currentMode != Mode::Chase)
-  {
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-    m_currentMode = Mode::Chase;
+    if (timer.GetTotalSeconds() > 7 && timer.GetTotalSeconds() <= 27 && m_currentMode == Mode::Scatter)
+    {
+      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
+      m_currentMode = Mode::Chase;
+    }
+    else if (timer.GetTotalSeconds() > 27 && timer.GetTotalSeconds() <= 34 && m_currentMode == Mode::Chase)
+    {
+      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
+      m_currentMode = Mode::Scatter;
+    }
+    else if (timer.GetTotalSeconds() > 34 && timer.GetTotalSeconds() <= 54 && m_currentMode == Mode::Scatter)
+    {
+      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
+      m_currentMode = Mode::Chase;
+    }
+    else if (timer.GetTotalSeconds() > 54 && timer.GetTotalSeconds() <= 59 && m_currentMode == Mode::Chase)
+    {
+      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
+      m_currentMode = Mode::Scatter;
+    }
+    else if (timer.GetTotalSeconds() > 59 && m_currentMode == Mode::Scatter)
+    {
+      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
+      m_currentMode = Mode::Chase;
+    }
   }
 
   const auto& kb = m_keyboard->GetState();
@@ -205,9 +211,17 @@ void Game::Update(const DX::StepTimer& timer)
     break;
   }
 
-  m_dots.Update(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z), m_d3dContext.Get());
+  uint8_t dotEaten = 0;
+  m_dots.Update(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z), m_d3dContext.Get(), dotEaten);
 
-  // Ghosts
+  if (dotEaten == 2)
+  {
+    m_currentMode = Mode::Frightened;
+
+    SetGhostsFrightenedSprites();
+  }
+
+  // GhosdotEatents
   UpdatePositionOfBlinky();
   UpdatePositionOfPinky();
   UpdatePositionOfInky();
@@ -508,6 +522,22 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
       character.ResetFrameCounter();
     }
   }
+}
+
+void Game::SetGhostsDefaultSprites()
+{
+  m_characters[Characters::Blinky]->SetSpriteY(0);
+  m_characters[Characters::Pinky]->SetSpriteY(1);
+  m_characters[Characters::Inky]->SetSpriteY(2);
+  m_characters[Characters::Clyde]->SetSpriteY(3);
+}
+
+void Game::SetGhostsFrightenedSprites()
+{
+  m_characters[Characters::Blinky]->SetSpriteY(4);
+  m_characters[Characters::Pinky]->SetSpriteY(4);
+  m_characters[Characters::Inky]->SetSpriteY(4);
+  m_characters[Characters::Clyde]->SetSpriteY(4);
 }
 
 bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2)

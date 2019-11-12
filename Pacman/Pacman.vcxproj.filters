@@ -8,11 +8,14 @@
     <Filter Include="Sources">
       <UniqueIdentifier>{a4a02475-98b7-4ef8-9cd6-668a304fce47}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Shader manager">
+    <Filter Include="Shader manager">
       <UniqueIdentifier>{aea15955-1a29-4082-bdf5-18fb73805b38}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\Shader manager\Shaders">
+    <Filter Include="Shader manager\Shaders hlsl">
       <UniqueIdentifier>{91034b01-312f-4ae1-b58f-446d6a59c772}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader manager\Shaders sources">
+      <UniqueIdentifier>{621058b7-d6f6-42ef-8b4f-82d3be63ceef}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -40,26 +43,26 @@
     <ClInclude Include="Sources\Character.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\ShaderManager\Common.h">
-      <Filter>Sources\Shader manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\ShaderManager\GS_General.h">
-      <Filter>Sources\Shader manager</Filter>
-    </ClInclude>
     <ClInclude Include="Sources\ShaderManager\IShader.h">
-      <Filter>Sources\Shader manager</Filter>
+      <Filter>Shader manager</Filter>
     </ClInclude>
     <ClInclude Include="Sources\ShaderManager\ShaderManager.h">
-      <Filter>Sources\Shader manager</Filter>
+      <Filter>Shader manager</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\ShaderManager\VS_Indexed.h">
-      <Filter>Sources\Shader manager</Filter>
+    <ClInclude Include="Sources\ShaderManager\Common.h">
+      <Filter>Shader manager\Shaders hlsl</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\ShaderManager\VS_Instanced.h">
-      <Filter>Sources\Shader manager</Filter>
+    <ClInclude Include="Sources\ShaderManager\GS_General.h">
+      <Filter>Shader manager\Shaders sources</Filter>
     </ClInclude>
     <ClInclude Include="Sources\ShaderManager\PS_General.h">
-      <Filter>Sources\Shader manager</Filter>
+      <Filter>Shader manager\Shaders sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\ShaderManager\VS_Indexed.h">
+      <Filter>Shader manager\Shaders sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\ShaderManager\VS_Instanced.h">
+      <Filter>Shader manager\Shaders sources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -84,20 +87,20 @@
     <ClCompile Include="Sources\Character.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\ShaderManager\ShaderManager.cpp">
+      <Filter>Shader manager</Filter>
+    </ClCompile>
     <ClCompile Include="Sources\ShaderManager\GS_General.cpp">
-      <Filter>Sources\Shader manager</Filter>
+      <Filter>Shader manager\Shaders sources</Filter>
     </ClCompile>
     <ClCompile Include="Sources\ShaderManager\PS_General.cpp">
-      <Filter>Sources\Shader manager</Filter>
-    </ClCompile>
-    <ClCompile Include="Sources\ShaderManager\ShaderManager.cpp">
-      <Filter>Sources\Shader manager</Filter>
+      <Filter>Shader manager\Shaders sources</Filter>
     </ClCompile>
     <ClCompile Include="Sources\ShaderManager\VS_Indexed.cpp">
-      <Filter>Sources\Shader manager</Filter>
+      <Filter>Shader manager\Shaders sources</Filter>
     </ClCompile>
     <ClCompile Include="Sources\ShaderManager\VS_Instanced.cpp">
-      <Filter>Sources\Shader manager</Filter>
+      <Filter>Shader manager\Shaders sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -129,22 +132,22 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Sources\ShaderManager\GS_Billboard.hlsl">
-      <Filter>Sources\Shader manager\Shaders</Filter>
+      <Filter>Shader manager\Shaders hlsl</Filter>
     </FxCompile>
     <FxCompile Include="Sources\ShaderManager\PS_Color.hlsl">
-      <Filter>Sources\Shader manager\Shaders</Filter>
+      <Filter>Shader manager\Shaders hlsl</Filter>
     </FxCompile>
     <FxCompile Include="Sources\ShaderManager\PS_Phong.hlsl">
-      <Filter>Sources\Shader manager\Shaders</Filter>
+      <Filter>Shader manager\Shaders hlsl</Filter>
     </FxCompile>
     <FxCompile Include="Sources\ShaderManager\PS_Texture.hlsl">
-      <Filter>Sources\Shader manager\Shaders</Filter>
+      <Filter>Shader manager\Shaders hlsl</Filter>
     </FxCompile>
     <FxCompile Include="Sources\ShaderManager\VS_Instanced.hlsl">
-      <Filter>Sources\Shader manager\Shaders</Filter>
+      <Filter>Shader manager\Shaders hlsl</Filter>
     </FxCompile>
     <FxCompile Include="Sources\ShaderManager\VS_Indexed.hlsl">
-      <Filter>Sources\Shader manager\Shaders</Filter>
+      <Filter>Shader manager\Shaders hlsl</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

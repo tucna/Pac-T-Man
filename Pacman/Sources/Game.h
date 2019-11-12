@@ -26,7 +26,8 @@ public:
   enum class Mode
   {
     Chase,
-    Scatter
+    Scatter,
+    Frightened
   };
 
   Game() noexcept;
@@ -69,6 +70,8 @@ private:
 
   void SetSpriteConstantBufferForCharacter(Global::SpriteConstantBuffer& spriteConstantBuffer, const Character& character);
   void MoveCharacterTowardsPosition(float posX, float posZ, Characters characterID);
+  void SetGhostsDefaultSprites();
+  void SetGhostsFrightenedSprites();
 
   bool AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2);
 
@@ -91,6 +94,7 @@ private:
   DX::StepTimer m_timer;
   Character::Movement m_pacmanMovementRequest;
   Mode m_currentMode;
+  Mode m_previousMode;
 
   Camera m_camera;
   Dots m_dots;

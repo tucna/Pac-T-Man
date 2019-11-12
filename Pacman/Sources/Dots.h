@@ -19,7 +19,7 @@ public:
   void Draw(ID3D11DeviceContext1* context);
   void Init(ID3D11Device1* device);
 
-  void Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context);
+  void Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context, uint8_t& dotEaten);
 
   const DirectX::XMFLOAT4X4& GetWorldMatrix() const { return m_worldMatrix; }
 
