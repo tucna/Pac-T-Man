@@ -9,6 +9,8 @@ using namespace DirectX;
 
 using Microsoft::WRL::ComPtr;
 
+#define CURRENT_PHASE m_phasesLevel1[m_currentPhaseIndex]
+
 Game::Game() noexcept :
   m_window(nullptr),
   m_outputWidth(800),
@@ -16,9 +18,9 @@ Game::Game() noexcept :
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
   m_debugDraw(false),
-  m_currentMode(Mode::Scatter),
-  m_previousMode(Mode::Scatter)
+  m_currentPhaseIndex(1)
 {
+  CreatePhases();
 }
 
 void Game::Initialize(HWND window, uint16_t width, uint16_t height)
@@ -76,6 +78,7 @@ void Game::Tick()
 
 void Game::Update(const DX::StepTimer& timer)
 {
+  /*
   if (m_currentMode != Mode::Frightened)
   {
     if (timer.GetTotalSeconds() > 7 && timer.GetTotalSeconds() <= 27 && m_currentMode == Mode::Scatter)
@@ -104,6 +107,7 @@ void Game::Update(const DX::StepTimer& timer)
       m_currentMode = Mode::Chase;
     }
   }
+  */
 
   const auto& kb = m_keyboard->GetState();
 
@@ -214,9 +218,9 @@ void Game::Update(const DX::StepTimer& timer)
   uint8_t dotEaten = 0;
   m_dots.Update(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z), m_d3dContext.Get(), dotEaten);
 
-  if (dotEaten == 2)
+  if (dotEaten == 2) // TODO: ugly!
   {
-    m_currentMode = Mode::Frightened;
+    CURRENT_PHASE.mode = Mode::Frightened;
 
     SetGhostsFrightenedSprites();
   }
@@ -540,6 +544,19 @@ void Game::SetGhostsFrightenedSprites()
   m_characters[Characters::Clyde]->SetSpriteY(4);
 }
 
+void Game::CreatePhases()
+{
+  m_phasesLevel1[0] = { Mode::Frightened, 0.0, 6.0 };
+  m_phasesLevel1[1] = { Mode::Scatter, 0.0, 7.0 };
+  m_phasesLevel1[2] = { Mode::Chase, 0.0, 20.0 };
+  m_phasesLevel1[3] = { Mode::Scatter, 0.0, 7.0 };
+  m_phasesLevel1[4] = { Mode::Chase, 0.0, 20.0 };
+  m_phasesLevel1[5] = { Mode::Scatter, 0.0, 5.0 };
+  m_phasesLevel1[6] = { Mode::Chase, 0.0, 20.0 };
+  m_phasesLevel1[7] = { Mode::Scatter, 0.0, 5.0 };
+  m_phasesLevel1[8] = { Mode::Chase, 0.0, 0.0 };
+}
+
 bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2)
 {
   if (m1 == m2) return true;
@@ -554,7 +571,7 @@ bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movemen
 
 void Game::UpdatePositionOfBlinky()
 {
-  if (m_currentMode == Mode::Chase)
+  if (CURRENT_PHASE.mode == Mode::Chase)
   {
     const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
     MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Blinky);
@@ -570,7 +587,7 @@ void Game::UpdatePositionOfPinky()
   if (m_characters[Characters::Pinky]->GetMovement() == Character::Movement::InHouse)
     return;
 
-  if (m_currentMode == Mode::Chase)
+  if (CURRENT_PHASE.mode == Mode::Chase)
   {
     DirectX::XMFLOAT3 pacmanPos = m_characters[Characters::Pacman]->GetPosition();
 
@@ -603,7 +620,7 @@ void Game::UpdatePositionOfInky()
   if (m_characters[Characters::Inky]->GetMovement() == Character::Movement::InHouse)
     return;
 
-  if (m_currentMode == Mode::Chase)
+  if (CURRENT_PHASE.mode == Mode::Chase)
   {
     DirectX::XMFLOAT3 pacmanPos = m_characters[Characters::Pacman]->GetPosition();
 
@@ -644,7 +661,7 @@ void Game::UpdatePositionOfClyde()
   if (m_characters[Characters::Clyde]->GetMovement() == Character::Movement::InHouse)
     return;
 
-  if (m_currentMode == Mode::Chase)
+  if (CURRENT_PHASE.mode == Mode::Chase)
   {
     const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
     const DirectX::XMFLOAT3& clydePos = m_characters[Characters::Clyde]->GetPosition();
