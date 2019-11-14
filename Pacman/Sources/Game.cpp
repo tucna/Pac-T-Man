@@ -78,36 +78,11 @@ void Game::Tick()
 
 void Game::Update(const DX::StepTimer& timer)
 {
-  /*
-  if (m_currentMode != Mode::Frightened)
+  if (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration) && m_currentPhaseIndex < Global::phasesNum - 1)
   {
-    if (timer.GetTotalSeconds() > 7 && timer.GetTotalSeconds() <= 27 && m_currentMode == Mode::Scatter)
-    {
-      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-      m_currentMode = Mode::Chase;
-    }
-    else if (timer.GetTotalSeconds() > 27 && timer.GetTotalSeconds() <= 34 && m_currentMode == Mode::Chase)
-    {
-      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-      m_currentMode = Mode::Scatter;
-    }
-    else if (timer.GetTotalSeconds() > 34 && timer.GetTotalSeconds() <= 54 && m_currentMode == Mode::Scatter)
-    {
-      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-      m_currentMode = Mode::Chase;
-    }
-    else if (timer.GetTotalSeconds() > 54 && timer.GetTotalSeconds() <= 59 && m_currentMode == Mode::Chase)
-    {
-      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-      m_currentMode = Mode::Scatter;
-    }
-    else if (timer.GetTotalSeconds() > 59 && m_currentMode == Mode::Scatter)
-    {
-      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->RevereseMovementDirection(); });
-      m_currentMode = Mode::Chase;
-    }
+    m_currentPhaseIndex++;
+    CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
   }
-  */
 
   const auto& kb = m_keyboard->GetState();
 
