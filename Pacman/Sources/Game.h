@@ -115,6 +115,7 @@ private:
   std::array<Phase, Global::phasesNum> m_phasesLevel1; // Level 1 have 8 phases + one more frightened
 
   uint8_t m_currentPhaseIndex;
+  uint8_t m_previousPhaseIndex;
 
   bool m_debugDraw;
 

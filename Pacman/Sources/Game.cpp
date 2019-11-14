@@ -18,7 +18,8 @@ Game::Game() noexcept :
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
   m_debugDraw(false),
-  m_currentPhaseIndex(1)
+  m_currentPhaseIndex(1),
+  m_previousPhaseIndex(1)
 {
   CreatePhases();
 }
@@ -80,7 +81,17 @@ void Game::Update(const DX::StepTimer& timer)
 {
   if (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration) && m_currentPhaseIndex < Global::phasesNum - 1)
   {
-    m_currentPhaseIndex++;
+    if (m_currentPhaseIndex == 0)
+    {
+      m_currentPhaseIndex = m_previousPhaseIndex;
+
+      SetGhostsDefaultSprites();
+    }
+    else
+    {
+      m_currentPhaseIndex++;
+    }
+
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
   }
 
@@ -195,7 +206,10 @@ void Game::Update(const DX::StepTimer& timer)
 
   if (dotEaten == 2) // TODO: ugly!
   {
-    CURRENT_PHASE.mode = Mode::Frightened;
+    m_previousPhaseIndex = m_currentPhaseIndex;
+    m_currentPhaseIndex = 0; // Force frightened mode
+
+    CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
 
     SetGhostsFrightenedSprites();
   }
