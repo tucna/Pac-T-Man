@@ -112,7 +112,7 @@ private:
 
   std::vector<Global::Vertex> m_debugPoints;
   std::array<std::unique_ptr<Character>, static_cast<uint8_t>(Characters::_Count)> m_characters;
-  std::array<Phase, Global::phasesNum> m_phasesLevel1; // Level 1 have 8 phases + one more frightened
+  std::array<Phase, Global::phasesNum> m_phasesLevel1; // Level 1 have 8 phases + two more frightened (blue + blink)
 
   uint8_t m_currentPhaseIndex;
   uint8_t m_previousPhaseIndex;

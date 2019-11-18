@@ -43,7 +43,7 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
     character = std::make_unique<Character>();
     character->Init(m_d3dDevice.Get());
     character->SetMovement(Character::Movement::Left);
-    character->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 5);
+    character->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 6);
     character->SetSpriteScaleFactor(Global::ghostSize);
     character->SetFramesPerState(2);
   }
@@ -93,6 +93,13 @@ void Game::Update(const DX::StepTimer& timer)
     }
 
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
+  }
+  else if (CURRENT_PHASE.mode == Mode::Frightened && (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration / 2.0)))
+  {
+    m_characters[Characters::Blinky]->SetSpriteY(5);
+    m_characters[Characters::Pinky]->SetSpriteY(5);
+    m_characters[Characters::Inky]->SetSpriteY(5);
+    m_characters[Characters::Clyde]->SetSpriteY(5);
   }
 
   const auto& kb = m_keyboard->GetState();
