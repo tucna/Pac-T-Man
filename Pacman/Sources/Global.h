@@ -6,6 +6,8 @@ namespace Global
 constexpr uint8_t worldSize = 21;
 constexpr uint8_t minFramesPerDirection = 3;
 constexpr uint8_t phasesNum = 10;
+constexpr uint8_t ghostFrightenedSprite = 4;
+constexpr uint8_t ghostFrightenedTransitionSprite = 5;
 
 constexpr float pacManSpeed = 0.1f;
 constexpr float ghostSpeed = 0.08f;

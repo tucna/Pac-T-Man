@@ -17,9 +17,10 @@ Game::Game() noexcept :
   m_outputHeight(600),
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
-  m_debugDraw(false),
+  m_debugDraw(true),
   m_currentPhaseIndex(1),
-  m_previousPhaseIndex(1)
+  m_previousPhaseIndex(1),
+  m_frightenedTransition(false)
 {
   CreatePhases();
 }
@@ -93,13 +94,13 @@ void Game::Update(const DX::StepTimer& timer)
     }
 
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
+
+    m_frightenedTransition = false;
   }
-  else if (CURRENT_PHASE.mode == Mode::Frightened && (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration / 2.0)))
+  else if (CURRENT_PHASE.mode == Mode::Frightened && (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration / 2.0)) && !m_frightenedTransition)
   {
-    m_characters[Characters::Blinky]->SetSpriteY(5);
-    m_characters[Characters::Pinky]->SetSpriteY(5);
-    m_characters[Characters::Inky]->SetSpriteY(5);
-    m_characters[Characters::Clyde]->SetSpriteY(5);
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::ghostFrightenedTransitionSprite); });
+    m_frightenedTransition = true;
   }
 
   const auto& kb = m_keyboard->GetState();
@@ -213,12 +214,13 @@ void Game::Update(const DX::StepTimer& timer)
 
   if (dotEaten == 2) // TODO: ugly!
   {
-    m_previousPhaseIndex = m_currentPhaseIndex;
+    m_previousPhaseIndex = m_currentPhaseIndex == 0 ? m_previousPhaseIndex : m_currentPhaseIndex;
+    m_frightenedTransition = false;
     m_currentPhaseIndex = 0; // Force frightened mode
 
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
 
-    SetGhostsFrightenedSprites();
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::ghostFrightenedSprite); });
   }
 
   // GhosdotEatents
@@ -524,20 +526,34 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
   }
 }
 
+void Game::MoveCharacterTowardsRandomPosition(Characters characterID)
+{
+  const DirectX::XMFLOAT3 charPos = m_characters[characterID]->GetPosition();
+  uint8_t direction = rand() % 4;
+
+  switch (direction)
+  {
+    case 0:
+      MoveCharacterTowardsPosition(charPos.x + 1.0f, charPos.z, characterID);
+      break;
+    case 1:
+      MoveCharacterTowardsPosition(charPos.x - 1.0f, charPos.z, characterID);
+      break;
+    case 2:
+      MoveCharacterTowardsPosition(charPos.x, charPos.z + 1.0f, characterID);
+      break;
+    case 3:
+      MoveCharacterTowardsPosition(charPos.x, charPos.z - 1.0f, characterID);
+      break;
+  }
+}
+
 void Game::SetGhostsDefaultSprites()
 {
   m_characters[Characters::Blinky]->SetSpriteY(0);
   m_characters[Characters::Pinky]->SetSpriteY(1);
   m_characters[Characters::Inky]->SetSpriteY(2);
   m_characters[Characters::Clyde]->SetSpriteY(3);
-}
-
-void Game::SetGhostsFrightenedSprites()
-{
-  m_characters[Characters::Blinky]->SetSpriteY(4);
-  m_characters[Characters::Pinky]->SetSpriteY(4);
-  m_characters[Characters::Inky]->SetSpriteY(4);
-  m_characters[Characters::Clyde]->SetSpriteY(4);
 }
 
 void Game::CreatePhases()
@@ -572,6 +588,10 @@ void Game::UpdatePositionOfBlinky()
     const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
     MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Blinky);
   }
+  else if (CURRENT_PHASE.mode == Mode::Frightened)
+  {
+    MoveCharacterTowardsRandomPosition(Characters::Blinky);
+  }
   else
   {
     MoveCharacterTowardsPosition(18.5f, 21.5f, Characters::Blinky);
@@ -604,6 +624,10 @@ void Game::UpdatePositionOfPinky()
     }
 
     MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Pinky);
+  }
+  else if (CURRENT_PHASE.mode == Mode::Frightened)
+  {
+    MoveCharacterTowardsRandomPosition(Characters::Pinky);
   }
   else
   {
@@ -646,6 +670,10 @@ void Game::UpdatePositionOfInky()
 
     MoveCharacterTowardsPosition(finalPosX, finalPosZ, Characters::Inky);
   }
+  else if (CURRENT_PHASE.mode == Mode::Frightened)
+  {
+    MoveCharacterTowardsRandomPosition(Characters::Inky);
+  }
   else
   {
     MoveCharacterTowardsPosition(21.5f, 0.0f, Characters::Inky);
@@ -674,6 +702,10 @@ void Game::UpdatePositionOfClyde()
       // Scatter
       MoveCharacterTowardsPosition(0.0f, 0.0f, Characters::Clyde);
     }
+  }
+  else if (CURRENT_PHASE.mode == Mode::Frightened)
+  {
+    MoveCharacterTowardsRandomPosition(Characters::Clyde);
   }
   else
   {

@@ -77,8 +77,8 @@ private:
 
   void SetSpriteConstantBufferForCharacter(Global::SpriteConstantBuffer& spriteConstantBuffer, const Character& character);
   void MoveCharacterTowardsPosition(float posX, float posZ, Characters characterID);
+  void MoveCharacterTowardsRandomPosition(Characters characterID);
   void SetGhostsDefaultSprites();
-  void SetGhostsFrightenedSprites();
   void CreatePhases();
 
   bool AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2);
@@ -118,6 +118,7 @@ private:
   uint8_t m_previousPhaseIndex;
 
   bool m_debugDraw;
+  bool m_frightenedTransition;
 
   uint16_t m_outputWidth;
   uint16_t m_outputHeight;
