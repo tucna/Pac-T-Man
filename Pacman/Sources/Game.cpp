@@ -17,7 +17,7 @@ Game::Game() noexcept :
   m_outputHeight(600),
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
-  m_debugDraw(true),
+  m_debugDraw(false),
   m_currentPhaseIndex(1),
   m_previousPhaseIndex(1),
   m_frightenedTransition(false)
@@ -99,7 +99,7 @@ void Game::Update(const DX::StepTimer& timer)
   }
   else if (CURRENT_PHASE.mode == Mode::Frightened && (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration / 2.0)) && !m_frightenedTransition)
   {
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::ghostFrightenedTransitionSprite); });
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::ghostFrightenedTransitionSpriteRow); });
     m_frightenedTransition = true;
   }
 
@@ -220,7 +220,7 @@ void Game::Update(const DX::StepTimer& timer)
 
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
 
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::ghostFrightenedSprite); });
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::ghostFrightenedSpriteRow); });
   }
 
   // GhosdotEatents
@@ -583,18 +583,20 @@ bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movemen
 
 void Game::UpdatePositionOfBlinky()
 {
-  if (CURRENT_PHASE.mode == Mode::Chase)
+  switch (CURRENT_PHASE.mode)
   {
-    const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
-    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Blinky);
-  }
-  else if (CURRENT_PHASE.mode == Mode::Frightened)
-  {
-    MoveCharacterTowardsRandomPosition(Characters::Blinky);
-  }
-  else
-  {
-    MoveCharacterTowardsPosition(18.5f, 21.5f, Characters::Blinky);
+    case Mode::Scatter:
+      MoveCharacterTowardsPosition(18.5f, 21.5f, Characters::Blinky);
+      break;
+    case Mode::Chase:
+      {
+        const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
+        MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Blinky);
+      }
+      break;
+    case Mode::Frightened:
+      MoveCharacterTowardsRandomPosition(Characters::Blinky);
+      break;
   }
 }
 
@@ -603,35 +605,37 @@ void Game::UpdatePositionOfPinky()
   if (m_characters[Characters::Pinky]->GetMovement() == Character::Movement::InHouse)
     return;
 
-  if (CURRENT_PHASE.mode == Mode::Chase)
+  switch (CURRENT_PHASE.mode)
   {
-    DirectX::XMFLOAT3 pacmanPos = m_characters[Characters::Pacman]->GetPosition();
+    case Mode::Scatter:
+      MoveCharacterTowardsPosition(2.5f, 21.5f, Characters::Pinky);
+      break;
+    case Mode::Chase:
+      {
+        DirectX::XMFLOAT3 pacmanPos = m_characters[Characters::Pacman]->GetPosition();
 
-    switch (m_characters[Characters::Pacman]->GetFacingDirection())
-    {
-    case Character::Direction::Left:
-      pacmanPos.x -= 4;
-      break;
-    case Character::Direction::Right:
-      pacmanPos.x += 4;
-      break;
-    case Character::Direction::Up:
-      pacmanPos.z += 4;
-      break;
-    case Character::Direction::Down:
-      pacmanPos.z -= 4;
-      break;
-    }
+        switch (m_characters[Characters::Pacman]->GetFacingDirection())
+        {
+          case Character::Direction::Left:
+            pacmanPos.x -= 4;
+            break;
+          case Character::Direction::Right:
+            pacmanPos.x += 4;
+            break;
+          case Character::Direction::Up:
+            pacmanPos.z += 4;
+            break;
+          case Character::Direction::Down:
+            pacmanPos.z -= 4;
+            break;
+        }
 
-    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Pinky);
-  }
-  else if (CURRENT_PHASE.mode == Mode::Frightened)
-  {
-    MoveCharacterTowardsRandomPosition(Characters::Pinky);
-  }
-  else
-  {
-    MoveCharacterTowardsPosition(2.5f, 21.5f, Characters::Pinky);
+        MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Pinky);
+      }
+      break;
+    case Mode::Frightened:
+      MoveCharacterTowardsRandomPosition(Characters::Pinky);
+      break;
   }
 }
 
@@ -640,43 +644,45 @@ void Game::UpdatePositionOfInky()
   if (m_characters[Characters::Inky]->GetMovement() == Character::Movement::InHouse)
     return;
 
-  if (CURRENT_PHASE.mode == Mode::Chase)
+  switch (CURRENT_PHASE.mode)
   {
-    DirectX::XMFLOAT3 pacmanPos = m_characters[Characters::Pacman]->GetPosition();
-
-    switch (m_characters[Characters::Pacman]->GetFacingDirection())
-    {
-    case Character::Direction::Left:
-      pacmanPos.x -= 2;
+    case Mode::Scatter:
+      MoveCharacterTowardsPosition(21.5f, 0.0f, Characters::Inky);
       break;
-    case Character::Direction::Right:
-      pacmanPos.x += 2;
+    case Mode::Chase:
+      {
+        DirectX::XMFLOAT3 pacmanPos = m_characters[Characters::Pacman]->GetPosition();
+
+        switch (m_characters[Characters::Pacman]->GetFacingDirection())
+        {
+          case Character::Direction::Left:
+            pacmanPos.x -= 2;
+            break;
+          case Character::Direction::Right:
+            pacmanPos.x += 2;
+            break;
+          case Character::Direction::Up:
+            pacmanPos.z += 2;
+            break;
+          case Character::Direction::Down:
+            pacmanPos.z -= 2;
+            break;
+        }
+
+        const DirectX::XMFLOAT3 blinkyPos = m_characters[Characters::Blinky]->GetPosition();
+
+        float finalPosX = 0;
+        float finalPosZ = 0;
+
+        finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
+        finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
+
+        MoveCharacterTowardsPosition(finalPosX, finalPosZ, Characters::Inky);
+      }
       break;
-    case Character::Direction::Up:
-      pacmanPos.z += 2;
+    case Mode::Frightened:
+      MoveCharacterTowardsRandomPosition(Characters::Inky);
       break;
-    case Character::Direction::Down:
-      pacmanPos.z -= 2;
-      break;
-    }
-
-    const DirectX::XMFLOAT3 blinkyPos = m_characters[Characters::Blinky]->GetPosition();
-
-    float finalPosX = 0;
-    float finalPosZ = 0;
-
-    finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
-    finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
-
-    MoveCharacterTowardsPosition(finalPosX, finalPosZ, Characters::Inky);
-  }
-  else if (CURRENT_PHASE.mode == Mode::Frightened)
-  {
-    MoveCharacterTowardsRandomPosition(Characters::Inky);
-  }
-  else
-  {
-    MoveCharacterTowardsPosition(21.5f, 0.0f, Characters::Inky);
   }
 }
 
@@ -685,31 +691,33 @@ void Game::UpdatePositionOfClyde()
   if (m_characters[Characters::Clyde]->GetMovement() == Character::Movement::InHouse)
     return;
 
-  if (CURRENT_PHASE.mode == Mode::Chase)
+  switch (CURRENT_PHASE.mode)
   {
-    const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
-    const DirectX::XMFLOAT3& clydePos = m_characters[Characters::Clyde]->GetPosition();
-
-    float distance = sqrt((clydePos.x - pacmanPos.x) * (clydePos.x - pacmanPos.x) + (clydePos.z - pacmanPos.z) * (clydePos.z - pacmanPos.z));
-
-    if (distance > 8)
-    {
-      // Behave as blinky
-      MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Clyde);
-    }
-    else
-    {
-      // Scatter
+    case Mode::Scatter:
       MoveCharacterTowardsPosition(0.0f, 0.0f, Characters::Clyde);
-    }
-  }
-  else if (CURRENT_PHASE.mode == Mode::Frightened)
-  {
-    MoveCharacterTowardsRandomPosition(Characters::Clyde);
-  }
-  else
-  {
-    MoveCharacterTowardsPosition(0.0f, 0.0f, Characters::Clyde);
+      break;
+    case Mode::Chase:
+      {
+        const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
+        const DirectX::XMFLOAT3& clydePos = m_characters[Characters::Clyde]->GetPosition();
+
+        float distance = sqrt((clydePos.x - pacmanPos.x) * (clydePos.x - pacmanPos.x) + (clydePos.z - pacmanPos.z) * (clydePos.z - pacmanPos.z));
+
+        if (distance > 8)
+        {
+          // Behave as blinky
+          MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Clyde);
+        }
+        else
+        {
+          // Scatter
+          MoveCharacterTowardsPosition(0.0f, 0.0f, Characters::Clyde);
+        }
+      }
+      break;
+    case Mode::Frightened:
+      MoveCharacterTowardsRandomPosition(Characters::Clyde);
+      break;
   }
 }
 
