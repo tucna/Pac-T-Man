@@ -57,7 +57,7 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   SetGhostsDefaultSprites();
 
   m_characters[Characters::Pacman]->SetPosition(10.5f, 0.25f, 9.5f);
-  m_characters[Characters::Pacman]->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 1);
+  m_characters[Characters::Pacman]->SetColumnsAndRowsOfAssociatedSpriteSheet(12, 2);
   m_characters[Characters::Pacman]->SetSpriteScaleFactor(Global::pacManSize);
   m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
   m_characters[Characters::Pacman]->SetSpriteY(0);
@@ -108,6 +108,10 @@ void Game::Update(const DX::StepTimer& timer)
 
   if (kb.Escape)
     ExitGame();
+
+  // TUCNA testing
+  if (kb.Space)
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
 
   const Character::Movement pacmanMovement = m_characters[Characters::Pacman]->GetMovement();
   const DirectX::XMFLOAT3& pacmanPosCurrent = m_characters[Characters::Pacman]->GetPosition();
