@@ -46,7 +46,7 @@ public:
 
   void IncreaseFrameCounter();
   void ResetFrameCounter();
-  void RevereseMovementDirection();
+  void ReverseMovementDirection();
 
   void SetPosition(float x, float y, float z);
   void SetMovement(Movement movement);

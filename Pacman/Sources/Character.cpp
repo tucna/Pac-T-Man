@@ -189,7 +189,7 @@ void Character::ResetFrameCounter()
   m_frameCounter = 0;
 }
 
-void Character::RevereseMovementDirection()
+void Character::ReverseMovementDirection()
 {
   switch (m_movement)
   {

@@ -91,6 +91,7 @@ void Game::Update(const DX::StepTimer& timer)
     else
     {
       m_currentPhaseIndex++;
+      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
     }
 
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
@@ -221,6 +222,7 @@ void Game::Update(const DX::StepTimer& timer)
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
 
     std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::ghostFrightenedSpriteRow); });
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
   }
 
   // GhosdotEatents
