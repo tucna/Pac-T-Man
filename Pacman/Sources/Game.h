@@ -80,6 +80,7 @@ private:
   void MoveCharacterTowardsRandomPosition(Characters characterID);
   void SetGhostsDefaultSprites();
   void CreatePhases();
+  void HandleCollisions();
 
   bool AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2);
 

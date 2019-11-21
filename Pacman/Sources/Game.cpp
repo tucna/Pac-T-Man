@@ -128,6 +128,12 @@ void Game::Update(const DX::StepTimer& timer)
     return;
   }
 
+  // Dead handling
+  if (m_characters[Characters::Pacman]->GetMovement() == Character::Movement::Dead)
+  {
+    return;
+  }
+
   bool isHorizontallyAligned = (fmod(pacmanPosCurrent.x - 0.5f, 1.0f) < Global::pacManSpeed);
   bool isVerticallyAligned = (fmod(pacmanPosCurrent.z - 0.5f, 1.0f) < Global::pacManSpeed);
 
@@ -229,11 +235,14 @@ void Game::Update(const DX::StepTimer& timer)
     std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
   }
 
-  // GhosdotEatents
+  // Ghosts
   UpdatePositionOfBlinky();
   UpdatePositionOfPinky();
   UpdatePositionOfInky();
   UpdatePositionOfClyde();
+
+  // Collision handling
+  HandleCollisions();
 }
 
 void Game::Render()
@@ -364,21 +373,25 @@ void Game::DrawSprites()
   m_characters[Characters::Pacman]->Draw(m_d3dContext.Get());
 
   // Draw ghosts
-  m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
-
-  if (m_timer.GetFrameCount() % 10 == 0)
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->UpdateFrame(); });
-
-  std::for_each(m_characters.begin() + 1, m_characters.end(), [&](auto& character)
+  // This should happen only when pacman is not dead
+  if (m_characters[Characters::Pacman]->GetMovement() != Character::Movement::Dead)
   {
-    SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *character);
-    m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
+    m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
 
-    cameraPerObjectConstantBuffer.world = character->GetWorldMatrix();
-    m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+    if (m_timer.GetFrameCount() % 10 == 0)
+      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->UpdateFrame(); });
 
-    character->Draw(m_d3dContext.Get());
-  });
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [&](auto& character)
+    {
+      SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *character);
+      m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
+
+      cameraPerObjectConstantBuffer.world = character->GetWorldMatrix();
+      m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+
+      character->Draw(m_d3dContext.Get());
+    });
+  }
 }
 
 void Game::DrawDebug()
@@ -573,6 +586,23 @@ void Game::CreatePhases()
   m_phasesLevel1[6] = { Mode::Chase, 0.0, 20.0 };
   m_phasesLevel1[7] = { Mode::Scatter, 0.0, 5.0 };
   m_phasesLevel1[8] = { Mode::Chase, 0.0, 0.0 };
+}
+
+void Game::HandleCollisions()
+{
+  // Let's start with Blinky
+  const DirectX::XMFLOAT3& blinkyPos = m_characters[Characters::Blinky]->GetPosition();
+  const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
+
+  // Distance
+  float distance = sqrt((blinkyPos.x - pacmanPos.x) * (blinkyPos.x - pacmanPos.x) + (blinkyPos.z - pacmanPos.z) * (blinkyPos.z - pacmanPos.z));
+
+  if (distance < 0.1f)
+  {
+    m_characters[Characters::Pacman]->SetMovement(Character::Movement::Dead);
+    m_characters[Characters::Pacman]->SetSpriteY(1);
+    m_characters[Characters::Pacman]->SetFramesPerState(12);
+  }
 }
 
 bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2)

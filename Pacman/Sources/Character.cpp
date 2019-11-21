@@ -70,6 +70,8 @@ void Character::UpdateFrame()
   case Movement::Left:
     m_spriteXAddition = 4;
     break;
+  case Movement::Dead:
+    m_spriteXAddition = 0;
   default:
     // No change of the coeficient
     break;
