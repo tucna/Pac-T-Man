@@ -14,7 +14,9 @@ Character::Character() :
   m_spriteSheetColumns(0),
   m_spriteSheetRows(0),
   m_spriteXAddition(0),
-  m_framesPerState(1)
+  m_framesPerState(1),
+  m_oneCycle(false),
+  m_isAnimationDone(false)
 {
   UpdateWorldMatrix();
 }
@@ -77,7 +79,12 @@ void Character::UpdateFrame()
     break;
   }
 
-  m_currentFrame = ++m_currentFrame % m_framesPerState + m_spriteXAddition;
+  uint8_t newFrame = (m_currentFrame + 1) % m_framesPerState + m_spriteXAddition;
+
+  m_isAnimationDone = newFrame < m_currentFrame ? true : false;
+
+  if (!(m_isAnimationDone && m_oneCycle))
+    m_currentFrame = newFrame;
 }
 
 void Character::Init(ID3D11Device1* device, float r, float g, float b)

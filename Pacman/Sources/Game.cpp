@@ -602,6 +602,7 @@ void Game::HandleCollisions()
     m_characters[Characters::Pacman]->SetMovement(Character::Movement::Dead);
     m_characters[Characters::Pacman]->SetSpriteY(1);
     m_characters[Characters::Pacman]->SetFramesPerState(12);
+    m_characters[Characters::Pacman]->SetOneCycle(true);
   }
 }
 

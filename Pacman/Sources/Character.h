@@ -56,6 +56,7 @@ public:
   void SetSpriteScaleFactor(float scale) { m_spriteScaleFactor = scale; }
   void SetSpriteXAddition(uint8_t xAddition) { m_spriteXAddition = xAddition; }
   void SetFramesPerState(uint8_t frames) { m_framesPerState = frames; }
+  void SetOneCycle(float oneCycle) { m_oneCycle = oneCycle; }
 
   const DirectX::XMFLOAT4X4& GetWorldMatrix() const { return m_worldMatrix; }
   const DirectX::XMFLOAT3& GetPosition() const { return m_position; }
@@ -70,6 +71,8 @@ public:
   uint8_t GetSpriteX() const { return m_currentFrame; }
   uint8_t GetSpriteSheetColumns() const { return m_spriteSheetColumns; }
   uint8_t GetSpriteSheetRows() const { return m_spriteSheetRows; }
+
+  bool IsAnimationDone() { return m_isAnimationDone; }
 
 private:
   void UpdateWorldMatrix();
@@ -97,5 +100,8 @@ private:
   uint8_t m_framesPerState;
 
   float m_spriteScaleFactor;
+
+  bool m_oneCycle;
+  bool m_isAnimationDone;
 };
 
