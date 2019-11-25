@@ -590,19 +590,18 @@ void Game::CreatePhases()
 
 void Game::HandleCollisions()
 {
-  // Let's start with Blinky
-  const DirectX::XMFLOAT3& blinkyPos = m_characters[Characters::Blinky]->GetPosition();
-  const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
-
   // Distance
-  float distance = sqrt((blinkyPos.x - pacmanPos.x) * (blinkyPos.x - pacmanPos.x) + (blinkyPos.z - pacmanPos.z) * (blinkyPos.z - pacmanPos.z));
-
-  if (distance < 0.1f)
+  for (uint8_t character = 1; character < Characters::_Count; character++)
   {
-    m_characters[Characters::Pacman]->SetMovement(Character::Movement::Dead);
-    m_characters[Characters::Pacman]->SetSpriteY(1);
-    m_characters[Characters::Pacman]->SetFramesPerState(12);
-    m_characters[Characters::Pacman]->SetOneCycle(true);
+    float distance = DistanceBetweenCharacters(Characters::Pacman, static_cast<Characters>(character));
+
+    if (distance < 0.1f && CURRENT_PHASE.mode != Mode::Frightened)
+    {
+      m_characters[Characters::Pacman]->SetMovement(Character::Movement::Dead);
+      m_characters[Characters::Pacman]->SetSpriteY(1);
+      m_characters[Characters::Pacman]->SetFramesPerState(12);
+      m_characters[Characters::Pacman]->SetOneCycle(true);
+    }
   }
 }
 
@@ -616,6 +615,14 @@ bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movemen
   if (m1 == Character::Movement::Left && m2 == Character::Movement::Right) return true;
 
   return false;
+}
+
+float Game::DistanceBetweenCharacters(Characters ch1, Characters ch2)
+{
+  const XMFLOAT3& pos1 = m_characters[ch1]->GetPosition();
+  const XMFLOAT3& pos2 = m_characters[ch2]->GetPosition();
+
+  return sqrt((pos1.x - pos2.x) * (pos1.x - pos2.x) + (pos1.z - pos2.z) * (pos1.z - pos2.z));
 }
 
 void Game::UpdatePositionOfBlinky()
