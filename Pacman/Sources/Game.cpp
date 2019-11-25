@@ -44,7 +44,7 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
     character = std::make_unique<Character>();
     character->Init(m_d3dDevice.Get());
     character->SetMovement(Character::Movement::Left);
-    character->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 6);
+    character->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 7);
     character->SetSpriteScaleFactor(Global::ghostSize);
     character->SetFramesPerState(2);
   }
@@ -595,12 +595,19 @@ void Game::HandleCollisions()
   {
     float distance = DistanceBetweenCharacters(Characters::Pacman, static_cast<Characters>(character));
 
-    if (distance < 0.1f && CURRENT_PHASE.mode != Mode::Frightened)
+    if (distance < 0.1f)
     {
-      m_characters[Characters::Pacman]->SetMovement(Character::Movement::Dead);
-      m_characters[Characters::Pacman]->SetSpriteY(1);
-      m_characters[Characters::Pacman]->SetFramesPerState(12);
-      m_characters[Characters::Pacman]->SetOneCycle(true);
+      if (CURRENT_PHASE.mode == Mode::Frightened)
+      {
+        m_characters[character]->SetSpriteY(6);
+      }
+      else
+      {
+        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Dead);
+        m_characters[Characters::Pacman]->SetSpriteY(1);
+        m_characters[Characters::Pacman]->SetFramesPerState(12);
+        m_characters[Characters::Pacman]->SetOneCycle(true);
+      }
     }
   }
 }
