@@ -7,7 +7,14 @@ constexpr uint8_t worldSize = 21;
 constexpr uint8_t minFramesPerDirection = 3;
 constexpr uint8_t phasesNum = 9;
 constexpr uint8_t ghostFrightenedSpriteRow = 4;
-constexpr uint8_t ghostFrightenedTransitionSpriteRow = 5;
+
+constexpr uint8_t rowBlinky = 0;
+constexpr uint8_t rowPinky = 1;
+constexpr uint8_t rowInky = 2;
+constexpr uint8_t rowClyde = 3;
+constexpr uint8_t rowFrightened = 4;
+constexpr uint8_t rowTransition = 5;
+constexpr uint8_t rowDead = 6;
 
 constexpr float pacManSpeed = 0.1f;
 constexpr float ghostSpeed = 0.08f;

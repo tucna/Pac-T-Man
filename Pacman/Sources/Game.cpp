@@ -100,7 +100,7 @@ void Game::Update(const DX::StepTimer& timer)
   }
   else if (CURRENT_PHASE.mode == Mode::Frightened && (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration / 2.0)) && !m_frightenedTransition)
   {
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::ghostFrightenedTransitionSpriteRow); });
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::rowTransition); });
     m_frightenedTransition = true;
   }
 
@@ -231,7 +231,7 @@ void Game::Update(const DX::StepTimer& timer)
 
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
 
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::ghostFrightenedSpriteRow); });
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::rowFrightened); });
     std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
   }
 
@@ -569,10 +569,10 @@ void Game::MoveCharacterTowardsRandomPosition(Characters characterID)
 
 void Game::SetGhostsDefaultSprites()
 {
-  m_characters[Characters::Blinky]->SetSpriteY(0);
-  m_characters[Characters::Pinky]->SetSpriteY(1);
-  m_characters[Characters::Inky]->SetSpriteY(2);
-  m_characters[Characters::Clyde]->SetSpriteY(3);
+  m_characters[Characters::Blinky]->SetSpriteY(Global::rowBlinky);
+  m_characters[Characters::Pinky]->SetSpriteY(Global::rowPinky);
+  m_characters[Characters::Inky]->SetSpriteY(Global::rowInky);
+  m_characters[Characters::Clyde]->SetSpriteY(Global::rowClyde);
 }
 
 void Game::CreatePhases()
@@ -599,7 +599,7 @@ void Game::HandleCollisions()
     {
       if (CURRENT_PHASE.mode == Mode::Frightened)
       {
-        m_characters[character]->SetSpriteY(6);
+        m_characters[character]->SetSpriteY(Global::rowDead);
       }
       else
       {
