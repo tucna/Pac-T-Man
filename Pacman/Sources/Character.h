@@ -24,8 +24,7 @@ public:
     Down,
     Left,
     Stop,
-    InHouse,
-    Dead
+    InHouse
   };
 
   struct InstanceType
@@ -57,6 +56,8 @@ public:
   void SetSpriteXAddition(uint8_t xAddition) { m_spriteXAddition = xAddition; }
   void SetFramesPerState(uint8_t frames) { m_framesPerState = frames; }
   void SetOneCycle(float oneCycle) { m_oneCycle = oneCycle; }
+  void SetEnterToHousePosibility(bool canEnter) { m_canEnterHouse = canEnter; }
+  void SetDead(bool dead) { m_isDead = dead; }
 
   const DirectX::XMFLOAT4X4& GetWorldMatrix() const { return m_worldMatrix; }
   const DirectX::XMFLOAT3& GetPosition() const { return m_position; }
@@ -73,6 +74,8 @@ public:
   uint8_t GetSpriteSheetRows() const { return m_spriteSheetRows; }
 
   bool IsAnimationDone() { return m_isAnimationDone; }
+  bool CanEnterHouse() { return m_canEnterHouse; }
+  bool IsDead() { return m_isDead; }
 
 private:
   void UpdateWorldMatrix();
@@ -103,5 +106,7 @@ private:
 
   bool m_oneCycle;
   bool m_isAnimationDone;
+  bool m_canEnterHouse; // TODO: is this necessary?
+  bool m_isDead;
 };
 

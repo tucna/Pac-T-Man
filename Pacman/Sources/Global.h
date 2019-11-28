@@ -6,7 +6,6 @@ namespace Global
 constexpr uint8_t worldSize = 21;
 constexpr uint8_t minFramesPerDirection = 3;
 constexpr uint8_t phasesNum = 9;
-constexpr uint8_t ghostFrightenedSpriteRow = 4;
 
 constexpr uint8_t rowBlinky = 0;
 constexpr uint8_t rowPinky = 1;

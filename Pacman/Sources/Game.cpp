@@ -17,7 +17,7 @@ Game::Game() noexcept :
   m_outputHeight(600),
   m_featureLevel(D3D_FEATURE_LEVEL_9_1),
   m_pacmanMovementRequest(Character::Movement::Stop),
-  m_debugDraw(false),
+  m_debugDraw(true),
   m_currentPhaseIndex(1),
   m_previousPhaseIndex(1),
   m_frightenedTransition(false)
@@ -46,6 +46,7 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
     character->SetMovement(Character::Movement::Left);
     character->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 7);
     character->SetSpriteScaleFactor(Global::ghostSize);
+    character->SetEnterToHousePosibility(true);
     character->SetFramesPerState(2);
   }
 
@@ -60,6 +61,7 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   m_characters[Characters::Pacman]->SetColumnsAndRowsOfAssociatedSpriteSheet(12, 2);
   m_characters[Characters::Pacman]->SetSpriteScaleFactor(Global::pacManSize);
   m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
+  m_characters[Characters::Pacman]->SetEnterToHousePosibility(false);
   m_characters[Characters::Pacman]->SetSpriteY(0);
 
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf()));
@@ -129,20 +131,18 @@ void Game::Update(const DX::StepTimer& timer)
   }
 
   // Dead handling
-  if (m_characters[Characters::Pacman]->GetMovement() == Character::Movement::Dead)
-  {
+  if (m_characters[Characters::Pacman]->IsDead())
     return;
-  }
 
   bool isHorizontallyAligned = (fmod(pacmanPosCurrent.x - 0.5f, 1.0f) < Global::pacManSpeed);
   bool isVerticallyAligned = (fmod(pacmanPosCurrent.z - 0.5f, 1.0f) < Global::pacManSpeed);
 
   bool moves[Character::Direction::_Count] = {false, false, false, false};
 
-  moves[Character::Direction::Up] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z + 1.0f));
-  moves[Character::Direction::Right] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x + 1.0f), static_cast<uint8_t>(pacmanPosCurrent.z));
-  moves[Character::Direction::Down] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z - 1.0f));
-  moves[Character::Direction::Left] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x - 1.0f), static_cast<uint8_t>(pacmanPosCurrent.z));
+  moves[Character::Direction::Up] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z + 1.0f), false);
+  moves[Character::Direction::Right] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x + 1.0f), static_cast<uint8_t>(pacmanPosCurrent.z), false);
+  moves[Character::Direction::Down] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z - 1.0f), false);
+  moves[Character::Direction::Left] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x - 1.0f), static_cast<uint8_t>(pacmanPosCurrent.z), false);
 
   if (isVerticallyAligned)
   {
@@ -374,7 +374,7 @@ void Game::DrawSprites()
 
   // Draw ghosts
   // This should happen only when pacman is not dead
-  if (m_characters[Characters::Pacman]->GetMovement() != Character::Movement::Dead)
+  if (!m_characters[Characters::Pacman]->IsDead())
   {
     m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
 
@@ -468,6 +468,7 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
   }
 
   const DirectX::XMFLOAT3& characterCurrentPos = character.GetPosition();
+  bool isCharacterDead = character.IsDead();
 
   if (character.GetMovement() == Character::Movement::Left)
   {
@@ -496,10 +497,10 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
   {
     bool moves[Character::Direction::_Count] = { false, false, false, false };
 
-    moves[Character::Direction::Up] = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x), static_cast<uint8_t>(characterCurrentPos.z + 1.0f));
-    moves[Character::Direction::Right] = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x + 1.0f), static_cast<uint8_t>(characterCurrentPos.z));
-    moves[Character::Direction::Down] = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x), static_cast<uint8_t>(characterCurrentPos.z - 1.0f));
-    moves[Character::Direction::Left] = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x - 1.0f), static_cast<uint8_t>(characterCurrentPos.z));
+    moves[Character::Direction::Up] = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x), static_cast<uint8_t>(characterCurrentPos.z + 1.0f), isCharacterDead);
+    moves[Character::Direction::Right] = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x + 1.0f), static_cast<uint8_t>(characterCurrentPos.z), isCharacterDead);
+    moves[Character::Direction::Down] = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x), static_cast<uint8_t>(characterCurrentPos.z - 1.0f), isCharacterDead);
+    moves[Character::Direction::Left] = m_world.IsPassable(static_cast<uint8_t>(characterCurrentPos.x - 1.0f), static_cast<uint8_t>(characterCurrentPos.z), isCharacterDead);
 
     std::array<float, Character::Direction::_Count> distances = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX };
 
@@ -600,10 +601,11 @@ void Game::HandleCollisions()
       if (CURRENT_PHASE.mode == Mode::Frightened)
       {
         m_characters[character]->SetSpriteY(Global::rowDead);
+        m_characters[character]->SetDead(true);
       }
       else
       {
-        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Dead);
+        m_characters[Characters::Pacman]->SetDead(true);
         m_characters[Characters::Pacman]->SetSpriteY(1);
         m_characters[Characters::Pacman]->SetFramesPerState(12);
         m_characters[Characters::Pacman]->SetOneCycle(true);
@@ -634,6 +636,12 @@ float Game::DistanceBetweenCharacters(Characters ch1, Characters ch2)
 
 void Game::UpdatePositionOfBlinky()
 {
+  if (m_characters[Characters::Blinky]->IsDead())
+  {
+    MoveCharacterTowardsPosition(11.5f, 11.5f, Characters::Blinky);
+    return;
+  }
+
   switch (CURRENT_PHASE.mode)
   {
     case Mode::Scatter:

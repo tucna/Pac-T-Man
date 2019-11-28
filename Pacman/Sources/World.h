@@ -13,7 +13,7 @@ public:
   void Init(ID3D11Device1* device);
   void Draw(ID3D11DeviceContext1* context);
 
-  bool IsPassable(uint8_t column, uint8_t row);
+  bool IsPassable(uint8_t column, uint8_t row, bool canGoHome);
 
   const DirectX::XMFLOAT4X4& GetWorldMatrix() const { return m_worldMatrix; }
 

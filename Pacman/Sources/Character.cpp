@@ -16,7 +16,9 @@ Character::Character() :
   m_spriteXAddition(0),
   m_framesPerState(1),
   m_oneCycle(false),
-  m_isAnimationDone(false)
+  m_isAnimationDone(false),
+  m_canEnterHouse(false),
+  m_isDead(false)
 {
   UpdateWorldMatrix();
 }
@@ -50,7 +52,7 @@ void Character::SetMovement(Movement movement)
 
   m_movement = movement;
 
-  if (movement != Movement::Stop && movement != Movement::Dead)
+  if (movement != Movement::Stop && !m_isDead)
     m_facingDirection = static_cast<Direction>(static_cast<uint8_t>(movement));
 
   UpdateFrame();
@@ -72,12 +74,13 @@ void Character::UpdateFrame()
   case Movement::Left:
     m_spriteXAddition = 4;
     break;
-  case Movement::Dead:
-    m_spriteXAddition = 0;
   default:
     // No change of the coeficient
     break;
   }
+
+  if (m_isDead)
+    m_spriteXAddition = 0;
 
   uint8_t newFrame = (m_currentFrame + 1) % m_framesPerState + m_spriteXAddition;
 
