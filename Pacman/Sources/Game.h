@@ -13,13 +13,6 @@
 class Game
 {
 public:
-  enum class Mode
-  {
-    Chase,
-    Scatter,
-    Frightened
-  };
-
   enum Characters
   {
     Pacman,
@@ -32,7 +25,7 @@ public:
 
   struct Phase
   {
-    Mode mode;
+    Global::Mode mode;
     double startingTime;
     double duration;
   };

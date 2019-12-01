@@ -18,7 +18,8 @@ Character::Character() :
   m_oneCycle(false),
   m_isAnimationDone(false),
   m_canEnterHouse(false),
-  m_isDead(false)
+  m_isDead(false),
+  m_mode(Global::Mode::Chase)
 {
   UpdateWorldMatrix();
 }

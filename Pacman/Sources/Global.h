@@ -3,6 +3,14 @@
 namespace Global
 {
 
+// It must be here because it is not a game state but more like a character state
+enum class Mode
+{
+  Chase,
+  Scatter,
+  Frightened
+};
+
 constexpr uint8_t worldSize = 21;
 constexpr uint8_t minFramesPerDirection = 3;
 constexpr uint8_t phasesNum = 9;

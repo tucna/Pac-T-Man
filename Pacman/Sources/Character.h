@@ -108,5 +108,7 @@ private:
   bool m_isAnimationDone;
   bool m_canEnterHouse; // TODO: is this necessary?
   bool m_isDead;
+
+  Global::Mode m_mode;
 };
 
