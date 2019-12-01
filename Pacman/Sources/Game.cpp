@@ -111,7 +111,7 @@ void Game::Update(const DX::StepTimer& timer)
   {
     std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character)
     {
-      if (character->GetMode() == Global::Mode::Frightened)
+      if (character->GetMode() == Global::Mode::Frightened && !character->IsDead())
         character->SetSpriteY(Global::rowTransition);
     });
 
@@ -570,6 +570,13 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
     }
 
     Character::Movement newMoment = static_cast<Character::Movement>(std::min_element(distances.begin(), distances.end()) - distances.begin());
+
+    /*
+    if ((newMoment == Character::Movement::Down && m_world.GetTile(static_cast<uint8_t>(characterCurrentPos.x), static_cast<uint8_t>(characterCurrentPos.z - 1.0f)) == 3))
+      character.SetPosition(characterCurrentPos.x, 1.0, characterCurrentPos.z);
+    else
+      character.SetPosition(characterCurrentPos.x, 0.3, characterCurrentPos.z);
+    */
 
     if (newMoment != characterMovement && character.GetNumberOfFrames() >= Global::minFramesPerDirection)
     {

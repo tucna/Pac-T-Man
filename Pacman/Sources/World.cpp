@@ -36,11 +36,8 @@ World::~World()
 {
 }
 
-void World::AddBlock(uint8_t x, uint8_t z, float depth, bool north, bool west, bool south, bool east)
+void World::AddBlock(float x, float z, float depth, bool north, bool west, bool south, bool east)
 {
-  const float fX = static_cast<float>(x);
-  const float fZ = static_cast<float>(z);
-
   auto AddIndces = [&]()
   {
     uint16_t lastIndex = m_indices.empty() ? 0 : m_indices.back() + 1;
@@ -53,20 +50,20 @@ void World::AddBlock(uint8_t x, uint8_t z, float depth, bool north, bool west, b
   };
 
   // Top side
-  m_vertices.push_back({{fX    , 0.5, fZ    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-  m_vertices.push_back({{fX    , 0.5, fZ + depth}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-  m_vertices.push_back({{fX + 1, 0.5, fZ + depth}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-  m_vertices.push_back({{fX + 1, 0.5, fZ    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{x    , 0.5, z    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{x    , 0.5, z + depth}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{x + 1, 0.5, z + depth}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{x + 1, 0.5, z    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
 
   AddIndces();
 
   // 2st side
   if (west)
   {
-    m_vertices.push_back({{fX    , 0.0, fZ    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX    , 0.0, fZ + depth}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX    , 0.5, fZ + depth}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX    , 0.5, fZ    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x    , 0.0, z    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x    , 0.0, z + depth}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x    , 0.5, z + depth}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x    , 0.5, z    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
 
     AddIndces();
   }
@@ -74,10 +71,10 @@ void World::AddBlock(uint8_t x, uint8_t z, float depth, bool north, bool west, b
   // 3rd side
   if (north)
   {
-    m_vertices.push_back({{fX    , 0.0, fZ + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX + 1, 0.0, fZ + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX + 1, 0.5, fZ + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX    , 0.5, fZ + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x    , 0.0, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x + 1, 0.0, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x + 1, 0.5, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x    , 0.5, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
 
     AddIndces();
   }
@@ -85,10 +82,10 @@ void World::AddBlock(uint8_t x, uint8_t z, float depth, bool north, bool west, b
   // 4th side
   if (east)
   {
-    m_vertices.push_back({{fX + 1, 0.0, fZ + depth}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX + 1, 0.0, fZ    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX + 1, 0.5, fZ    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX + 1, 0.5, fZ + depth}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x + 1, 0.0, z + depth}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x + 1, 0.0, z    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x + 1, 0.5, z    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x + 1, 0.5, z + depth}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
 
     AddIndces();
   }
@@ -96,10 +93,10 @@ void World::AddBlock(uint8_t x, uint8_t z, float depth, bool north, bool west, b
   // 5st side
   if (south)
   {
-    m_vertices.push_back({{fX + 1, 0.0, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX    , 0.0, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX    , 0.5, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{fX + 1, 0.5, fZ    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x + 1, 0.0, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x    , 0.0, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x    , 0.5, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x + 1, 0.5, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
 
     AddIndces();
   }
@@ -120,7 +117,7 @@ void World::Generate(ID3D11Device1* device)
       }
       else if (m_map[z][x] == 3)
       {
-        AddBlock(x, z, 0.5f, true, false, true, false);
+        AddBlock(x, z + 0.4f, 0.2f, true, false, true, false);
       }
 
   // Vertex buffer
