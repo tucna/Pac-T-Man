@@ -247,6 +247,7 @@ void Game::Update(const DX::StepTimer& timer)
     {
       if (!character->IsDead())
       {
+        character->SetMode(Global::Mode::Frightened);
         character->SetSpriteY(Global::rowFrightened);
         character->ReverseMovementDirection();
       }

@@ -80,9 +80,6 @@ void Character::UpdateFrame()
     break;
   }
 
-  if (m_isDead)
-    m_spriteXAddition = 0;
-
   uint8_t newFrame = (m_currentFrame + 1) % m_framesPerState + m_spriteXAddition;
 
   m_isAnimationDone = newFrame < m_currentFrame ? true : false;
