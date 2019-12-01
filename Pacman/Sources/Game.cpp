@@ -98,13 +98,20 @@ void Game::Update(const DX::StepTimer& timer)
 
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
 
+    // Force current mode to the ghost
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [&](auto& character)
+    {
+      if (!character->IsDead())
+        character->SetMode(CURRENT_PHASE.mode);
+    });
+
     m_frightenedTransition = false;
   }
   else if (CURRENT_PHASE.mode == Global::Mode::Frightened && (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration / 2.0)) && !m_frightenedTransition)
   {
     std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character)
     {
-      if (!character->IsDead())
+      if (character->GetMode() == Global::Mode::Frightened)
         character->SetSpriteY(Global::rowTransition);
     });
 
@@ -236,8 +243,14 @@ void Game::Update(const DX::StepTimer& timer)
 
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
 
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->SetSpriteY(Global::rowFrightened); });
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
+    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character)
+    {
+      if (!character->IsDead())
+      {
+        character->SetSpriteY(Global::rowFrightened);
+        character->ReverseMovementDirection();
+      }
+    });
   }
 
   // Ghosts
@@ -473,7 +486,7 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
   }
 
   const DirectX::XMFLOAT3& characterCurrentPos = character.GetPosition();
-  bool isCharacterDead = character.IsDead();
+  bool isCharacterDead = character.IsDead() || (character.GetMovement() == Character::Movement::InHouse);
 
   if (isCharacterDead)
   {
@@ -483,7 +496,7 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
     if (d < 0.1f)
     {
       character.AlignToMap();
-      character.SetMovement(Character::Movement::Up);
+      character.SetMovement(Character::Movement::InHouse);
       character.SetDead(false);
 
       return;
@@ -531,10 +544,10 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
     if (moves[Character::Direction::Down])
       distances[Character::Direction::Down] = sqrt((posX - characterCurrentPos.x) * (posX - characterCurrentPos.x) + (posZ - (characterCurrentPos.z - 1.0f)) * (posZ - (characterCurrentPos.z - 1.0f)));
 
-    if (moves[Character::Direction::Left])
+    if (moves[Character::Direction::Left] && (character.GetMovement() != Character::Movement::InHouse))
       distances[Character::Direction::Left] = sqrt((posX - (characterCurrentPos.x - 1.0f)) * (posX - (characterCurrentPos.x - 1.0f)) + (posZ - characterCurrentPos.z) * (posZ - characterCurrentPos.z));
 
-    if (moves[Character::Direction::Right])
+    if (moves[Character::Direction::Right] && (character.GetMovement() != Character::Movement::InHouse))
       distances[Character::Direction::Right] = sqrt((posX - (characterCurrentPos.x + 1.0f)) * (posX - (characterCurrentPos.x + 1.0f)) + (posZ - characterCurrentPos.z) * (posZ - characterCurrentPos.z));
 
     const Character::Movement characterMovement = character.GetMovement();
@@ -591,10 +604,10 @@ void Game::MoveCharacterTowardsRandomPosition(Characters characterID)
 
 void Game::SetGhostsDefaultSprites()
 {
-  m_characters[Characters::Blinky]->SetSpriteY(Global::rowBlinky);
-  m_characters[Characters::Pinky]->SetSpriteY(Global::rowPinky);
-  m_characters[Characters::Inky]->SetSpriteY(Global::rowInky);
-  m_characters[Characters::Clyde]->SetSpriteY(Global::rowClyde);
+  if (!m_characters[Characters::Blinky]->IsDead()) m_characters[Characters::Blinky]->SetSpriteY(Global::rowBlinky);
+  if (!m_characters[Characters::Pinky]->IsDead())  m_characters[Characters::Pinky]->SetSpriteY(Global::rowPinky);
+  if (!m_characters[Characters::Inky]->IsDead())   m_characters[Characters::Inky]->SetSpriteY(Global::rowInky);
+  if (!m_characters[Characters::Clyde]->IsDead())  m_characters[Characters::Clyde]->SetSpriteY(Global::rowClyde);
 }
 
 void Game::CreatePhases()
@@ -657,13 +670,21 @@ float Game::DistanceBetweenCharacters(Characters ch1, Characters ch2)
 
 void Game::UpdatePositionOfBlinky()
 {
-  if (m_characters[Characters::Blinky]->IsDead())
+  Character* blinky = m_characters[Characters::Blinky].get();
+
+  if (blinky->IsDead())
   {
     MoveCharacterTowardsPosition(10.5f, 11.5f, Characters::Blinky);
     return;
   }
 
-  switch (CURRENT_PHASE.mode)
+  if (blinky->GetMovement() == Character::Movement::InHouse)
+  {
+    blinky->SetMode(Global::Mode::Chase);
+    blinky->SetSpriteY(Global::rowBlinky);
+  }
+
+  switch (blinky->GetMode())
   {
     case Global::Mode::Scatter:
       MoveCharacterTowardsPosition(18.5f, 21.5f, Characters::Blinky);
@@ -682,16 +703,21 @@ void Game::UpdatePositionOfBlinky()
 
 void Game::UpdatePositionOfPinky()
 {
-  if (m_characters[Characters::Pinky]->IsDead())
+  Character* pinky = m_characters[Characters::Pinky].get();
+
+  if (pinky->IsDead())
   {
     MoveCharacterTowardsPosition(10.5f, 11.5f, Characters::Pinky);
     return;
   }
 
-  if (m_characters[Characters::Pinky]->GetMovement() == Character::Movement::InHouse)
-    return;
+  if (pinky->GetMovement() == Character::Movement::InHouse)
+  {
+    pinky->SetMode(Global::Mode::Chase);
+    pinky->SetSpriteY(Global::rowPinky);
+  }
 
-  switch (CURRENT_PHASE.mode)
+  switch (pinky->GetMode())
   {
     case Global::Mode::Scatter:
       MoveCharacterTowardsPosition(2.5f, 21.5f, Characters::Pinky);
@@ -727,16 +753,21 @@ void Game::UpdatePositionOfPinky()
 
 void Game::UpdatePositionOfInky()
 {
-  if (m_characters[Characters::Inky]->IsDead())
+  Character* inky = m_characters[Characters::Inky].get();
+
+  if (inky->IsDead())
   {
     MoveCharacterTowardsPosition(10.5f, 11.5f, Characters::Inky);
     return;
   }
 
-  if (m_characters[Characters::Inky]->GetMovement() == Character::Movement::InHouse)
-    return;
+  if (inky->GetMovement() == Character::Movement::InHouse)
+  {
+    inky->SetMode(Global::Mode::Chase);
+    inky->SetSpriteY(Global::rowInky);
+  }
 
-  switch (CURRENT_PHASE.mode)
+  switch (inky->GetMode())
   {
     case Global::Mode::Scatter:
       MoveCharacterTowardsPosition(21.5f, 0.0f, Characters::Inky);
@@ -780,16 +811,21 @@ void Game::UpdatePositionOfInky()
 
 void Game::UpdatePositionOfClyde()
 {
-  if (m_characters[Characters::Clyde]->IsDead())
+  Character* clyde = m_characters[Characters::Clyde].get();
+
+  if (clyde->IsDead())
   {
     MoveCharacterTowardsPosition(10.5f, 11.5f, Characters::Clyde);
     return;
   }
 
-  if (m_characters[Characters::Clyde]->GetMovement() == Character::Movement::InHouse)
-    return;
+  if (clyde->GetMovement() == Character::Movement::InHouse)
+  {
+    clyde->SetMode(Global::Mode::Chase);
+    clyde->SetSpriteY(Global::rowClyde);
+  }
 
-  switch (CURRENT_PHASE.mode)
+  switch (clyde->GetMode())
   {
     case Global::Mode::Scatter:
       MoveCharacterTowardsPosition(0.0f, 0.0f, Characters::Clyde);

@@ -19,7 +19,7 @@ Character::Character() :
   m_isAnimationDone(false),
   m_canEnterHouse(false),
   m_isDead(false),
-  m_mode(Global::Mode::Chase)
+  m_mode(Global::Mode::Scatter)
 {
   UpdateWorldMatrix();
 }
