@@ -43,7 +43,7 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   {
     character = std::make_unique<Character>();
     character->Init(m_d3dDevice.Get());
-    character->SetMovement(Character::Movement::Left);
+    character->SetMovement(Character::Movement::Stop);
     character->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 7);
     character->SetSpriteScaleFactor(Global::ghostSize);
     character->SetEnterToHousePosibility(true);
@@ -51,9 +51,14 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   }
 
   m_characters[Characters::Blinky]->SetPosition(10.5f, 0.3f, 13.5f);
-  m_characters[Characters::Pinky]->SetPosition(11.5f, 0.3f, 13.5f);
-  m_characters[Characters::Inky]->SetPosition(12.5f, 0.3f, 13.5f);
-  m_characters[Characters::Clyde]->SetPosition(13.5f, 0.3f, 13.5f);
+  m_characters[Characters::Blinky]->SetMovement(Character::Movement::Left);
+
+  m_characters[Characters::Pinky]->SetPosition(10.5f, 0.3f, 11.5f);
+
+  m_characters[Characters::Inky]->SetPosition(9.5f, 0.3f, 11.5f);
+  m_characters[Characters::Inky]->SetDotLimit(30);
+  m_characters[Characters::Clyde]->SetPosition(11.5f, 0.3f, 11.5f);
+  m_characters[Characters::Clyde]->SetDotLimit(60);
 
   SetGhostsDefaultSprites();
 
@@ -126,6 +131,15 @@ void Game::Update(const DX::StepTimer& timer)
   // TUCNA testing
   if (kb.Space)
     std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
+
+  if (kb.NumPad1)
+    m_characters[Characters::Pinky]->SetMovement(Character::Movement::InHouse);
+
+  if (kb.NumPad2)
+    m_characters[Characters::Inky]->SetMovement(Character::Movement::InHouse);
+
+  if (kb.NumPad3)
+    m_characters[Characters::Clyde]->SetMovement(Character::Movement::InHouse);
 
   const Character::Movement pacmanMovement = m_characters[Characters::Pacman]->GetMovement();
   const DirectX::XMFLOAT3& pacmanPosCurrent = m_characters[Characters::Pacman]->GetPosition();
@@ -545,10 +559,10 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
     if (moves[Character::Direction::Down])
       distances[Character::Direction::Down] = sqrt((posX - characterCurrentPos.x) * (posX - characterCurrentPos.x) + (posZ - (characterCurrentPos.z - 1.0f)) * (posZ - (characterCurrentPos.z - 1.0f)));
 
-    if (moves[Character::Direction::Left] && (character.GetMovement() != Character::Movement::InHouse))
+    if (moves[Character::Direction::Left])
       distances[Character::Direction::Left] = sqrt((posX - (characterCurrentPos.x - 1.0f)) * (posX - (characterCurrentPos.x - 1.0f)) + (posZ - characterCurrentPos.z) * (posZ - characterCurrentPos.z));
 
-    if (moves[Character::Direction::Right] && (character.GetMovement() != Character::Movement::InHouse))
+    if (moves[Character::Direction::Right])
       distances[Character::Direction::Right] = sqrt((posX - (characterCurrentPos.x + 1.0f)) * (posX - (characterCurrentPos.x + 1.0f)) + (posZ - characterCurrentPos.z) * (posZ - characterCurrentPos.z));
 
     const Character::Movement characterMovement = character.GetMovement();
@@ -640,7 +654,7 @@ void Game::HandleCollisions()
 
     if (distance < 0.1f)
     {
-      if (CURRENT_PHASE.mode == Global::Mode::Frightened)
+      if (m_characters[character]->GetMode() == Global::Mode::Frightened)
       {
         m_characters[character]->SetSpriteY(Global::rowDead);
         m_characters[character]->SetDead(true);
@@ -713,6 +727,9 @@ void Game::UpdatePositionOfPinky()
 {
   Character* pinky = m_characters[Characters::Pinky].get();
 
+  if (pinky->GetMovement() == Character::Movement::Stop)
+    return;
+
   if (pinky->IsDead())
   {
     MoveCharacterTowardsPosition(10.5f, 11.5f, Characters::Pinky);
@@ -762,6 +779,9 @@ void Game::UpdatePositionOfPinky()
 void Game::UpdatePositionOfInky()
 {
   Character* inky = m_characters[Characters::Inky].get();
+
+  if (inky->GetMovement() == Character::Movement::Stop)
+    return;
 
   if (inky->IsDead())
   {
@@ -820,6 +840,9 @@ void Game::UpdatePositionOfInky()
 void Game::UpdatePositionOfClyde()
 {
   Character* clyde = m_characters[Characters::Clyde].get();
+
+  if (clyde->GetMovement() == Character::Movement::Stop)
+    return;
 
   if (clyde->IsDead())
   {

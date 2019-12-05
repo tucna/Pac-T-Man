@@ -18,7 +18,7 @@ World::World() :
     {0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0},
     {0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0},
     {2, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 2},
-    {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 1, 4, 0, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0},
     {2, 1, 1, 1, 1, 0, 1, 0, 1, 1, 3, 1, 1, 0, 1, 0, 1, 1, 1, 1, 2},
     {0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0},
     {0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0},
@@ -174,7 +174,7 @@ void World::Draw(ID3D11DeviceContext1* context)
   context->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
-bool World::IsPassable(uint8_t column, uint8_t row, bool canGoHome)
+bool World::IsPassable(uint8_t column, uint8_t row, bool canGoHome) // TODO: can go home is not a good name
 {
   if (canGoHome && (m_map[row][column] == 0 || m_map[row][column] == 3))
     return true;

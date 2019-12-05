@@ -59,6 +59,9 @@ public:
   void SetEnterToHousePosibility(bool canEnter) { m_canEnterHouse = canEnter; }
   void SetDead(bool dead) { m_isDead = dead; }
   void SetMode(Global::Mode mode) { m_mode = mode; }
+  void SetDotLimit(uint8_t dotLimit) { m_dotLimit = dotLimit; }
+
+  void IncrementEatenDots() { m_eatenDots++; }
 
   const DirectX::XMFLOAT4X4& GetWorldMatrix() const { return m_worldMatrix; }
   const DirectX::XMFLOAT3& GetPosition() const { return m_position; }
@@ -104,6 +107,8 @@ private:
   uint8_t m_spriteSheetRows;
   uint8_t m_spriteXAddition;
   uint8_t m_framesPerState;
+  uint8_t m_dotLimit;
+  uint8_t m_eatenDots;
 
   float m_spriteScaleFactor;
 

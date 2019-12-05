@@ -4,7 +4,7 @@
 
 using namespace DirectX;
 
-Character::Character() :
+Character::Character():
   m_currentFrame(0),
   m_spriteY(0),
   m_position(0, 0, 0),
@@ -19,7 +19,9 @@ Character::Character() :
   m_isAnimationDone(false),
   m_canEnterHouse(false),
   m_isDead(false),
-  m_mode(Global::Mode::Scatter)
+  m_mode(Global::Mode::Scatter),
+  m_dotLimit(0),
+  m_eatenDots(0)
 {
   UpdateWorldMatrix();
 }
