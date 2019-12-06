@@ -26,7 +26,8 @@ Game::Game() noexcept :
   m_debugDraw(false),
   m_currentPhaseIndex(1),
   m_previousPhaseIndex(1),
-  m_frightenedTransition(false)
+  m_frightenedTransition(false),
+  m_currentGhostCounter(Ghosts::Pinky)
 {
   CreatePhases();
 }
@@ -49,17 +50,13 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   {
     ghost = std::make_unique<Ghost>();
     ghost->Init(m_d3dDevice.Get());
-    ghost->SetMovement(Character::Movement::Stop);
-    ghost->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 7);
-    ghost->SetSpriteScaleFactor(Global::ghostSize);
-    ghost->SetEnterToHousePosibility(true);
-    ghost->SetFramesPerState(2);
   }
 
   BLINKY->SetPosition(10.5f, 0.30f, 13.5f);
   BLINKY->SetMovement(Character::Movement::Left);
 
   PINKY->SetPosition(10.5f, 0.31f, 11.5f);
+  PINKY->SetDotLimit(0);
 
   INKY->SetPosition(9.5f, 0.32f, 11.5f);
   INKY->SetDotLimit(30);
@@ -71,13 +68,6 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
 
   PACMAN = std::make_unique<Pacman>();
   PACMAN->Init(m_d3dDevice.Get());
-  PACMAN->SetPosition(10.5f, 0.25f, 9.5f);
-  PACMAN->SetColumnsAndRowsOfAssociatedSpriteSheet(12, 2);
-  PACMAN->SetSpriteScaleFactor(Global::pacManSize);
-  PACMAN->SetMovement(Character::Movement::Stop);
-  PACMAN->SetEnterToHousePosibility(false);
-  PACMAN->SetSpriteY(0);
-  PACMAN->SetFramesPerState(2);
 
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf()));
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf()));
@@ -116,7 +106,7 @@ void Game::Update(const DX::StepTimer& timer)
     // Force current mode to the ghost
     std::for_each(m_ghosts.begin(), m_ghosts.end(), [&](auto& ghost)
     {
-      if (!ghost->IsDead())
+      if (ghost->IsAlive())
         ghost->SetMode(CURRENT_PHASE.mode);
     });
 
@@ -126,7 +116,7 @@ void Game::Update(const DX::StepTimer& timer)
   {
     std::for_each(m_ghosts.begin(), m_ghosts.end(), [](auto& ghost)
     {
-      if (ghost->GetMode() == Global::Mode::Frightened && !ghost->IsDead())
+      if (ghost->GetMode() == Global::Mode::Frightened && ghost->IsAlive())
         ghost->SetSpriteY(Global::rowTransition);
     });
 
@@ -138,10 +128,6 @@ void Game::Update(const DX::StepTimer& timer)
   if (kb.Escape)
     ExitGame();
 
-  // TUCNA testing - TODO
-  //if (kb.Space)
-  //  std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
-
   if (kb.NumPad1)
     PINKY->SetMovement(Character::Movement::InHouse);
 
@@ -150,6 +136,28 @@ void Game::Update(const DX::StepTimer& timer)
 
   if (kb.NumPad3)
     CLYDE->SetMovement(Character::Movement::InHouse);
+
+  switch (m_currentGhostCounter)
+  {
+    case Ghosts::Pinky:
+      m_currentGhostCounter = Ghosts::Inky;
+      PINKY->SetMovement(Character::Movement::InHouse);
+      break;
+    case Ghosts::Inky:
+      if (INKY->ReadyToLeaveHouse())
+      {
+        m_currentGhostCounter = Ghosts::Clyde;
+        INKY->SetMovement(Character::Movement::InHouse);
+      }
+      break;
+    case Ghosts::Clyde:
+      if (CLYDE->ReadyToLeaveHouse())
+      {
+        m_currentGhostCounter = Ghosts::None;
+        CLYDE->SetMovement(Character::Movement::InHouse);
+      }
+      break;
+  }
 
   const Character::Movement pacmanMovement = PACMAN->GetMovement();
   const DirectX::XMFLOAT3& pacmanPosCurrent = PACMAN->GetPosition();
@@ -259,6 +267,9 @@ void Game::Update(const DX::StepTimer& timer)
   uint8_t dotEaten = 0;
   m_dots.Update(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z), m_d3dContext.Get(), dotEaten);
 
+  if (dotEaten > 0 && m_currentGhostCounter != Ghosts::None)
+    m_ghosts[static_cast<uint8_t>(m_currentGhostCounter)]->IncrementEatenDots();
+
   if (dotEaten == 2) // TODO: ugly!
   {
     m_previousPhaseIndex = m_currentPhaseIndex == 0 ? m_previousPhaseIndex : m_currentPhaseIndex;
@@ -269,7 +280,7 @@ void Game::Update(const DX::StepTimer& timer)
 
     std::for_each(m_ghosts.begin(), m_ghosts.end(), [](auto& ghost)
     {
-      if (!ghost->IsDead())
+      if (ghost->IsAlive())
       {
         ghost->SetMode(Global::Mode::Frightened);
         ghost->SetSpriteY(Global::rowFrightened);
@@ -417,7 +428,7 @@ void Game::DrawSprites()
 
   // Draw ghosts
   // This should happen only when pacman is not dead
-  if (!PACMAN->IsDead())
+  if (PACMAN->IsAlive())
   {
     m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
 
@@ -536,7 +547,7 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& chara
     if (teleport)
     {
       character.SetPosition(20.5f, characterCurrentPos.y, characterCurrentPos.z);
-      return; // TODO: really?
+      return;
     }
   }
   else if (character.GetMovement() == Character::Movement::Right)
@@ -546,7 +557,7 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& chara
     if (teleport)
     {
       character.SetPosition(0.5f, characterCurrentPos.y, characterCurrentPos.z);
-      return; // TODO: really?
+      return;
     }
   }
 
@@ -636,10 +647,10 @@ void Game::MoveCharacterTowardsRandomPosition(Character& character)
 
 void Game::SetGhostsDefaultSprites()
 {
-  if (!BLINKY->IsDead()) BLINKY->SetSpriteY(Global::rowBlinky);
-  if (!PINKY->IsDead())  PINKY->SetSpriteY(Global::rowPinky);
-  if (!INKY->IsDead())   INKY->SetSpriteY(Global::rowInky);
-  if (!CLYDE->IsDead())  CLYDE->SetSpriteY(Global::rowClyde);
+  if (BLINKY->IsAlive()) BLINKY->SetSpriteY(Global::rowBlinky);
+  if (PINKY->IsAlive())  PINKY->SetSpriteY(Global::rowPinky);
+  if (INKY->IsAlive())   INKY->SetSpriteY(Global::rowInky);
+  if (CLYDE->IsAlive())  CLYDE->SetSpriteY(Global::rowClyde);
 }
 
 void Game::CreatePhases()

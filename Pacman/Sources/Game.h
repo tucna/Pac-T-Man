@@ -21,6 +21,7 @@ public:
     Pinky,
     Inky,
     Clyde,
+    None
   };
 
   struct Phase
@@ -108,7 +109,6 @@ private:
 
   std::vector<Global::Vertex> m_debugPoints;
 
-  //std::array<std::unique_ptr<Character>, static_cast<uint8_t>(Characters::_Count)> m_characters;
   std::array<std::unique_ptr<Ghost>, Global::numGhosts> m_ghosts;
   std::unique_ptr<Pacman> m_pacman;
 
@@ -116,6 +116,7 @@ private:
 
   uint8_t m_currentPhaseIndex;
   uint8_t m_previousPhaseIndex;
+  Ghosts m_currentGhostCounter;
 
   bool m_debugDraw;
   bool m_frightenedTransition;

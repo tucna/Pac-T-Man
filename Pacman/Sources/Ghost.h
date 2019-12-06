@@ -11,8 +11,9 @@ public:
 
   void SetMode(Global::Mode mode) { m_mode = mode; }
   void SetDotLimit(uint8_t dotLimit) { m_dotLimit = dotLimit; }
-
   void IncrementEatenDots() { m_eatenDots++; }
+
+  bool ReadyToLeaveHouse() { return m_eatenDots >= m_dotLimit; }
 
   Global::Mode GetMode() { return m_mode; }
 
