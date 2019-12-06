@@ -56,23 +56,28 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
     ghost->SetFramesPerState(2);
   }
 
-  BLINKY->SetPosition(10.5f, 0.3f, 13.5f);
+  BLINKY->SetPosition(10.5f, 0.30f, 13.5f);
   BLINKY->SetMovement(Character::Movement::Left);
-  PINKY->SetPosition(10.5f, 0.3f, 11.5f);
-  INKY->SetPosition(9.5f, 0.3f, 11.5f);
+
+  PINKY->SetPosition(10.5f, 0.31f, 11.5f);
+
+  INKY->SetPosition(9.5f, 0.32f, 11.5f);
   INKY->SetDotLimit(30);
-  CLYDE->SetPosition(11.5f, 0.3f, 11.5f);
+
+  CLYDE->SetPosition(11.5f, 0.33f, 11.5f);
   CLYDE->SetDotLimit(60);
 
   SetGhostsDefaultSprites();
 
   PACMAN = std::make_unique<Pacman>();
+  PACMAN->Init(m_d3dDevice.Get());
   PACMAN->SetPosition(10.5f, 0.25f, 9.5f);
   PACMAN->SetColumnsAndRowsOfAssociatedSpriteSheet(12, 2);
   PACMAN->SetSpriteScaleFactor(Global::pacManSize);
   PACMAN->SetMovement(Character::Movement::Stop);
   PACMAN->SetEnterToHousePosibility(false);
   PACMAN->SetSpriteY(0);
+  PACMAN->SetFramesPerState(2);
 
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf()));
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf()));
