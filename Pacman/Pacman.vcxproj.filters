@@ -64,6 +64,12 @@
     <ClInclude Include="Sources\ShaderManager\VS_Instanced.h">
       <Filter>Shader manager\Shaders sources</Filter>
     </ClInclude>
+    <ClInclude Include="sources\Ghost.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="sources\Pacman.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Camera.cpp">
@@ -101,6 +107,12 @@
     </ClCompile>
     <ClCompile Include="Sources\ShaderManager\VS_Instanced.cpp">
       <Filter>Shader manager\Shaders sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Ghost.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Pacman.cpp">
+      <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

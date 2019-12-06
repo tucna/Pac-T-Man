@@ -166,6 +166,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="sources\Pacman.h" />
+    <ClInclude Include="sources\Ghost.h" />
     <ClInclude Include="Sources\Character.h" />
     <ClInclude Include="Sources\Camera.h" />
     <ClInclude Include="Sources\Dots.h" />
@@ -183,6 +185,8 @@
     <ClInclude Include="Sources\StepTimer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="sources\Pacman.cpp" />
+    <ClCompile Include="sources\Ghost.cpp" />
     <ClCompile Include="Sources\Character.cpp" />
     <ClCompile Include="Sources\Camera.cpp" />
     <ClCompile Include="Sources\Dots.cpp" />

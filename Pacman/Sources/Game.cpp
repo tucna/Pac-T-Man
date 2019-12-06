@@ -11,6 +11,12 @@ using Microsoft::WRL::ComPtr;
 
 #define CURRENT_PHASE m_phasesLevel1[m_currentPhaseIndex]
 
+#define BLINKY m_ghosts[static_cast<uint8_t>(Game::Ghosts::Blinky)]
+#define PINKY m_ghosts[static_cast<uint8_t>(Game::Ghosts::Pinky)]
+#define INKY m_ghosts[static_cast<uint8_t>(Game::Ghosts::Inky)]
+#define CLYDE m_ghosts[static_cast<uint8_t>(Game::Ghosts::Clyde)]
+#define PACMAN m_pacman
+
 Game::Game() noexcept :
   m_window(nullptr),
   m_outputWidth(800),
@@ -39,35 +45,34 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   m_world.Init(m_d3dDevice.Get());
   m_dots.Init(m_d3dDevice.Get());
 
-  for (auto& character : m_characters)
+  for (auto& ghost : m_ghosts)
   {
-    character = std::make_unique<Character>();
-    character->Init(m_d3dDevice.Get());
-    character->SetMovement(Character::Movement::Stop);
-    character->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 7);
-    character->SetSpriteScaleFactor(Global::ghostSize);
-    character->SetEnterToHousePosibility(true);
-    character->SetFramesPerState(2);
+    ghost = std::make_unique<Ghost>();
+    ghost->Init(m_d3dDevice.Get());
+    ghost->SetMovement(Character::Movement::Stop);
+    ghost->SetColumnsAndRowsOfAssociatedSpriteSheet(8, 7);
+    ghost->SetSpriteScaleFactor(Global::ghostSize);
+    ghost->SetEnterToHousePosibility(true);
+    ghost->SetFramesPerState(2);
   }
 
-  m_characters[Characters::Blinky]->SetPosition(10.5f, 0.3f, 13.5f);
-  m_characters[Characters::Blinky]->SetMovement(Character::Movement::Left);
-
-  m_characters[Characters::Pinky]->SetPosition(10.5f, 0.3f, 11.5f);
-
-  m_characters[Characters::Inky]->SetPosition(9.5f, 0.3f, 11.5f);
-  m_characters[Characters::Inky]->SetDotLimit(30);
-  m_characters[Characters::Clyde]->SetPosition(11.5f, 0.3f, 11.5f);
-  m_characters[Characters::Clyde]->SetDotLimit(60);
+  BLINKY->SetPosition(10.5f, 0.3f, 13.5f);
+  BLINKY->SetMovement(Character::Movement::Left);
+  PINKY->SetPosition(10.5f, 0.3f, 11.5f);
+  INKY->SetPosition(9.5f, 0.3f, 11.5f);
+  INKY->SetDotLimit(30);
+  CLYDE->SetPosition(11.5f, 0.3f, 11.5f);
+  CLYDE->SetDotLimit(60);
 
   SetGhostsDefaultSprites();
 
-  m_characters[Characters::Pacman]->SetPosition(10.5f, 0.25f, 9.5f);
-  m_characters[Characters::Pacman]->SetColumnsAndRowsOfAssociatedSpriteSheet(12, 2);
-  m_characters[Characters::Pacman]->SetSpriteScaleFactor(Global::pacManSize);
-  m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
-  m_characters[Characters::Pacman]->SetEnterToHousePosibility(false);
-  m_characters[Characters::Pacman]->SetSpriteY(0);
+  PACMAN = std::make_unique<Pacman>();
+  PACMAN->SetPosition(10.5f, 0.25f, 9.5f);
+  PACMAN->SetColumnsAndRowsOfAssociatedSpriteSheet(12, 2);
+  PACMAN->SetSpriteScaleFactor(Global::pacManSize);
+  PACMAN->SetMovement(Character::Movement::Stop);
+  PACMAN->SetEnterToHousePosibility(false);
+  PACMAN->SetSpriteY(0);
 
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf()));
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf()));
@@ -98,26 +103,26 @@ void Game::Update(const DX::StepTimer& timer)
     else
     {
       m_currentPhaseIndex++;
-      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
+      std::for_each(m_ghosts.begin(), m_ghosts.end(), [](auto& ghost) { ghost->ReverseMovementDirection(); });
     }
 
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
 
     // Force current mode to the ghost
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [&](auto& character)
+    std::for_each(m_ghosts.begin(), m_ghosts.end(), [&](auto& ghost)
     {
-      if (!character->IsDead())
-        character->SetMode(CURRENT_PHASE.mode);
+      if (!ghost->IsDead())
+        ghost->SetMode(CURRENT_PHASE.mode);
     });
 
     m_frightenedTransition = false;
   }
   else if (CURRENT_PHASE.mode == Global::Mode::Frightened && (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration / 2.0)) && !m_frightenedTransition)
   {
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character)
+    std::for_each(m_ghosts.begin(), m_ghosts.end(), [](auto& ghost)
     {
-      if (character->GetMode() == Global::Mode::Frightened && !character->IsDead())
-        character->SetSpriteY(Global::rowTransition);
+      if (ghost->GetMode() == Global::Mode::Frightened && !ghost->IsDead())
+        ghost->SetSpriteY(Global::rowTransition);
     });
 
     m_frightenedTransition = true;
@@ -128,36 +133,36 @@ void Game::Update(const DX::StepTimer& timer)
   if (kb.Escape)
     ExitGame();
 
-  // TUCNA testing
-  if (kb.Space)
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
+  // TUCNA testing - TODO
+  //if (kb.Space)
+  //  std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->ReverseMovementDirection(); });
 
   if (kb.NumPad1)
-    m_characters[Characters::Pinky]->SetMovement(Character::Movement::InHouse);
+    PINKY->SetMovement(Character::Movement::InHouse);
 
   if (kb.NumPad2)
-    m_characters[Characters::Inky]->SetMovement(Character::Movement::InHouse);
+    INKY->SetMovement(Character::Movement::InHouse);
 
   if (kb.NumPad3)
-    m_characters[Characters::Clyde]->SetMovement(Character::Movement::InHouse);
+    CLYDE->SetMovement(Character::Movement::InHouse);
 
-  const Character::Movement pacmanMovement = m_characters[Characters::Pacman]->GetMovement();
-  const DirectX::XMFLOAT3& pacmanPosCurrent = m_characters[Characters::Pacman]->GetPosition();
+  const Character::Movement pacmanMovement = PACMAN->GetMovement();
+  const DirectX::XMFLOAT3& pacmanPosCurrent = PACMAN->GetPosition();
 
   // Teleport handling
   if (pacmanMovement == Character::Movement::Left && (pacmanPosCurrent.x - 0.5f) < Global::pacManSpeed)
   {
-    m_characters[Characters::Pacman]->SetPosition(20.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
+    PACMAN->SetPosition(20.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
     return;
   }
   else if (pacmanMovement == Character::Movement::Right && (20.5f - pacmanPosCurrent.x) < Global::pacManSpeed)
   {
-    m_characters[Characters::Pacman]->SetPosition(0.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
+    PACMAN->SetPosition(0.5f, pacmanPosCurrent.y, pacmanPosCurrent.z);
     return;
   }
 
   // Dead handling
-  if (m_characters[Characters::Pacman]->IsDead())
+  if (PACMAN->IsDead())
     return;
 
   bool isHorizontallyAligned = (fmod(pacmanPosCurrent.x - 0.5f, 1.0f) < Global::pacManSpeed);
@@ -191,17 +196,17 @@ void Game::Update(const DX::StepTimer& timer)
     if (isPassable)
     {
       if (!AreMovementsOppositeOrSame(m_pacmanMovementRequest, pacmanMovement))
-        m_characters[Characters::Pacman]->AlignToMap();
+        PACMAN->AlignToMap();
 
       if (m_pacmanMovementRequest != pacmanMovement)
-        m_characters[Characters::Pacman]->SetMovement(m_pacmanMovementRequest);
+        PACMAN->SetMovement(m_pacmanMovementRequest);
     }
     else if (alignment)
     {
       if (m_pacmanMovementRequest == pacmanMovement)
       {
-        m_characters[Characters::Pacman]->AlignToMap();
-        m_characters[Characters::Pacman]->SetMovement(Character::Movement::Stop);
+        PACMAN->AlignToMap();
+        PACMAN->SetMovement(Character::Movement::Stop);
       }
       else
         m_pacmanMovementRequest = pacmanMovement;
@@ -227,19 +232,19 @@ void Game::Update(const DX::StepTimer& timer)
     break;
   }
 
-  switch (m_characters[Characters::Pacman]->GetMovement())
+  switch (PACMAN->GetMovement())
   {
   case Character::Movement::Left:
-    m_characters[Characters::Pacman]->AdjustPosition(-Global::pacManSpeed, 0, 0);
+    PACMAN->AdjustPosition(-Global::pacManSpeed, 0, 0);
     break;
   case Character::Movement::Right:
-    m_characters[Characters::Pacman]->AdjustPosition(Global::pacManSpeed, 0, 0);
+    PACMAN->AdjustPosition(Global::pacManSpeed, 0, 0);
     break;
   case Character::Movement::Up:
-    m_characters[Characters::Pacman]->AdjustPosition(0, 0, Global::pacManSpeed);
+    PACMAN->AdjustPosition(0, 0, Global::pacManSpeed);
     break;
   case Character::Movement::Down:
-    m_characters[Characters::Pacman]->AdjustPosition(0, 0, -Global::pacManSpeed);
+    PACMAN->AdjustPosition(0, 0, -Global::pacManSpeed);
     break;
   default:
     // Nothing
@@ -257,13 +262,13 @@ void Game::Update(const DX::StepTimer& timer)
 
     CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
 
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character)
+    std::for_each(m_ghosts.begin(), m_ghosts.end(), [](auto& ghost)
     {
-      if (!character->IsDead())
+      if (!ghost->IsDead())
       {
-        character->SetMode(Global::Mode::Frightened);
-        character->SetSpriteY(Global::rowFrightened);
-        character->ReverseMovementDirection();
+        ghost->SetMode(Global::Mode::Frightened);
+        ghost->SetSpriteY(Global::rowFrightened);
+        ghost->ReverseMovementDirection();
       }
     });
   }
@@ -394,35 +399,35 @@ void Game::DrawSprites()
   m_d3dContext->PSSetShaderResources(0, 1, m_pacManShaderResourceView.GetAddressOf());
 
   if (m_timer.GetFrameCount() % 10 == 0)
-    m_characters[Characters::Pacman]->UpdateFrame();
+    PACMAN->UpdateFrame();
 
-  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *m_characters[Characters::Pacman]);
+  SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *PACMAN);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
-  cameraPerObjectConstantBuffer.world = m_characters[Characters::Pacman]->GetWorldMatrix();
+  cameraPerObjectConstantBuffer.world = PACMAN->GetWorldMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-  m_characters[Characters::Pacman]->Draw(m_d3dContext.Get());
+  PACMAN->Draw(m_d3dContext.Get());
 
   // Draw ghosts
   // This should happen only when pacman is not dead
-  if (!m_characters[Characters::Pacman]->IsDead())
+  if (!PACMAN->IsDead())
   {
     m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
 
     if (m_timer.GetFrameCount() % 10 == 0)
-      std::for_each(m_characters.begin() + 1, m_characters.end(), [](auto& character) { character->UpdateFrame(); });
+      std::for_each(m_ghosts.begin(), m_ghosts.end(), [](auto& ghost) { ghost->UpdateFrame(); });
 
-    std::for_each(m_characters.begin() + 1, m_characters.end(), [&](auto& character)
+    std::for_each(m_ghosts.begin(), m_ghosts.end(), [&](auto& ghost)
     {
-      SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *character);
+      SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *ghost);
       m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
-      cameraPerObjectConstantBuffer.world = character->GetWorldMatrix();
+      cameraPerObjectConstantBuffer.world = ghost->GetWorldMatrix();
       m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-      character->Draw(m_d3dContext.Get());
+      ghost->Draw(m_d3dContext.Get());
     });
   }
 }
@@ -458,10 +463,9 @@ void Game::DrawDebug()
   m_debugPoints.clear();
 }
 
-void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters characterID)
+void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& character)
 {
-  Character& character = *m_characters[characterID];
-
+  /* TODO: make debug draw alive again
   if (m_debugDraw)
     switch (characterID)
     {
@@ -478,6 +482,7 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
         m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.8f, 0.2f}});
         break;
     }
+  */
 
   character.IncreaseFrameCounter();
 
@@ -602,34 +607,34 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Characters chara
   }
 }
 
-void Game::MoveCharacterTowardsRandomPosition(Characters characterID)
+void Game::MoveCharacterTowardsRandomPosition(Character& character)
 {
-  const DirectX::XMFLOAT3 charPos = m_characters[characterID]->GetPosition();
+  const DirectX::XMFLOAT3 charPos = character.GetPosition();
   uint8_t direction = rand() % 4;
 
   switch (direction)
   {
     case 0:
-      MoveCharacterTowardsPosition(charPos.x + 1.0f, charPos.z, characterID);
+      MoveCharacterTowardsPosition(charPos.x + 1.0f, charPos.z, character);
       break;
     case 1:
-      MoveCharacterTowardsPosition(charPos.x - 1.0f, charPos.z, characterID);
+      MoveCharacterTowardsPosition(charPos.x - 1.0f, charPos.z, character);
       break;
     case 2:
-      MoveCharacterTowardsPosition(charPos.x, charPos.z + 1.0f, characterID);
+      MoveCharacterTowardsPosition(charPos.x, charPos.z + 1.0f, character);
       break;
     case 3:
-      MoveCharacterTowardsPosition(charPos.x, charPos.z - 1.0f, characterID);
+      MoveCharacterTowardsPosition(charPos.x, charPos.z - 1.0f, character);
       break;
   }
 }
 
 void Game::SetGhostsDefaultSprites()
 {
-  if (!m_characters[Characters::Blinky]->IsDead()) m_characters[Characters::Blinky]->SetSpriteY(Global::rowBlinky);
-  if (!m_characters[Characters::Pinky]->IsDead())  m_characters[Characters::Pinky]->SetSpriteY(Global::rowPinky);
-  if (!m_characters[Characters::Inky]->IsDead())   m_characters[Characters::Inky]->SetSpriteY(Global::rowInky);
-  if (!m_characters[Characters::Clyde]->IsDead())  m_characters[Characters::Clyde]->SetSpriteY(Global::rowClyde);
+  if (!BLINKY->IsDead()) BLINKY->SetSpriteY(Global::rowBlinky);
+  if (!PINKY->IsDead())  PINKY->SetSpriteY(Global::rowPinky);
+  if (!INKY->IsDead())   INKY->SetSpriteY(Global::rowInky);
+  if (!CLYDE->IsDead())  CLYDE->SetSpriteY(Global::rowClyde);
 }
 
 void Game::CreatePhases()
@@ -648,26 +653,26 @@ void Game::CreatePhases()
 void Game::HandleCollisions()
 {
   // Distance
-  for (uint8_t character = 1; character < Characters::_Count; character++)
+  std::for_each(m_ghosts.begin(), m_ghosts.end(), [&](auto& ghost)
   {
-    float distance = DistanceBetweenCharacters(Characters::Pacman, static_cast<Characters>(character));
+    float distance = DistanceBetweenCharacters(*PACMAN, *ghost);
 
     if (distance < 0.1f)
     {
-      if (m_characters[character]->GetMode() == Global::Mode::Frightened)
+      if (ghost->GetMode() == Global::Mode::Frightened)
       {
-        m_characters[character]->SetSpriteY(Global::rowDead);
-        m_characters[character]->SetDead(true);
+        ghost->SetSpriteY(Global::rowDead);
+        ghost->SetDead(true);
       }
       else
       {
-        m_characters[Characters::Pacman]->SetDead(true);
-        m_characters[Characters::Pacman]->SetSpriteY(1);
-        m_characters[Characters::Pacman]->SetFramesPerState(12);
-        m_characters[Characters::Pacman]->SetOneCycle(true);
+        PACMAN->SetDead(true);
+        PACMAN->SetSpriteY(1);
+        PACMAN->SetFramesPerState(12);
+        PACMAN->SetOneCycle(true);
       }
     }
-  }
+  });
 }
 
 bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2)
@@ -682,76 +687,72 @@ bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movemen
   return false;
 }
 
-float Game::DistanceBetweenCharacters(Characters ch1, Characters ch2)
+float Game::DistanceBetweenCharacters(const Character& ch1, const Character& ch2)
 {
-  const XMFLOAT3& pos1 = m_characters[ch1]->GetPosition();
-  const XMFLOAT3& pos2 = m_characters[ch2]->GetPosition();
+  const XMFLOAT3& pos1 = ch1.GetPosition();
+  const XMFLOAT3& pos2 = ch2.GetPosition();
 
   return sqrt((pos1.x - pos2.x) * (pos1.x - pos2.x) + (pos1.z - pos2.z) * (pos1.z - pos2.z));
 }
 
 void Game::UpdatePositionOfBlinky()
 {
-  Character* blinky = m_characters[Characters::Blinky].get();
-
-  if (blinky->IsDead())
+  if (BLINKY->IsDead())
   {
-    MoveCharacterTowardsPosition(10.5f, 11.5f, Characters::Blinky);
+    MoveCharacterTowardsPosition(10.5f, 11.5f, *BLINKY);
     return;
   }
 
-  if (blinky->GetMovement() == Character::Movement::InHouse)
+  if (BLINKY->GetMovement() == Character::Movement::InHouse)
   {
-    blinky->SetMode(Global::Mode::Chase);
-    blinky->SetSpriteY(Global::rowBlinky);
+    BLINKY->SetMode(Global::Mode::Chase);
+    BLINKY->SetSpriteY(Global::rowBlinky);
   }
 
-  switch (blinky->GetMode())
+  switch (BLINKY->GetMode())
   {
     case Global::Mode::Scatter:
-      MoveCharacterTowardsPosition(18.5f, 21.5f, Characters::Blinky);
+      MoveCharacterTowardsPosition(18.5f, 21.5f, *BLINKY);
       break;
     case Global::Mode::Chase:
       {
-        const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
-        MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Blinky);
+        const DirectX::XMFLOAT3& pacmanPos = PACMAN->GetPosition();
+        MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *BLINKY);
       }
       break;
     case Global::Mode::Frightened:
-      MoveCharacterTowardsRandomPosition(Characters::Blinky);
+      MoveCharacterTowardsRandomPosition(*BLINKY);
       break;
   }
 }
 
 void Game::UpdatePositionOfPinky()
 {
-  Character* pinky = m_characters[Characters::Pinky].get();
-
-  if (pinky->GetMovement() == Character::Movement::Stop)
+  if (PINKY->GetMovement() == Character::Movement::Stop)
     return;
 
-  if (pinky->IsDead())
+  if (PINKY->IsDead())
   {
-    MoveCharacterTowardsPosition(10.5f, 11.5f, Characters::Pinky);
+    MoveCharacterTowardsPosition(10.5f, 11.5f, *PINKY);
     return;
   }
 
-  if (pinky->GetMovement() == Character::Movement::InHouse)
+  if (PINKY->GetMovement() == Character::Movement::InHouse)
   {
-    pinky->SetMode(Global::Mode::Chase);
-    pinky->SetSpriteY(Global::rowPinky);
+    PINKY->SetMode(Global::Mode::Chase);
+    PINKY->SetSpriteY(Global::rowPinky);
   }
 
-  switch (pinky->GetMode())
+  switch (PINKY->GetMode())
   {
     case Global::Mode::Scatter:
-      MoveCharacterTowardsPosition(2.5f, 21.5f, Characters::Pinky);
+      MoveCharacterTowardsPosition(2.5f, 21.5f, *PINKY);
       break;
     case Global::Mode::Chase:
       {
-        DirectX::XMFLOAT3 pacmanPos = m_characters[Characters::Pacman]->GetPosition();
+        DirectX::XMFLOAT3 pacmanPos = PACMAN->GetPosition();
 
-        switch (m_characters[Characters::Pacman]->GetFacingDirection())
+        switch (PACMAN->GetFacingDirection())
         {
           case Character::Direction::Left:
             pacmanPos.x -= 4;
@@ -767,44 +768,42 @@ void Game::UpdatePositionOfPinky()
             break;
         }
 
-        MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Pinky);
+        MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *PINKY);
       }
       break;
     case Global::Mode::Frightened:
-      MoveCharacterTowardsRandomPosition(Characters::Pinky);
+      MoveCharacterTowardsRandomPosition(*PINKY);
       break;
   }
 }
 
 void Game::UpdatePositionOfInky()
 {
-  Character* inky = m_characters[Characters::Inky].get();
-
-  if (inky->GetMovement() == Character::Movement::Stop)
+  if (INKY->GetMovement() == Character::Movement::Stop)
     return;
 
-  if (inky->IsDead())
+  if (INKY->IsDead())
   {
-    MoveCharacterTowardsPosition(10.5f, 11.5f, Characters::Inky);
+    MoveCharacterTowardsPosition(10.5f, 11.5f, *INKY);
     return;
   }
 
-  if (inky->GetMovement() == Character::Movement::InHouse)
+  if (INKY->GetMovement() == Character::Movement::InHouse)
   {
-    inky->SetMode(Global::Mode::Chase);
-    inky->SetSpriteY(Global::rowInky);
+    INKY->SetMode(Global::Mode::Chase);
+    INKY->SetSpriteY(Global::rowInky);
   }
 
-  switch (inky->GetMode())
+  switch (INKY->GetMode())
   {
     case Global::Mode::Scatter:
-      MoveCharacterTowardsPosition(21.5f, 0.0f, Characters::Inky);
+      MoveCharacterTowardsPosition(21.5f, 0.0f, *INKY);
       break;
     case Global::Mode::Chase:
       {
-        DirectX::XMFLOAT3 pacmanPos = m_characters[Characters::Pacman]->GetPosition();
+        DirectX::XMFLOAT3 pacmanPos = PACMAN->GetPosition();
 
-        switch (m_characters[Characters::Pacman]->GetFacingDirection())
+        switch (PACMAN->GetFacingDirection())
         {
           case Character::Direction::Left:
             pacmanPos.x -= 2;
@@ -820,7 +819,7 @@ void Game::UpdatePositionOfInky()
             break;
         }
 
-        const DirectX::XMFLOAT3 blinkyPos = m_characters[Characters::Blinky]->GetPosition();
+        const DirectX::XMFLOAT3 blinkyPos = BLINKY->GetPosition();
 
         float finalPosX = 0;
         float finalPosZ = 0;
@@ -828,60 +827,58 @@ void Game::UpdatePositionOfInky()
         finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
         finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
 
-        MoveCharacterTowardsPosition(finalPosX, finalPosZ, Characters::Inky);
+        MoveCharacterTowardsPosition(finalPosX, finalPosZ, *INKY);
       }
       break;
     case Global::Mode::Frightened:
-      MoveCharacterTowardsRandomPosition(Characters::Inky);
+      MoveCharacterTowardsRandomPosition(*INKY);
       break;
   }
 }
 
 void Game::UpdatePositionOfClyde()
 {
-  Character* clyde = m_characters[Characters::Clyde].get();
-
-  if (clyde->GetMovement() == Character::Movement::Stop)
+  if (CLYDE->GetMovement() == Character::Movement::Stop)
     return;
 
-  if (clyde->IsDead())
+  if (CLYDE->IsDead())
   {
-    MoveCharacterTowardsPosition(10.5f, 11.5f, Characters::Clyde);
+    MoveCharacterTowardsPosition(10.5f, 11.5f, *CLYDE);
     return;
   }
 
-  if (clyde->GetMovement() == Character::Movement::InHouse)
+  if (CLYDE->GetMovement() == Character::Movement::InHouse)
   {
-    clyde->SetMode(Global::Mode::Chase);
-    clyde->SetSpriteY(Global::rowClyde);
+    CLYDE->SetMode(Global::Mode::Chase);
+    CLYDE->SetSpriteY(Global::rowClyde);
   }
 
-  switch (clyde->GetMode())
+  switch (CLYDE->GetMode())
   {
     case Global::Mode::Scatter:
-      MoveCharacterTowardsPosition(0.0f, 0.0f, Characters::Clyde);
+      MoveCharacterTowardsPosition(0.0f, 0.0f, *CLYDE);
       break;
     case Global::Mode::Chase:
       {
-        const DirectX::XMFLOAT3& pacmanPos = m_characters[Characters::Pacman]->GetPosition();
-        const DirectX::XMFLOAT3& clydePos = m_characters[Characters::Clyde]->GetPosition();
+        const DirectX::XMFLOAT3& pacmanPos = PACMAN->GetPosition();
+        const DirectX::XMFLOAT3& clydePos = CLYDE->GetPosition();
 
         float distance = sqrt((clydePos.x - pacmanPos.x) * (clydePos.x - pacmanPos.x) + (clydePos.z - pacmanPos.z) * (clydePos.z - pacmanPos.z));
 
         if (distance > 8)
         {
           // Behave as blinky
-          MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, Characters::Clyde);
+          MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *CLYDE);
         }
         else
         {
           // Scatter
-          MoveCharacterTowardsPosition(0.0f, 0.0f, Characters::Clyde);
+          MoveCharacterTowardsPosition(0.0f, 0.0f, *CLYDE);
         }
       }
       break;
     case Global::Mode::Frightened:
-      MoveCharacterTowardsRandomPosition(Characters::Clyde);
+      MoveCharacterTowardsRandomPosition(*CLYDE);
       break;
   }
 }

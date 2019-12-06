@@ -5,22 +5,22 @@
 #include "Camera.h"
 #include "Dots.h"
 #include "Global.h"
+#include "Ghost.h"
 #include "Character.h"
 #include "Keyboard.h"
+#include "Pacman.h"
 #include "StepTimer.h"
 #include "World.h"
 
 class Game
 {
 public:
-  enum Characters
+  enum class Ghosts
   {
-    Pacman,
     Blinky,
     Pinky,
     Inky,
     Clyde,
-    _Count
   };
 
   struct Phase
@@ -69,15 +69,15 @@ private:
   void OnDeviceLost();
 
   void SetSpriteConstantBufferForCharacter(Global::SpriteConstantBuffer& spriteConstantBuffer, const Character& character);
-  void MoveCharacterTowardsPosition(float posX, float posZ, Characters characterID);
-  void MoveCharacterTowardsRandomPosition(Characters characterID);
+  void MoveCharacterTowardsPosition(float posX, float posZ, Character& character);
+  void MoveCharacterTowardsRandomPosition(Character& character);
   void SetGhostsDefaultSprites();
   void CreatePhases();
   void HandleCollisions();
 
   bool AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2);
 
-  float DistanceBetweenCharacters(Characters ch1, Characters ch2);
+  float DistanceBetweenCharacters(const Character& ch1, const Character& ch2);
 
   D3D_FEATURE_LEVEL                                 m_featureLevel;
   Microsoft::WRL::ComPtr<ID3D11Device1>             m_d3dDevice;
@@ -107,7 +107,11 @@ private:
   std::unique_ptr<DirectX::Keyboard> m_keyboard;
 
   std::vector<Global::Vertex> m_debugPoints;
-  std::array<std::unique_ptr<Character>, static_cast<uint8_t>(Characters::_Count)> m_characters;
+
+  //std::array<std::unique_ptr<Character>, static_cast<uint8_t>(Characters::_Count)> m_characters;
+  std::array<std::unique_ptr<Ghost>, Global::numGhosts> m_ghosts;
+  std::unique_ptr<Pacman> m_pacman;
+
   std::array<Phase, Global::phasesNum> m_phasesLevel1; // Level 1 have 8 phases + two more frightened (blue + blink)
 
   uint8_t m_currentPhaseIndex;

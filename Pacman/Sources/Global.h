@@ -22,6 +22,7 @@ constexpr uint8_t rowClyde = 3;
 constexpr uint8_t rowFrightened = 4;
 constexpr uint8_t rowTransition = 5;
 constexpr uint8_t rowDead = 6;
+constexpr uint8_t numGhosts = 4;
 
 constexpr float pacManSpeed = 0.1f;
 constexpr float ghostSpeed = 0.08f;

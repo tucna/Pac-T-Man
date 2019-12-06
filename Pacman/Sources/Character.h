@@ -58,10 +58,6 @@ public:
   void SetOneCycle(float oneCycle) { m_oneCycle = oneCycle; }
   void SetEnterToHousePosibility(bool canEnter) { m_canEnterHouse = canEnter; }
   void SetDead(bool dead) { m_isDead = dead; }
-  void SetMode(Global::Mode mode) { m_mode = mode; }
-  void SetDotLimit(uint8_t dotLimit) { m_dotLimit = dotLimit; }
-
-  void IncrementEatenDots() { m_eatenDots++; }
 
   const DirectX::XMFLOAT4X4& GetWorldMatrix() const { return m_worldMatrix; }
   const DirectX::XMFLOAT3& GetPosition() const { return m_position; }
@@ -76,8 +72,6 @@ public:
   uint8_t GetSpriteX() const { return m_currentFrame; }
   uint8_t GetSpriteSheetColumns() const { return m_spriteSheetColumns; }
   uint8_t GetSpriteSheetRows() const { return m_spriteSheetRows; }
-
-  Global::Mode GetMode() { return m_mode; }
 
   bool IsAnimationDone() { return m_isAnimationDone; }
   bool CanEnterHouse() { return m_canEnterHouse; }
@@ -107,8 +101,6 @@ private:
   uint8_t m_spriteSheetRows;
   uint8_t m_spriteXAddition;
   uint8_t m_framesPerState;
-  uint8_t m_dotLimit;
-  uint8_t m_eatenDots;
 
   float m_spriteScaleFactor;
 
@@ -116,7 +108,5 @@ private:
   bool m_isAnimationDone;
   bool m_canEnterHouse; // TODO: is this necessary?
   bool m_isDead;
-
-  Global::Mode m_mode;
 };
 
