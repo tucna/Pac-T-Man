@@ -70,6 +70,9 @@
     <ClInclude Include="sources\Pacman.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="sources\Caption.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Camera.cpp">
@@ -112,6 +115,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\Pacman.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="sources\Caption.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>

@@ -4,29 +4,21 @@
 
 #include "Global.h"
 
-class Dots
+// TODO this can be grouped with dots - same thign technically and also PacMan itself is similar
+class Caption
 {
 public:
-  enum class Type
-  {
-    Nothing,
-    Normal,
-    Extra
-  };
-
   struct InstanceType
   {
     DirectX::XMFLOAT3 position;
     uint8_t sizeFlag;
   };
 
-  explicit Dots();
-  ~Dots();
+  Caption();
+  ~Caption();
 
   void Draw(ID3D11DeviceContext1* context);
   void Init(ID3D11Device1* device);
-
-  void Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context, Type& dotEaten);
 
   const DirectX::XMFLOAT4X4& GetWorldMatrix() const { return m_worldMatrix; }
 
@@ -40,10 +32,6 @@ private:
   Microsoft::WRL::ComPtr<ID3D11Buffer>             m_instanceBuffer;
 
   DirectX::XMFLOAT4X4 m_worldMatrix;
-
-  uint8_t m_dots[Global::worldSize][Global::worldSize];
-
-  uint16_t m_numberOfDots;
 
   std::vector<Global::Vertex> m_vertices;
   std::vector<InstanceType> m_instances;

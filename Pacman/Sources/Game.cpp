@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <cmath>
+
 #include "Game.h"
 #include "WICTextureLoader.h"
 
@@ -27,7 +29,10 @@ Game::Game() noexcept :
   m_currentPhaseIndex(1),
   m_previousPhaseIndex(1),
   m_frightenedTransition(false),
-  m_currentGhostCounter(Ghosts::Pinky)
+  m_currentGhostCounter(Ghosts::Pinky),
+  m_gameState(State::Intro),
+  m_lerpCoef(0.0f),
+  m_gamePaused(true)
 {
   CreatePhases();
 }
@@ -45,6 +50,7 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
 
   m_world.Init(m_d3dDevice.Get());
   m_dots.Init(m_d3dDevice.Get());
+  m_caption.Init(m_d3dDevice.Get());
 
   for (auto& ghost : m_ghosts)
   {
@@ -87,6 +93,27 @@ void Game::Tick()
 
 void Game::Update(const DX::StepTimer& timer)
 {
+  const auto& kb = m_keyboard->GetState();
+
+  if (kb.Escape)
+    ExitGame();
+
+  if (kb.Space)
+  {
+    if (m_gameState == Game::State::Intro)
+      m_gameState = Game::State::Start;
+
+    if (m_gameState == Game::State::Level)
+    {
+      m_gamePaused = false;
+      m_pacmanMovementRequest = Character::Movement::Left;
+    }
+  }
+
+  // Skip all simulation in a case that gmae did not start
+  if (m_gameState != Game::State::Level || m_gamePaused)
+    return;
+
   if (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration) && m_currentPhaseIndex < Global::phasesNum - 1)
   {
     if (m_currentPhaseIndex == 0)
@@ -122,20 +149,6 @@ void Game::Update(const DX::StepTimer& timer)
 
     m_frightenedTransition = true;
   }
-
-  const auto& kb = m_keyboard->GetState();
-
-  if (kb.Escape)
-    ExitGame();
-
-  if (kb.NumPad1)
-    PINKY->SetMovement(Character::Movement::InHouse);
-
-  if (kb.NumPad2)
-    INKY->SetMovement(Character::Movement::InHouse);
-
-  if (kb.NumPad3)
-    CLYDE->SetMovement(Character::Movement::InHouse);
 
   switch (m_currentGhostCounter)
   {
@@ -264,13 +277,13 @@ void Game::Update(const DX::StepTimer& timer)
     break;
   }
 
-  uint8_t dotEaten = 0;
+  Dots::Type dotEaten;
   m_dots.Update(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z), m_d3dContext.Get(), dotEaten);
 
-  if (dotEaten > 0 && m_currentGhostCounter != Ghosts::None)
+  if (dotEaten != Dots::Type::Nothing && m_currentGhostCounter != Ghosts::None)
     m_ghosts[static_cast<uint8_t>(m_currentGhostCounter)]->IncrementEatenDots();
 
-  if (dotEaten == 2) // TODO: ugly!
+  if (dotEaten == Dots::Type::Extra)
   {
     m_previousPhaseIndex = m_currentPhaseIndex == 0 ? m_previousPhaseIndex : m_currentPhaseIndex;
     m_frightenedTransition = false;
@@ -303,15 +316,32 @@ void Game::Render()
 {
   // Don't try to render anything before the first Update.
   if (m_timer.GetFrameCount() == 0)
-  {
     return;
-  }
 
   Clear();
 
-  DrawWorld();
-  DrawSprites();
-  DrawDebug();
+  switch (m_gameState)
+  {
+    case Game::State::Intro:
+      DrawWorld();
+      DrawIntro();
+      break;
+    case Game::State::Start:
+      // TODO: this is very stupid!
+      if (m_timer.GetFrameCount() % 2 == 0)
+        UpdateCameraForStartAnimation();
+
+      DrawWorld();
+
+      if (m_lerpCoef >= 1)
+        m_gameState = Game::State::Level;
+      break;
+    case Game::State::Level:
+      DrawWorld();
+      DrawSprites();
+      DrawDebug();
+      break;
+  }
 
   Present();
 }
@@ -392,6 +422,23 @@ void Game::DrawWorld()
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
   m_world.Draw(m_d3dContext.Get());
+}
+
+void Game::DrawIntro()
+{
+  m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Instanced);
+  m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard);
+  m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Texture);
+
+  Global::SpriteConstantBuffer spriteConstantBuffer = {0, 0, 1, 1, DirectX::XMFLOAT4(1.0f, 0, 0, 0)};
+  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
+
+  Global::CameraPerObject cameraPerObjectConstantBuffer = {};
+  cameraPerObjectConstantBuffer.world = m_caption.GetWorldMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
+
+  m_caption.Draw(m_d3dContext.Get());
 }
 
 void Game::DrawSprites()
@@ -689,6 +736,25 @@ void Game::HandleCollisions()
       }
     }
   });
+}
+
+void Game::UpdateCameraForStartAnimation()
+{
+  m_lerpCoef += 0.04;
+  m_lerpCoef = m_lerpCoef > 1 ? 1.0f : m_lerpCoef;
+
+  float posX = Global::frontCamera.x + m_lerpCoef * (Global::upCamera.x - Global::frontCamera.x);
+  float posY = Global::frontCamera.y + m_lerpCoef * (Global::upCamera.y - Global::frontCamera.y);
+  float posZ = Global::frontCamera.z + m_lerpCoef * (Global::upCamera.z - Global::frontCamera.z);
+
+  m_camera.SetPosition(posX, posY, posZ);
+  m_camera.SetLookAtPos(10.5, 0, 10.5);
+
+  Global::CameraPerFrame cameraConstantBufferPerFrame = {};
+  cameraConstantBufferPerFrame.view = m_camera.GetViewMatrix();
+  cameraConstantBufferPerFrame.projection = m_camera.GetProjectionMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerFrame.Get(), &cameraConstantBufferPerFrame, sizeof(cameraConstantBufferPerFrame));
 }
 
 bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2)
@@ -1063,9 +1129,17 @@ void Game::CreateResources()
 
   // Initialize windows-size dependent objects here.
   m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f);
-  m_camera.SetPosition(10.5f, 15.0f, 10.5f);
-  //m_camera.SetPosition(10.5f, 5.0f, -2.5f);
-  //m_camera.SetPosition(3, 2, 3);
+
+  // TODO: Animation part - this can be better
+  m_lerpCoef = m_lerpCoef > 1 ? 1.0f : m_lerpCoef;
+
+  float posX = Global::frontCamera.x + m_lerpCoef * (Global::upCamera.x - Global::frontCamera.x);
+  float posY = Global::frontCamera.y + m_lerpCoef * (Global::upCamera.y - Global::frontCamera.y);
+  float posZ = Global::frontCamera.z + m_lerpCoef * (Global::upCamera.z - Global::frontCamera.z);
+
+  m_camera.SetPosition(posX, posY, posZ);
+  // ------------------------------
+
   m_camera.SetLookAtPos(10.5, 0, 10.5);
 
   XMFLOAT4X4 projection = m_camera.GetProjectionMatrix();

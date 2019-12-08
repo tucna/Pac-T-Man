@@ -13,7 +13,3 @@ Ghost::Ghost():
   SetSpriteScaleFactor(Global::ghostSize);
   SetFramesPerState(2);
 }
-
-Ghost::~Ghost()
-{
-}

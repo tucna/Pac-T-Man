@@ -7,7 +7,7 @@ class Ghost : public Character
 {
 public:
   Ghost();
-  ~Ghost();
+  ~Ghost() {};
 
   void SetMode(Global::Mode mode) { m_mode = mode; }
   void SetDotLimit(uint8_t dotLimit) { m_dotLimit = dotLimit; }

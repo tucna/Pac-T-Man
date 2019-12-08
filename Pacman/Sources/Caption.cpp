@@ -1,43 +1,20 @@
 #include "pch.h"
 
-#include "Dots.h"
-#include "Global.h"
+#include "Caption.h"
 #include "WICTextureLoader.h"
 
 using namespace DirectX;
 
-Dots::Dots() :
-  m_dots{
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
-    {0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0},
-    {0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0},
-    {0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0},
-    {0, 0, 2, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2, 0, 0},
-    {0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0},
-    {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0},
-    {0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0},
-    {0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0},
-    {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
-    {0, 0, 2, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 2, 0, 0},
-    {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
+Caption::Caption()
 {
   XMStoreFloat4x4(&m_worldMatrix, DirectX::XMMatrixIdentity()); // No need to transpose identity matrix
 }
 
-Dots::~Dots()
+Caption::~Caption()
 {
 }
 
-void Dots::Draw(ID3D11DeviceContext1* context)
+void Caption::Draw(ID3D11DeviceContext1 * context)
 {
   unsigned int strides[2];
   unsigned int offsets[2];
@@ -68,9 +45,9 @@ void Dots::Draw(ID3D11DeviceContext1* context)
   context->DrawInstanced(1, (UINT)m_instances.size(), 0, 0);
 }
 
-void Dots::Init(ID3D11Device1* device)
+void Caption::Init(ID3D11Device1 * device)
 {
-  DX::ThrowIfFailed(CreateWICTextureFromFile(device, nullptr, L"Resources/dot.png", m_resource.GetAddressOf(), m_shaderResourceView.GetAddressOf()));
+  DX::ThrowIfFailed(CreateWICTextureFromFile(device, nullptr, L"Resources/caption.png", m_resource.GetAddressOf(), m_shaderResourceView.GetAddressOf()));
 
   m_vertices.push_back({{0, 0, 0}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
 
@@ -118,13 +95,9 @@ void Dots::Init(ID3D11Device1* device)
   omDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
   omDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-  // check HR
   DX::ThrowIfFailed(device->CreateBlendState(&omDesc, m_blendState.GetAddressOf()));
 
-  for (unsigned int z = 0; z != Global::worldSize; z++)
-    for (unsigned int x = 0; x != Global::worldSize; x++)
-      if (m_dots[z][x] > 0)
-        m_instances.push_back({DirectX::XMFLOAT3(static_cast<float>(x) + 0.5f, 0.25f, static_cast<float>(z) + 0.5f), m_dots[z][x]});
+  m_instances.push_back({DirectX::XMFLOAT3(10.5f, 3.0f, 1.0f), 1});
 
   // Set up the description of the instance buffer
   D3D11_BUFFER_DESC instanceBufferDesc = {};
@@ -142,44 +115,4 @@ void Dots::Init(ID3D11Device1* device)
 
   // Create the instance buffer
   DX::ThrowIfFailed(device->CreateBuffer(&instanceBufferDesc, &instanceData, m_instanceBuffer.GetAddressOf()));
-}
-
-void Dots::Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context, Type& dotEaten)
-{
-  switch (m_dots[row][column])
-  {
-    case 0:
-      dotEaten = Type::Nothing;
-      break;
-    case 1:
-      dotEaten = Type::Normal;
-      break;
-    case 2:
-      dotEaten = Type::Extra;
-      break;
-  }
-
-  if (m_dots[row][column] > 0)
-  {
-    m_dots[row][column] = 0;
-
-    m_instances.clear();
-
-    for (unsigned int z = 0; z != Global::worldSize; z++)
-      for (unsigned int x = 0; x != Global::worldSize; x++)
-        if (m_dots[z][x] > 0)
-          m_instances.push_back({DirectX::XMFLOAT3(static_cast<float>(x) + 0.5f, 0.25f, static_cast<float>(z) + 0.5f), m_dots[z][x]});
-
-    if (m_instances.size() == 0)
-    {
-      // TODO: game end
-    }
-    else
-    {
-      D3D11_MAPPED_SUBRESOURCE resource;
-      context->Map(m_instanceBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
-      memcpy(resource.pData, m_instances.data(), m_instances.size() * sizeof(InstanceType));
-      context->Unmap(m_instanceBuffer.Get(), 0);
-    }
-  }
 }

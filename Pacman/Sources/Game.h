@@ -3,6 +3,7 @@
 #include "ShaderManager/ShaderManager.h"
 
 #include "Camera.h"
+#include "Caption.h"
 #include "Dots.h"
 #include "Global.h"
 #include "Ghost.h"
@@ -15,6 +16,13 @@
 class Game
 {
 public:
+  enum class State
+  {
+    Intro,
+    Start,
+    Level
+  };
+
   enum class Ghosts
   {
     Blinky,
@@ -51,6 +59,7 @@ public:
 
 private:
   void DrawWorld();
+  void DrawIntro();
   void DrawSprites();
   void DrawDebug();
 
@@ -75,6 +84,7 @@ private:
   void SetGhostsDefaultSprites();
   void CreatePhases();
   void HandleCollisions();
+  void UpdateCameraForStartAnimation();
 
   bool AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2);
 
@@ -120,7 +130,14 @@ private:
 
   bool m_debugDraw;
   bool m_frightenedTransition;
+  bool m_gamePaused;
 
   uint16_t m_outputWidth;
   uint16_t m_outputHeight;
+
+  State m_gameState;
+
+  Caption m_caption;
+
+  float m_lerpCoef;
 };
