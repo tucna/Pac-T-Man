@@ -134,6 +134,9 @@
     <Image Include="Resources\ghosts.png">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="resources\caption.png">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources\resource.rc">
@@ -165,6 +168,12 @@
       <Filter>Shader manager\Shaders hlsl</Filter>
     </FxCompile>
     <FxCompile Include="Sources\ShaderManager\VS_Indexed.hlsl">
+      <Filter>Shader manager\Shaders hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="sources\shaderManager\PS_UI.hlsl">
+      <Filter>Shader manager\Shaders hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="sources\shaderManager\VS_UI.hlsl">
       <Filter>Shader manager\Shaders hlsl</Filter>
     </FxCompile>
   </ItemGroup>

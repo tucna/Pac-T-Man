@@ -69,6 +69,7 @@ void ShaderManager::AddPredefinedOnes()
   m_pixelShaders[static_cast<uint8_t>(PixelShader::Color)] = std::make_unique<PS_General>(L"../bin/PS_Color.cso", m_device);
   m_pixelShaders[static_cast<uint8_t>(PixelShader::Texture)] = std::make_unique<PS_General>(L"../bin/PS_Texture.cso", m_device);
   m_pixelShaders[static_cast<uint8_t>(PixelShader::Phong)] = std::make_unique<PS_General>(L"../bin/PS_Phong.cso", m_device);
+  m_pixelShaders[static_cast<uint8_t>(PixelShader::UI)] = std::make_unique<PS_General>(L"../bin/PS_UI.cso", m_device);
 
   // Geometry shaders
   m_geometryShaders[static_cast<uint8_t>(GeometryShader::Billboard)] = std::make_unique<GS_General>(L"../bin/GS_Billboard.cso", m_device);
@@ -76,4 +77,5 @@ void ShaderManager::AddPredefinedOnes()
   // Vertex shaders
   m_vertexShaders[static_cast<uint8_t>(VertexShader::Indexed)] = std::make_unique<VS_Indexed>(L"../bin/VS_Indexed.cso", m_device);
   m_vertexShaders[static_cast<uint8_t>(VertexShader::Instanced)] = std::make_unique<VS_Instanced>(L"../bin/VS_Instanced.cso", m_device);
+  m_vertexShaders[static_cast<uint8_t>(VertexShader::UI)] = std::make_unique<VS_Indexed>(L"../bin/VS_UI.cso", m_device);
 }

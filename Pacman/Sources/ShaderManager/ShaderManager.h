@@ -12,6 +12,7 @@ public:
   {
     Indexed,
     Instanced,
+    UI,
     _Count
   };
 
@@ -26,6 +27,7 @@ public:
     Color,
     Texture,
     Phong,
+    UI,
     _Count
   };
 

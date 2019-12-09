@@ -9,12 +9,14 @@ public:
   ~Camera();
 
   void SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ);
+  void SetOrthographicValues(float halfWidth, float halfHeight);
   void SetPosition(float x, float y, float z);
   void SetRotation(float x, float y, float z);
   void SetLookAtPos(float x, float y, float z);
 
   const DirectX::XMFLOAT4X4& GetViewMatrix() const { return m_viewMatrix; }
   const DirectX::XMFLOAT4X4& GetProjectionMatrix() const { return m_projectionMatrix; }
+  const DirectX::XMFLOAT4X4& GetOrthographicMatrix() const { return m_orthoMatrix; }
 
 private:
   void UpdateViewMatrix();
@@ -27,4 +29,5 @@ private:
 
   DirectX::XMFLOAT4X4 m_viewMatrix;
   DirectX::XMFLOAT4X4 m_projectionMatrix;
+  DirectX::XMFLOAT4X4 m_orthoMatrix;
 };

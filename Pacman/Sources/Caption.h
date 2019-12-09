@@ -29,11 +29,11 @@ private:
   Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shaderResourceView;
   Microsoft::WRL::ComPtr<ID3D11SamplerState>       m_samplerState;
   Microsoft::WRL::ComPtr<ID3D11BlendState>         m_blendState;
-  Microsoft::WRL::ComPtr<ID3D11Buffer>             m_instanceBuffer;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>             m_indexBuffer;
 
   DirectX::XMFLOAT4X4 m_worldMatrix;
 
   std::vector<Global::Vertex> m_vertices;
-  std::vector<InstanceType> m_instances;
+  std::vector<uint16_t> m_indices;
 };
 

@@ -421,17 +421,21 @@ void Game::DrawWorld()
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
+  // TODO do not do this!!!
+  Global::CameraPerFrame cameraConstantBufferPerFrame = {};
+  cameraConstantBufferPerFrame.view = m_camera.GetViewMatrix();
+  cameraConstantBufferPerFrame.projection = m_camera.GetProjectionMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerFrame.Get(), &cameraConstantBufferPerFrame, sizeof(cameraConstantBufferPerFrame));
+  // ------------------------------
+
   m_world.Draw(m_d3dContext.Get());
 }
 
 void Game::DrawIntro()
 {
-  m_shaderManager->SetVertexShader(ShaderManager::VertexShader::Instanced);
-  m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard);
-  m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Texture);
-
-  Global::SpriteConstantBuffer spriteConstantBuffer = {0, 0, 1, 1, DirectX::XMFLOAT4(1.0f, 0, 0, 0)};
-  m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
+  m_shaderManager->SetVertexShader(ShaderManager::VertexShader::UI);
+  m_shaderManager->SetPixelShader(ShaderManager::PixelShader::UI);
 
   Global::CameraPerObject cameraPerObjectConstantBuffer = {};
   cameraPerObjectConstantBuffer.world = m_caption.GetWorldMatrix();
@@ -1129,6 +1133,7 @@ void Game::CreateResources()
 
   // Initialize windows-size dependent objects here.
   m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f);
+  m_camera.SetOrthographicValues(static_cast<float>(m_outputWidth) / 2.0f, static_cast<float>(m_outputHeight) / 2.0f);
 
   // TODO: Animation part - this can be better
   m_lerpCoef = m_lerpCoef > 1 ? 1.0f : m_lerpCoef;

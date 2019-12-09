@@ -7,7 +7,26 @@ using namespace DirectX;
 
 Caption::Caption()
 {
-  XMStoreFloat4x4(&m_worldMatrix, DirectX::XMMatrixIdentity()); // No need to transpose identity matrix
+  XMMATRIX view = XMMatrixIdentity();
+  XMMATRIX projection = XMMatrixOrthographicOffCenterLH(0.0f, 800.0f, 600.0f, 0.0f, 0.0f, 100.0f); // TODO: stupid, here should be real camera values not 800x600
+  XMMATRIX worldMatrix = XMMatrixMultiply(view, projection);
+
+  float spriteWidth = 800.0f,
+    spriteHeight = 600.0f,
+    spritePosX = 0.0f,
+    spritePosY = 0.0f;
+
+  XMMATRIX l_translation = XMMatrixTranslation(spritePosX, spritePosY, 0.0f);
+  XMMATRIX l_rotationZ = XMMatrixRotationZ(0.0f);
+  XMMATRIX l_scale = XMMatrixScaling(1.0f * spriteWidth, 1.0f * spriteHeight, 1.0f);
+  XMMATRIX l_spriteWVP = l_scale * l_rotationZ * l_translation; // TODO: all of these is wrong
+
+  // __________ Prepare World Coordinates to send to the shader
+  XMMATRIX l_worldMatrix = XMMatrixMultiply(l_spriteWVP, worldMatrix);
+
+  XMStoreFloat4x4(&m_worldMatrix, XMMatrixTranspose(l_worldMatrix));
+
+  //XMStoreFloat4x4(&m_worldMatrix, DirectX::XMMatrixIdentity()); // No need to transpose identity matrix
 }
 
 Caption::~Caption()
@@ -16,24 +35,12 @@ Caption::~Caption()
 
 void Caption::Draw(ID3D11DeviceContext1 * context)
 {
-  unsigned int strides[2];
-  unsigned int offsets[2];
+  unsigned int stride = sizeof(Global::Vertex);
+  unsigned int offset = 0;
 
-  // Set the buffer strides.
-  strides[0] = sizeof(Global::Vertex);
-  strides[1] = sizeof(InstanceType);
-
-  // Set the buffer offsets.
-  offsets[0] = 0;
-  offsets[1] = 0;
-
-  // Set the array of pointers to the vertex and instance buffers
-  ID3D11Buffer* bufferPointers[2];
-  bufferPointers[0] = m_vertexBuffer.Get();
-  bufferPointers[1] = m_instanceBuffer.Get();
-
-  context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-  context->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);
+  context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
+  context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u);
 
   context->PSSetShaderResources(0, 1, m_shaderResourceView.GetAddressOf());
   context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
@@ -42,16 +49,19 @@ void Caption::Draw(ID3D11DeviceContext1 * context)
 
   context->OMSetBlendState(m_blendState.Get(), NULL, 0xffffffff);
 
-  context->DrawInstanced(1, (UINT)m_instances.size(), 0, 0);
+  context->DrawIndexed(6, 0, 0);
 }
 
 void Caption::Init(ID3D11Device1 * device)
 {
   DX::ThrowIfFailed(CreateWICTextureFromFile(device, nullptr, L"Resources/caption.png", m_resource.GetAddressOf(), m_shaderResourceView.GetAddressOf()));
 
-  m_vertices.push_back({{0, 0, 0}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-
   // Vertex buffer
+  m_vertices.push_back({{-1.0f, -1.0f, 0.0f}, {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}});
+  m_vertices.push_back({{-1.0f,  1.0f, 0.0f}, {0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}});
+  m_vertices.push_back({{1.0f, -1.0f, 0.0f}, {0.0, 1.0, 0.0}, {1.0, 1.0, 0.0}});
+  m_vertices.push_back({{1.0f,  1.0f, 0.0f}, {0.0, 1.0, 0.0}, {0.0, 1.0, 0.0}});
+
   D3D11_BUFFER_DESC bd = {};
   bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
   bd.Usage = D3D11_USAGE_DEFAULT;
@@ -64,6 +74,27 @@ void Caption::Init(ID3D11Device1 * device)
   sd.pSysMem = m_vertices.data();
   device->CreateBuffer(&bd, &sd, &m_vertexBuffer);
 
+  // Index buffer
+  m_indices.push_back(0);
+  m_indices.push_back(1);
+  m_indices.push_back(2);
+  m_indices.push_back(2);
+  m_indices.push_back(1);
+  m_indices.push_back(3);
+
+  D3D11_BUFFER_DESC ibd = {};
+  ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+  ibd.Usage = D3D11_USAGE_DEFAULT;
+  ibd.CPUAccessFlags = 0;
+  ibd.MiscFlags = 0;
+  ibd.ByteWidth = UINT(m_indices.size() * sizeof(uint16_t));
+  ibd.StructureByteStride = sizeof(uint16_t);
+
+  D3D11_SUBRESOURCE_DATA isd = {};
+  isd.pSysMem = m_indices.data();
+  DX::ThrowIfFailed(device->CreateBuffer(&ibd, &isd, &m_indexBuffer));
+
+  // Rasterizer
   D3D11_RASTERIZER_DESC cmdesc = {};
   cmdesc.FillMode = D3D11_FILL_SOLID;
   cmdesc.FrontCounterClockwise = false;
@@ -96,23 +127,4 @@ void Caption::Init(ID3D11Device1 * device)
   omDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
   DX::ThrowIfFailed(device->CreateBlendState(&omDesc, m_blendState.GetAddressOf()));
-
-  m_instances.push_back({DirectX::XMFLOAT3(10.5f, 3.0f, 1.0f), 1});
-
-  // Set up the description of the instance buffer
-  D3D11_BUFFER_DESC instanceBufferDesc = {};
-  instanceBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-  instanceBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-  instanceBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-  instanceBufferDesc.MiscFlags = 0;
-  instanceBufferDesc.ByteWidth = sizeof(InstanceType) * (UINT)m_instances.size();
-  instanceBufferDesc.StructureByteStride = 0;
-
-  D3D11_SUBRESOURCE_DATA instanceData = {};
-  instanceData.pSysMem = m_instances.data();
-  instanceData.SysMemPitch = 0;
-  instanceData.SysMemSlicePitch = 0;
-
-  // Create the instance buffer
-  DX::ThrowIfFailed(device->CreateBuffer(&instanceBufferDesc, &instanceData, m_instanceBuffer.GetAddressOf()));
 }
