@@ -32,7 +32,8 @@ Game::Game() noexcept :
   m_currentGhostCounter(Ghosts::Pinky),
   m_gameState(State::Intro),
   m_lerpCoef(0.0f),
-  m_gamePaused(true)
+  m_gamePaused(true),
+  m_minusCaption(1.5)
 {
   CreatePhases();
 }
@@ -439,6 +440,12 @@ void Game::DrawIntro()
 
   Global::CameraPerObject cameraPerObjectConstantBuffer = {};
   cameraPerObjectConstantBuffer.world = m_caption.GetWorldMatrix();
+
+  m_minusCaption -= 0.02;
+  m_minusCaption = std::max(m_minusCaption, 0.6f);
+  
+
+  cameraPerObjectConstantBuffer.world._11 = -m_minusCaption;
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 

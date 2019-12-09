@@ -12,9 +12,9 @@ Caption::Caption()
   XMMATRIX worldMatrix = XMMatrixMultiply(view, projection);
 
   float spriteWidth = 800.0f,
-    spriteHeight = 600.0f,
-    spritePosX = 0.0f,
-    spritePosY = 0.0f;
+        spriteHeight = 600.0f,
+        spritePosX = 0.0f,
+        spritePosY = 0.0f;
 
   XMMATRIX l_translation = XMMatrixTranslation(spritePosX, spritePosY, 0.0f);
   XMMATRIX l_rotationZ = XMMatrixRotationZ(0.0f);
@@ -57,10 +57,10 @@ void Caption::Init(ID3D11Device1 * device)
   DX::ThrowIfFailed(CreateWICTextureFromFile(device, nullptr, L"Resources/caption.png", m_resource.GetAddressOf(), m_shaderResourceView.GetAddressOf()));
 
   // Vertex buffer
-  m_vertices.push_back({{-1.0f, -1.0f, 0.0f}, {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}});
-  m_vertices.push_back({{-1.0f,  1.0f, 0.0f}, {0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}});
-  m_vertices.push_back({{1.0f, -1.0f, 0.0f}, {0.0, 1.0, 0.0}, {1.0, 1.0, 0.0}});
-  m_vertices.push_back({{1.0f,  1.0f, 0.0f}, {0.0, 1.0, 0.0}, {0.0, 1.0, 0.0}});
+  m_vertices.push_back({{-0.8f, -0.2f, 0.0f}, {0.0, 1.0, 0.0}, {0.0, 1.0, 0.0}});
+  m_vertices.push_back({{-0.8f,  0.2f, 0.0f}, {0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}});
+  m_vertices.push_back({{0.8f, -0.2f, 0.0f}, {0.0, 1.0, 0.0}, {1.0, 1.0, 0.0}});
+  m_vertices.push_back({{0.8f,  0.2f, 0.0f}, {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}});
 
   D3D11_BUFFER_DESC bd = {};
   bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;

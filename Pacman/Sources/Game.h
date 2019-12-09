@@ -138,6 +138,7 @@ private:
   State m_gameState;
 
   Caption m_caption;
+  float m_minusCaption;
 
   float m_lerpCoef;
 };
