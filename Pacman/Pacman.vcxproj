@@ -168,6 +168,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Sources\ShaderManager\PS_OneCB.h" />
     <ClInclude Include="sources\Caption.h" />
     <ClInclude Include="sources\Pacman.h" />
     <ClInclude Include="sources\Ghost.h" />
@@ -188,6 +189,7 @@
     <ClInclude Include="Sources\StepTimer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sources\ShaderManager\PS_OneCB.cpp" />
     <ClCompile Include="sources\Caption.cpp" />
     <ClCompile Include="sources\Pacman.cpp" />
     <ClCompile Include="sources\Ghost.cpp" />

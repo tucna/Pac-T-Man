@@ -40,6 +40,7 @@ public:
 
   void BindConstantBuffersToVertexShader(VertexShader vertexShader, ID3D11Buffer** constantBuffers, uint8_t numberOfConstantBuffers);
   void BindConstantBuffersToGeometryShader(GeometryShader geometryShader, ID3D11Buffer** constantBuffers, uint8_t numberOfConstantBuffers);
+  void BindConstantBuffersToPixelShader(PixelShader pixelShader, ID3D11Buffer** constantBuffers, uint8_t numberOfConstantBuffers);
 
   void UpdateConstantBuffer(ID3D11Buffer* constantBuffer, void* data, size_t dataLength);
 

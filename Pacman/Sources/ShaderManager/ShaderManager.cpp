@@ -11,6 +11,7 @@
 
 // Pixel shaders
 #include "PS_General.h"
+#include "PS_OneCB.h"
 
 ShaderManager::ShaderManager(ID3D11Device1* device, ID3D11DeviceContext1* context) :
   m_device(device),
@@ -36,6 +37,11 @@ void ShaderManager::BindConstantBuffersToVertexShader(VertexShader vertexShader,
 void ShaderManager::BindConstantBuffersToGeometryShader(GeometryShader geometryShader, ID3D11Buffer** constantBuffers, uint8_t numberOfConstantBuffers)
 {
   m_geometryShaders[static_cast<uint8_t>(geometryShader)]->BindConstantBuffers(m_context, constantBuffers, numberOfConstantBuffers);
+}
+
+void ShaderManager::BindConstantBuffersToPixelShader(PixelShader pixelShader, ID3D11Buffer** constantBuffers, uint8_t numberOfConstantBuffers)
+{
+  m_pixelShaders[static_cast<uint8_t>(pixelShader)]->BindConstantBuffers(m_context, constantBuffers, numberOfConstantBuffers);
 }
 
 void ShaderManager::UpdateConstantBuffer(ID3D11Buffer* constantBuffer, void* data, size_t dataLength)
@@ -68,7 +74,7 @@ void ShaderManager::AddPredefinedOnes()
   // Pixel shaders
   m_pixelShaders[static_cast<uint8_t>(PixelShader::Color)] = std::make_unique<PS_General>(L"../bin/PS_Color.cso", m_device);
   m_pixelShaders[static_cast<uint8_t>(PixelShader::Texture)] = std::make_unique<PS_General>(L"../bin/PS_Texture.cso", m_device);
-  m_pixelShaders[static_cast<uint8_t>(PixelShader::Phong)] = std::make_unique<PS_General>(L"../bin/PS_Phong.cso", m_device);
+  m_pixelShaders[static_cast<uint8_t>(PixelShader::Phong)] = std::make_unique<PS_OneCB>(L"../bin/PS_Phong.cso", m_device);
   m_pixelShaders[static_cast<uint8_t>(PixelShader::UI)] = std::make_unique<PS_General>(L"../bin/PS_UI.cso", m_device);
 
   // Geometry shaders

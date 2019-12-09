@@ -80,6 +80,25 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf()));
 
   m_keyboard = std::make_unique<Keyboard>();
+
+  Global::LightConstantBuffer lightCB;
+  lightCB.values = XMFLOAT4(10.5f, 2.5f, 11.5f, 1.0f);
+
+  D3D11_BUFFER_DESC cbd = {};
+  cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cbd.Usage = D3D11_USAGE_DYNAMIC;
+  cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+  cbd.MiscFlags = 0;
+  cbd.ByteWidth = sizeof(Global::LightConstantBuffer);
+  cbd.StructureByteStride = 0;
+
+  D3D11_SUBRESOURCE_DATA csd = {};
+  csd.pSysMem = &lightCB;
+
+  DX::ThrowIfFailed(m_d3dDevice->CreateBuffer(&cbd, &csd, &m_light));
+
+  m_shaderManager->BindConstantBuffersToPixelShader(ShaderManager::PixelShader::Phong, m_light.GetAddressOf(), 1);
+
 }
 
 void Game::Tick()
@@ -429,6 +448,13 @@ void Game::DrawWorld()
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerFrame.Get(), &cameraConstantBufferPerFrame, sizeof(cameraConstantBufferPerFrame));
   // ------------------------------
+
+  // TODO light
+  Global::LightConstantBuffer lightCB;
+  lightCB.values = XMFLOAT4(10.5f, m_minusCaption * 4, 11.5f, 1.0f);
+
+  m_shaderManager->UpdateConstantBuffer(m_light.Get(), &lightCB, sizeof(lightCB));
+  // --------------
 
   m_world.Draw(m_d3dContext.Get());
 }

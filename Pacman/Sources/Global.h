@@ -20,8 +20,6 @@ struct Point3D
 
 constexpr Point3D frontCamera {10.5f, 5.0f, -2.5f};
 constexpr Point3D upCamera {10.5f, 15.0f, 10.5f};
-//m_camera.SetPosition(10.5f, 15.0f, 10.5f); TODO
-//m_camera.SetPosition(10.5f, 5.0f, -2.5f);
 
 constexpr uint8_t worldSize = 21;
 constexpr uint8_t minFramesPerDirection = 3;
@@ -75,4 +73,11 @@ struct SpriteConstantBuffer
 };
 
 static_assert((sizeof(SpriteConstantBuffer) % 16) == 0, "SpriteConstantBuffer is not aligned!");
+
+struct LightConstantBuffer
+{
+  DirectX::XMFLOAT4 values;
+};
+
+static_assert((sizeof(LightConstantBuffer) % 16) == 0, "LightConstantBuffer is not aligned!");
 }

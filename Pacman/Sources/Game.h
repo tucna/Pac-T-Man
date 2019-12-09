@@ -100,6 +100,7 @@ private:
   Microsoft::WRL::ComPtr<ID3D11Buffer>              m_frameBuffer;
   Microsoft::WRL::ComPtr<ID3D11Buffer>              m_cameraPerFrame;
   Microsoft::WRL::ComPtr<ID3D11Buffer>              m_cameraPerObject;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>              m_light;
   Microsoft::WRL::ComPtr<ID3D11Resource>            m_pacManResource;
   Microsoft::WRL::ComPtr<ID3D11Resource>            m_ghostsResource;
   Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>  m_pacManShaderResourceView;

@@ -73,6 +73,9 @@
     <ClInclude Include="sources\Caption.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\ShaderManager\PS_OneCB.h">
+      <Filter>Shader manager\Shaders sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\Camera.cpp">
@@ -119,6 +122,9 @@
     </ClCompile>
     <ClCompile Include="sources\Caption.cpp">
       <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\ShaderManager\PS_OneCB.cpp">
+      <Filter>Shader manager\Shaders sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

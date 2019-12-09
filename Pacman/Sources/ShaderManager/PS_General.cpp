@@ -10,10 +10,6 @@ PS_General::PS_General(const std::wstring& file, ID3D11Device1* device)
   device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, GetShaderPP());
 }
 
-PS_General::~PS_General()
-{
-}
-
 void PS_General::ActivateShader(ID3D11DeviceContext1* context)
 {
   context->PSSetShader(GetShader(), NULL, 0);
