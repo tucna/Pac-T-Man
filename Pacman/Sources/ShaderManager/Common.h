@@ -3,9 +3,10 @@
 
 struct VS_Input_Indexed
 {
-  float3 pos    : Position;
-  float3 normal : Normal;
-  float3 color  : Color;
+  float3 pos      : Position;
+  float3 normal   : Normal;
+  float3 color    : Color;
+  float2 texCoord : TexCoord;
 };
 
 struct VS_Input_Instanced

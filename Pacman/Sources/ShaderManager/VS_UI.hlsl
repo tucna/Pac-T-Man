@@ -18,7 +18,7 @@ VOut main(VS_Input_Indexed input)
   input.pos.y -= worldMatrix._m00;
 
   output.position = float4(input.pos, 1.0f);
-  output.texCoord = input.color.rg; // TODO: first two used as a tex coordinates
+  output.texCoord = input.texCoord;
 
   return output;
 }

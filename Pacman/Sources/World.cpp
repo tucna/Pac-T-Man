@@ -50,20 +50,20 @@ void World::AddBlock(float x, float z, float depth, bool north, bool west, bool 
   };
 
   // Top side
-  m_vertices.push_back({{x    , 0.5, z    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-  m_vertices.push_back({{x    , 0.5, z + depth}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-  m_vertices.push_back({{x + 1, 0.5, z + depth}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
-  m_vertices.push_back({{x + 1, 0.5, z    }, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}});
+  m_vertices.push_back({{x   , 0.5, z}         , {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}, {0, 0} });
+  m_vertices.push_back({{x    , 0.5, z + depth}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}, {0, 0} });
+  m_vertices.push_back({{x + 1, 0.5, z + depth}, {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}, {0, 0} });
+  m_vertices.push_back({{x + 1, 0.5, z}        , {0.0, 1.0, 0.0}, {0.8, 0.0, 0.0}, {0, 0} });
 
   AddIndces();
 
   // 2st side
   if (west)
   {
-    m_vertices.push_back({{x    , 0.0, z    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x    , 0.0, z + depth}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x    , 0.5, z + depth}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x    , 0.5, z    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x    , 0.0, z    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x    , 0.0, z + depth}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x    , 0.5, z + depth}, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x    , 0.5, z    }, {-1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}, {0, 0} });
 
     AddIndces();
   }
@@ -71,10 +71,10 @@ void World::AddBlock(float x, float z, float depth, bool north, bool west, bool 
   // 3rd side
   if (north)
   {
-    m_vertices.push_back({{x    , 0.0, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x + 1, 0.0, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x + 1, 0.5, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x    , 0.5, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x    , 0.0, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x + 1, 0.0, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x + 1, 0.5, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x    , 0.5, z + depth}, {0.0, 0.0, 1.0}, {0.2, 0.0, 0.8}, {0, 0} });
 
     AddIndces();
   }
@@ -82,10 +82,10 @@ void World::AddBlock(float x, float z, float depth, bool north, bool west, bool 
   // 4th side
   if (east)
   {
-    m_vertices.push_back({{x + 1, 0.0, z + depth}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x + 1, 0.0, z    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x + 1, 0.5, z    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x + 1, 0.5, z + depth}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x + 1, 0.0, z + depth}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x + 1, 0.0, z    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x + 1, 0.5, z    }, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x + 1, 0.5, z + depth}, {1.0, 0.0, 0.0}, {0.2, 0.0, 0.8}, {0, 0} });
 
     AddIndces();
   }
@@ -93,10 +93,10 @@ void World::AddBlock(float x, float z, float depth, bool north, bool west, bool 
   // 5st side
   if (south)
   {
-    m_vertices.push_back({{x + 1, 0.0, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x    , 0.0, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x    , 0.5, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
-    m_vertices.push_back({{x + 1, 0.5, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}});
+    m_vertices.push_back({{x + 1, 0.0, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x    , 0.0, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x    , 0.5, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}, {0, 0} });
+    m_vertices.push_back({{x + 1, 0.5, z    }, {0.0, 0.0, -1.0}, {0.2, 0.0, 0.8}, {0, 0} });
 
     AddIndces();
   }

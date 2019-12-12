@@ -2,7 +2,7 @@
 
 #include "VS_Indexed.h"
 
-VS_Indexed::VS_Indexed(const std::wstring & file, ID3D11Device1 * device)
+VS_Indexed::VS_Indexed(const std::wstring& file, ID3D11Device1* device)
 {
   Microsoft::WRL::ComPtr<ID3DBlob> blob;
   D3DReadFileToBlob(file.c_str(), &blob);
@@ -13,7 +13,8 @@ VS_Indexed::VS_Indexed(const std::wstring & file, ID3D11Device1 * device)
   {
     { "Position",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
     { "Normal"  ,0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
-    { "Color"   ,0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 }
+    { "Color"   ,0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+    { "TexCoord",0,DXGI_FORMAT_R32G32_FLOAT   ,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 }
   };
 
   device->CreateInputLayout(ied, (UINT)std::size(ied), blob->GetBufferPointer(), blob->GetBufferSize(), m_inputLayout.GetAddressOf());
