@@ -31,9 +31,7 @@ Game::Game() noexcept :
   m_frightenedTransition(false),
   m_currentGhostCounter(Ghosts::Pinky),
   m_gameState(State::Intro),
-  m_lerpCoef(0.0f),
-  m_gamePaused(true),
-  m_minusCaption(1.5)
+  m_gamePaused(true)
 {
   CreatePhases();
 }
@@ -132,13 +130,27 @@ void Game::Update(const DX::StepTimer& timer)
     }
   }
 
+  switch (m_gameState)
+  {
+  case Game::State::Intro:
+    m_caption.AdjustOffset(0.02f, 0.6f);
+    break;
+  case Game::State::Start:
+    m_camera.LerpBetweenCameraPositions(0.04f);
+
+    if (m_camera.IsCameraLerpDone())
+      m_gameState = Game::State::Level;
+    break;
+  case Game::State::Level:
+    break;
+  }
+
   // Skip all simulation in a case that gmae did not start
   if (m_gameState != Game::State::Level || m_gamePaused)
     return;
 
   // Update frames
   PACMAN->UpdateFrame(m_timer.GetElapsedSeconds());
-
   std::for_each(m_ghosts.begin(), m_ghosts.end(), [&](auto& ghost) { ghost->UpdateFrame(m_timer.GetElapsedSeconds()); });
 
   if (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration) && m_currentPhaseIndex < Global::phasesNum - 1)
@@ -179,24 +191,24 @@ void Game::Update(const DX::StepTimer& timer)
 
   switch (m_currentGhostCounter)
   {
-    case Ghosts::Pinky:
-      m_currentGhostCounter = Ghosts::Inky;
-      PINKY->SetMovement(Character::Movement::InHouse);
-      break;
-    case Ghosts::Inky:
-      if (INKY->ReadyToLeaveHouse())
-      {
-        m_currentGhostCounter = Ghosts::Clyde;
-        INKY->SetMovement(Character::Movement::InHouse);
-      }
-      break;
-    case Ghosts::Clyde:
-      if (CLYDE->ReadyToLeaveHouse())
-      {
-        m_currentGhostCounter = Ghosts::None;
-        CLYDE->SetMovement(Character::Movement::InHouse);
-      }
-      break;
+  case Ghosts::Pinky:
+    m_currentGhostCounter = Ghosts::Inky;
+    PINKY->SetMovement(Character::Movement::InHouse);
+    break;
+  case Ghosts::Inky:
+    if (INKY->ReadyToLeaveHouse())
+    {
+      m_currentGhostCounter = Ghosts::Clyde;
+      INKY->SetMovement(Character::Movement::InHouse);
+    }
+    break;
+  case Ghosts::Clyde:
+    if (CLYDE->ReadyToLeaveHouse())
+    {
+      m_currentGhostCounter = Ghosts::None;
+      CLYDE->SetMovement(Character::Movement::InHouse);
+    }
+    break;
   }
 
   const Character::Movement pacmanMovement = PACMAN->GetMovement();
@@ -221,7 +233,7 @@ void Game::Update(const DX::StepTimer& timer)
   bool isHorizontallyAligned = (fmod(pacmanPosCurrent.x - 0.5f, 1.0f) < Global::pacManSpeed);
   bool isVerticallyAligned = (fmod(pacmanPosCurrent.z - 0.5f, 1.0f) < Global::pacManSpeed);
 
-  bool moves[Character::Direction::_Count] = {false, false, false, false};
+  bool moves[Character::Direction::_Count] = { false, false, false, false };
 
   moves[Character::Direction::Up] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z + 1.0f), false);
   moves[Character::Direction::Right] = m_world.IsPassable(static_cast<uint8_t>(pacmanPosCurrent.x + 1.0f), static_cast<uint8_t>(pacmanPosCurrent.z), false);
@@ -349,25 +361,18 @@ void Game::Render()
 
   switch (m_gameState)
   {
-    case Game::State::Intro:
-      DrawWorld();
-      DrawIntro();
-      break;
-    case Game::State::Start:
-      // TODO: this is very stupid!
-      if (m_timer.GetFrameCount() % 2 == 0)
-        UpdateCameraForStartAnimation();
-
-      DrawWorld();
-
-      if (m_lerpCoef >= 1)
-        m_gameState = Game::State::Level;
-      break;
-    case Game::State::Level:
-      DrawWorld();
-      DrawSprites();
-      DrawDebug();
-      break;
+  case Game::State::Intro:
+    DrawWorld();
+    DrawIntro();
+    break;
+  case Game::State::Start:
+    DrawWorld();
+    break;
+  case Game::State::Level:
+    DrawWorld();
+    DrawSprites();
+    DrawDebug();
+    break;
   }
 
   Present();
@@ -458,7 +463,7 @@ void Game::DrawWorld()
 
   // TODO light
   Global::LightConstantBuffer lightCB;
-  lightCB.values = XMFLOAT4(10.5f, m_minusCaption * 4, 11.5f, 1.0f);
+  lightCB.values = XMFLOAT4(10.5f, m_caption.GetOffsetY() * 4, 11.5f, 1.0f);
 
   m_shaderManager->UpdateConstantBuffer(m_light.Get(), &lightCB, sizeof(lightCB));
   // --------------
@@ -474,10 +479,7 @@ void Game::DrawIntro()
   Global::CameraPerObject cameraPerObjectConstantBuffer = {};
   cameraPerObjectConstantBuffer.world = m_caption.GetWorldMatrix();
 
-  m_minusCaption -= 0.02;
-  m_minusCaption = std::max(m_minusCaption, 0.6f);
-
-  cameraPerObjectConstantBuffer.world._11 = -m_minusCaption;
+  cameraPerObjectConstantBuffer.world._11 = -m_caption.GetOffsetY();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
@@ -714,18 +716,18 @@ void Game::MoveCharacterTowardsRandomPosition(Character& character)
 
   switch (direction)
   {
-    case 0:
-      MoveCharacterTowardsPosition(charPos.x + 1.0f, charPos.z, character);
-      break;
-    case 1:
-      MoveCharacterTowardsPosition(charPos.x - 1.0f, charPos.z, character);
-      break;
-    case 2:
-      MoveCharacterTowardsPosition(charPos.x, charPos.z + 1.0f, character);
-      break;
-    case 3:
-      MoveCharacterTowardsPosition(charPos.x, charPos.z - 1.0f, character);
-      break;
+  case 0:
+    MoveCharacterTowardsPosition(charPos.x + 1.0f, charPos.z, character);
+    break;
+  case 1:
+    MoveCharacterTowardsPosition(charPos.x - 1.0f, charPos.z, character);
+    break;
+  case 2:
+    MoveCharacterTowardsPosition(charPos.x, charPos.z + 1.0f, character);
+    break;
+  case 3:
+    MoveCharacterTowardsPosition(charPos.x, charPos.z - 1.0f, character);
+    break;
   }
 }
 
@@ -777,16 +779,6 @@ void Game::HandleCollisions()
 
 void Game::UpdateCameraForStartAnimation()
 {
-  m_lerpCoef += 0.04;
-  m_lerpCoef = m_lerpCoef > 1 ? 1.0f : m_lerpCoef;
-
-  float posX = Global::frontCamera.x + m_lerpCoef * (Global::upCamera.x - Global::frontCamera.x);
-  float posY = Global::frontCamera.y + m_lerpCoef * (Global::upCamera.y - Global::frontCamera.y);
-  float posZ = Global::frontCamera.z + m_lerpCoef * (Global::upCamera.z - Global::frontCamera.z);
-
-  m_camera.SetPosition(posX, posY, posZ);
-  m_camera.SetLookAtPos(10.5, 0, 10.5);
-
   Global::CameraPerFrame cameraConstantBufferPerFrame = {};
   cameraConstantBufferPerFrame.view = m_camera.GetViewMatrix();
   cameraConstantBufferPerFrame.projection = m_camera.GetProjectionMatrix();
@@ -830,18 +822,18 @@ void Game::UpdatePositionOfBlinky()
 
   switch (BLINKY->GetMode())
   {
-    case Global::Mode::Scatter:
-      MoveCharacterTowardsPosition(18.5f, 21.5f, *BLINKY);
-      break;
-    case Global::Mode::Chase:
-      {
-        const DirectX::XMFLOAT3& pacmanPos = PACMAN->GetPosition();
-        MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *BLINKY);
-      }
-      break;
-    case Global::Mode::Frightened:
-      MoveCharacterTowardsRandomPosition(*BLINKY);
-      break;
+  case Global::Mode::Scatter:
+    MoveCharacterTowardsPosition(18.5f, 21.5f, *BLINKY);
+    break;
+  case Global::Mode::Chase:
+  {
+    const DirectX::XMFLOAT3& pacmanPos = PACMAN->GetPosition();
+    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *BLINKY);
+  }
+  break;
+  case Global::Mode::Frightened:
+    MoveCharacterTowardsRandomPosition(*BLINKY);
+    break;
   }
 }
 
@@ -864,35 +856,35 @@ void Game::UpdatePositionOfPinky()
 
   switch (PINKY->GetMode())
   {
-    case Global::Mode::Scatter:
-      MoveCharacterTowardsPosition(2.5f, 21.5f, *PINKY);
-      break;
-    case Global::Mode::Chase:
-      {
-        DirectX::XMFLOAT3 pacmanPos = PACMAN->GetPosition();
+  case Global::Mode::Scatter:
+    MoveCharacterTowardsPosition(2.5f, 21.5f, *PINKY);
+    break;
+  case Global::Mode::Chase:
+  {
+    DirectX::XMFLOAT3 pacmanPos = PACMAN->GetPosition();
 
-        switch (PACMAN->GetFacingDirection())
-        {
-          case Character::Direction::Left:
-            pacmanPos.x -= 4;
-            break;
-          case Character::Direction::Right:
-            pacmanPos.x += 4;
-            break;
-          case Character::Direction::Up:
-            pacmanPos.z += 4;
-            break;
-          case Character::Direction::Down:
-            pacmanPos.z -= 4;
-            break;
-        }
+    switch (PACMAN->GetFacingDirection())
+    {
+    case Character::Direction::Left:
+      pacmanPos.x -= 4;
+      break;
+    case Character::Direction::Right:
+      pacmanPos.x += 4;
+      break;
+    case Character::Direction::Up:
+      pacmanPos.z += 4;
+      break;
+    case Character::Direction::Down:
+      pacmanPos.z -= 4;
+      break;
+    }
 
-        MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *PINKY);
-      }
-      break;
-    case Global::Mode::Frightened:
-      MoveCharacterTowardsRandomPosition(*PINKY);
-      break;
+    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *PINKY);
+  }
+  break;
+  case Global::Mode::Frightened:
+    MoveCharacterTowardsRandomPosition(*PINKY);
+    break;
   }
 }
 
@@ -915,43 +907,43 @@ void Game::UpdatePositionOfInky()
 
   switch (INKY->GetMode())
   {
-    case Global::Mode::Scatter:
-      MoveCharacterTowardsPosition(21.5f, 0.0f, *INKY);
+  case Global::Mode::Scatter:
+    MoveCharacterTowardsPosition(21.5f, 0.0f, *INKY);
+    break;
+  case Global::Mode::Chase:
+  {
+    DirectX::XMFLOAT3 pacmanPos = PACMAN->GetPosition();
+
+    switch (PACMAN->GetFacingDirection())
+    {
+    case Character::Direction::Left:
+      pacmanPos.x -= 2;
       break;
-    case Global::Mode::Chase:
-      {
-        DirectX::XMFLOAT3 pacmanPos = PACMAN->GetPosition();
-
-        switch (PACMAN->GetFacingDirection())
-        {
-          case Character::Direction::Left:
-            pacmanPos.x -= 2;
-            break;
-          case Character::Direction::Right:
-            pacmanPos.x += 2;
-            break;
-          case Character::Direction::Up:
-            pacmanPos.z += 2;
-            break;
-          case Character::Direction::Down:
-            pacmanPos.z -= 2;
-            break;
-        }
-
-        const DirectX::XMFLOAT3 blinkyPos = BLINKY->GetPosition();
-
-        float finalPosX = 0;
-        float finalPosZ = 0;
-
-        finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
-        finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
-
-        MoveCharacterTowardsPosition(finalPosX, finalPosZ, *INKY);
-      }
+    case Character::Direction::Right:
+      pacmanPos.x += 2;
       break;
-    case Global::Mode::Frightened:
-      MoveCharacterTowardsRandomPosition(*INKY);
+    case Character::Direction::Up:
+      pacmanPos.z += 2;
       break;
+    case Character::Direction::Down:
+      pacmanPos.z -= 2;
+      break;
+    }
+
+    const DirectX::XMFLOAT3 blinkyPos = BLINKY->GetPosition();
+
+    float finalPosX = 0;
+    float finalPosZ = 0;
+
+    finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
+    finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
+
+    MoveCharacterTowardsPosition(finalPosX, finalPosZ, *INKY);
+  }
+  break;
+  case Global::Mode::Frightened:
+    MoveCharacterTowardsRandomPosition(*INKY);
+    break;
   }
 }
 
@@ -974,31 +966,31 @@ void Game::UpdatePositionOfClyde()
 
   switch (CLYDE->GetMode())
   {
-    case Global::Mode::Scatter:
+  case Global::Mode::Scatter:
+    MoveCharacterTowardsPosition(0.0f, 0.0f, *CLYDE);
+    break;
+  case Global::Mode::Chase:
+  {
+    const DirectX::XMFLOAT3& pacmanPos = PACMAN->GetPosition();
+    const DirectX::XMFLOAT3& clydePos = CLYDE->GetPosition();
+
+    float distance = sqrt((clydePos.x - pacmanPos.x) * (clydePos.x - pacmanPos.x) + (clydePos.z - pacmanPos.z) * (clydePos.z - pacmanPos.z));
+
+    if (distance > 8)
+    {
+      // Behave as blinky
+      MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *CLYDE);
+    }
+    else
+    {
+      // Scatter
       MoveCharacterTowardsPosition(0.0f, 0.0f, *CLYDE);
-      break;
-    case Global::Mode::Chase:
-      {
-        const DirectX::XMFLOAT3& pacmanPos = PACMAN->GetPosition();
-        const DirectX::XMFLOAT3& clydePos = CLYDE->GetPosition();
-
-        float distance = sqrt((clydePos.x - pacmanPos.x) * (clydePos.x - pacmanPos.x) + (clydePos.z - pacmanPos.z) * (clydePos.z - pacmanPos.z));
-
-        if (distance > 8)
-        {
-          // Behave as blinky
-          MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *CLYDE);
-        }
-        else
-        {
-          // Scatter
-          MoveCharacterTowardsPosition(0.0f, 0.0f, *CLYDE);
-        }
-      }
-      break;
-    case Global::Mode::Frightened:
-      MoveCharacterTowardsRandomPosition(*CLYDE);
-      break;
+    }
+  }
+  break;
+  case Global::Mode::Frightened:
+    MoveCharacterTowardsRandomPosition(*CLYDE);
+    break;
   }
 }
 
@@ -1167,18 +1159,6 @@ void Game::CreateResources()
   // Initialize windows-size dependent objects here.
   m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f);
   m_camera.SetOrthographicValues(static_cast<float>(m_outputWidth) / 2.0f, static_cast<float>(m_outputHeight) / 2.0f);
-
-  // TODO: Animation part - this can be better
-  m_lerpCoef = m_lerpCoef > 1 ? 1.0f : m_lerpCoef;
-
-  float posX = Global::frontCamera.x + m_lerpCoef * (Global::upCamera.x - Global::frontCamera.x);
-  float posY = Global::frontCamera.y + m_lerpCoef * (Global::upCamera.y - Global::frontCamera.y);
-  float posZ = Global::frontCamera.z + m_lerpCoef * (Global::upCamera.z - Global::frontCamera.z);
-
-  m_camera.SetPosition(posX, posY, posZ);
-  // ------------------------------
-
-  m_camera.SetLookAtPos(10.5, 0, 10.5);
 
   XMFLOAT4X4 projection = m_camera.GetProjectionMatrix();
 

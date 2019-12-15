@@ -18,8 +18,8 @@ Character::Character() :
   m_oneCycle(false),
   m_isAnimationDone(false),
   m_isDead(false),
-  m_totalElapsed(0.0f),
-  m_timePerFrame(0.0f)
+  m_totalElapsed(0.0),
+  m_timePerFrame(0.0)
 {
   UpdateWorldMatrix();
 
@@ -58,18 +58,28 @@ void Character::SetMovement(Movement movement)
   if (movement != Movement::Stop && !m_isDead)
     m_facingDirection = static_cast<Direction>(static_cast<uint8_t>(movement));
 
-  switch(movement)
+  switch (movement)
   {
-    case Movement::Up: m_currentFrame = 0; break;
-    case Movement::Down: m_currentFrame = 2; break;
-    case Movement::Left: m_currentFrame = 4; break;
-    case Movement::Right: m_currentFrame = 6; break;
+  case Movement::Up:
+    m_currentFrame = 0;
+    m_spriteXAddition = 0;
+    break;
+  case Movement::Down:
+    m_currentFrame = 2;
+    m_spriteXAddition = 2;
+    break;
+  case Movement::Left:
+    m_currentFrame = 4;
+    m_spriteXAddition = 4;
+    break;
+  case Movement::Right:
+    m_currentFrame = 6;
+    m_spriteXAddition = 6;
+    break;
   }
-
-  //UpdateFrame(); TODO tady je chyba
 }
 
-void Character::UpdateFrame(float elapsedTime)
+void Character::UpdateFrame(double elapsedTime)
 {
   m_totalElapsed += elapsedTime;
 
@@ -77,25 +87,6 @@ void Character::UpdateFrame(float elapsedTime)
     return;
 
   m_totalElapsed -= m_timePerFrame;
-
-  switch (m_movement)
-  {
-  case Movement::Up:
-    m_spriteXAddition = 0;
-    break;
-  case Movement::Right:
-    m_spriteXAddition = 6;
-    break;
-  case Movement::Down:
-    m_spriteXAddition = 2;
-    break;
-  case Movement::Left:
-    m_spriteXAddition = 4;
-    break;
-  default:
-    // No change of the coeficient
-    break;
-  }
 
   if (m_oneCycle)
     m_spriteXAddition = 0;
@@ -110,7 +101,7 @@ void Character::UpdateFrame(float elapsedTime)
 
 void Character::Init(ID3D11Device1* device, float r, float g, float b)
 {
-  m_vertices.push_back({{0,0,0}, {0.0, 1.0, 0.0}, {r, g, b}});
+  m_vertices.push_back({ {0,0,0}, {0.0, 1.0, 0.0}, {r, g, b} });
 
   // Vertex buffer
   D3D11_BUFFER_DESC bd = {};
@@ -148,7 +139,7 @@ void Character::Init(ID3D11Device1* device, float r, float g, float b)
   DX::ThrowIfFailed(device->CreateSamplerState(&sampDesc, m_samplerState.GetAddressOf()));
 
   // Instances
-  m_instances.push_back({{0,0,0}, 1});
+  m_instances.push_back({ {0,0,0}, 1 });
 
   // Set up the description of the instance buffer.
   D3D11_BUFFER_DESC instanceBufferDesc = {};
@@ -223,10 +214,10 @@ void Character::ReverseMovementDirection()
 {
   switch (m_movement)
   {
-    case Movement::Left:  SetMovement(Character::Movement::Right); break;
-    case Movement::Right: SetMovement(Character::Movement::Left); break;
-    case Movement::Up:    SetMovement(Character::Movement::Down); break;
-    case Movement::Down:  SetMovement(Character::Movement::Up); break;
+  case Movement::Left:  SetMovement(Character::Movement::Right); break;
+  case Movement::Right: SetMovement(Character::Movement::Left); break;
+  case Movement::Up:    SetMovement(Character::Movement::Down); break;
+  case Movement::Down:  SetMovement(Character::Movement::Up); break;
   }
 }
 

@@ -37,7 +37,7 @@ public:
   ~Character();
 
   void AdjustPosition(float x, float y, float z);
-  void UpdateFrame(float elapsedTime);
+  void UpdateFrame(double elapsedTime);
   void Init(ID3D11Device1* device, float r, float g, float b);
   void Init(ID3D11Device1* device);
   void Draw(ID3D11DeviceContext1* context);
@@ -101,8 +101,9 @@ private:
   uint8_t m_framesPerState;
 
   float m_spriteScaleFactor;
-  float m_totalElapsed;
-  float m_timePerFrame;
+
+  double m_totalElapsed;
+  double m_timePerFrame;
 
   bool m_oneCycle;
   bool m_isAnimationDone;

@@ -1,17 +1,42 @@
 #include "pch.h"
+
 #include "Camera.h"
+#include "Global.h"
 
 using namespace DirectX;
 
 Camera::Camera() :
   m_position(0.0f, 0.0f, 0.0f),
-  m_rotation(0.0f, 0.0f, 0.0f)
+  m_rotation(0.0f, 0.0f, 0.0f),
+  m_lerpCoef(0.0f),
+  m_lerpDone(false)
 {
+  SetPosition(Global::frontCamera.x, Global::frontCamera.y, Global::frontCamera.z);
+  SetLookAtPos(10.5, 0, 10.5);
+
   UpdateViewMatrix();
 }
 
 Camera::~Camera()
 {
+}
+
+void Camera::LerpBetweenCameraPositions(float lerpCoef)
+{
+  m_lerpCoef += lerpCoef;
+
+  if (m_lerpCoef > 1.0f)
+  {
+    m_lerpCoef = 1.0f;
+    m_lerpDone = true;
+  }
+
+  float posX = Global::frontCamera.x + m_lerpCoef * (Global::upCamera.x - Global::frontCamera.x);
+  float posY = Global::frontCamera.y + m_lerpCoef * (Global::upCamera.y - Global::frontCamera.y);
+  float posZ = Global::frontCamera.z + m_lerpCoef * (Global::upCamera.z - Global::frontCamera.z);
+
+  SetPosition(posX, posY, posZ);
+  SetLookAtPos(10.5, 0, 10.5);
 }
 
 void Camera::SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ)

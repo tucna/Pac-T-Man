@@ -8,6 +8,8 @@ public:
   explicit Camera();
   ~Camera();
 
+  void LerpBetweenCameraPositions(float lerpCoef);
+
   void SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ);
   void SetOrthographicValues(float halfWidth, float halfHeight);
   void SetPosition(float x, float y, float z);
@@ -17,6 +19,8 @@ public:
   const DirectX::XMFLOAT4X4& GetViewMatrix() const { return m_viewMatrix; }
   const DirectX::XMFLOAT4X4& GetProjectionMatrix() const { return m_projectionMatrix; }
   const DirectX::XMFLOAT4X4& GetOrthographicMatrix() const { return m_orthoMatrix; }
+
+  bool IsCameraLerpDone() { return m_lerpDone; }
 
 private:
   void UpdateViewMatrix();
@@ -30,4 +34,8 @@ private:
   DirectX::XMFLOAT4X4 m_viewMatrix;
   DirectX::XMFLOAT4X4 m_projectionMatrix;
   DirectX::XMFLOAT4X4 m_orthoMatrix;
+
+  float m_lerpCoef;
+
+  bool m_lerpDone;
 };

@@ -111,9 +111,10 @@ private:
   Character::Movement m_pacmanMovementRequest;
   Phase m_frightenedPhase;
 
-  Camera m_camera;
+  Camera m_camera; // TODO: std::unique_ptr instead?
   Dots m_dots;
   World m_world;
+  Caption m_caption;
 
   std::unique_ptr<ShaderManager> m_shaderManager;
   std::unique_ptr<DirectX::Keyboard> m_keyboard;
@@ -137,9 +138,4 @@ private:
   uint16_t m_outputHeight;
 
   State m_gameState;
-
-  Caption m_caption;
-  float m_minusCaption;
-
-  float m_lerpCoef;
 };

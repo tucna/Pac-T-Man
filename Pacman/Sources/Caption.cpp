@@ -5,7 +5,8 @@
 
 using namespace DirectX;
 
-Caption::Caption()
+Caption::Caption():
+  m_offsetY(1.5)
 {
   XMMATRIX view = XMMatrixIdentity();
   XMMATRIX projection = XMMatrixOrthographicOffCenterLH(0.0f, 800.0f, 600.0f, 0.0f, 0.0f, 100.0f); // TODO: stupid, here should be real camera values not 800x600
@@ -127,4 +128,10 @@ void Caption::Init(ID3D11Device1 * device)
   omDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
   DX::ThrowIfFailed(device->CreateBlendState(&omDesc, m_blendState.GetAddressOf()));
+}
+
+void Caption::AdjustOffset(float value, float minimum)
+{
+  m_offsetY -= value;
+  m_offsetY = std::max(m_offsetY, minimum);
 }

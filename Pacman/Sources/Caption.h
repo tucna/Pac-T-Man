@@ -4,7 +4,7 @@
 
 #include "Global.h"
 
-// TODO this can be grouped with dots - same thign technically and also PacMan itself is similar
+// TODO this can be grouped with dots - same thing technically and also PacMan itself is similar
 class Caption
 {
 public:
@@ -19,6 +19,9 @@ public:
 
   void Draw(ID3D11DeviceContext1* context);
   void Init(ID3D11Device1* device);
+  void AdjustOffset(float value, float minimum);
+
+  float GetOffsetY() { return m_offsetY; }
 
   const DirectX::XMFLOAT4X4& GetWorldMatrix() const { return m_worldMatrix; }
 
@@ -35,5 +38,6 @@ private:
 
   std::vector<Global::Vertex> m_vertices;
   std::vector<uint16_t> m_indices;
-};
 
+  float m_offsetY;
+};
