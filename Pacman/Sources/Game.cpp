@@ -99,6 +99,8 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
 
   m_shaderManager->BindConstantBuffersToPixelShader(ShaderManager::PixelShader::Phong, m_light.GetAddressOf(), 1);
 
+  m_timer.SetFixedTimeStep(true);
+  m_timer.SetTargetElapsedSeconds(1.f / 60.f);
 }
 
 void Game::Tick()
@@ -133,6 +135,11 @@ void Game::Update(const DX::StepTimer& timer)
   // Skip all simulation in a case that gmae did not start
   if (m_gameState != Game::State::Level || m_gamePaused)
     return;
+
+  // Update frames
+  PACMAN->UpdateFrame(m_timer.GetElapsedSeconds());
+
+  std::for_each(m_ghosts.begin(), m_ghosts.end(), [&](auto& ghost) { ghost->UpdateFrame(m_timer.GetElapsedSeconds()); });
 
   if (timer.GetTotalSeconds() >= (CURRENT_PHASE.startingTime + CURRENT_PHASE.duration) && m_currentPhaseIndex < Global::phasesNum - 1)
   {
@@ -469,7 +476,6 @@ void Game::DrawIntro()
 
   m_minusCaption -= 0.02;
   m_minusCaption = std::max(m_minusCaption, 0.6f);
-  
 
   cameraPerObjectConstantBuffer.world._11 = -m_minusCaption;
 
@@ -498,9 +504,6 @@ void Game::DrawSprites()
   // Draw pacman
   m_d3dContext->PSSetShaderResources(0, 1, m_pacManShaderResourceView.GetAddressOf());
 
-  if (m_timer.GetFrameCount() % 10 == 0)
-    PACMAN->UpdateFrame();
-
   SetSpriteConstantBufferForCharacter(spriteConstantBuffer, *PACMAN);
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
@@ -515,9 +518,6 @@ void Game::DrawSprites()
   if (PACMAN->IsAlive())
   {
     m_d3dContext->PSSetShaderResources(0, 1, m_ghostsShaderResourceView.GetAddressOf());
-
-    if (m_timer.GetFrameCount() % 10 == 0)
-      std::for_each(m_ghosts.begin(), m_ghosts.end(), [](auto& ghost) { ghost->UpdateFrame(); });
 
     std::for_each(m_ghosts.begin(), m_ghosts.end(), [&](auto& ghost)
     {

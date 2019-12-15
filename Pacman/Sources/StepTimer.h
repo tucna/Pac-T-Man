@@ -120,7 +120,7 @@ namespace DX
         // the clock to exactly match the target value. This prevents tiny and irrelevant errors
         // from accumulating over time. Without this clamping, a game that requested a 60 fps
         // fixed update, running with vsync enabled on a 59.94 NTSC display, would eventually
-        // accumulate enough tiny errors that it would drop a frame. It is better to just round 
+        // accumulate enough tiny errors that it would drop a frame. It is better to just round
         // small deviations down to zero to leave things running smoothly.
 
         if (static_cast<uint64_t>(std::abs(static_cast<int64_t>(timeDelta - m_targetElapsedTicks))) < TicksPerSecond / 4000)

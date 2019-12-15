@@ -4,7 +4,7 @@
 
 using namespace DirectX;
 
-Character::Character():
+Character::Character() :
   m_currentFrame(4),
   m_spriteY(0),
   m_position(0, 0, 0),
@@ -17,9 +17,13 @@ Character::Character():
   m_framesPerState(1),
   m_oneCycle(false),
   m_isAnimationDone(false),
-  m_isDead(false)
+  m_isDead(false),
+  m_totalElapsed(0.0f),
+  m_timePerFrame(0.0f)
 {
   UpdateWorldMatrix();
+
+  m_timePerFrame = 1.0f / 10.0f; // TODO the 10 can be altered - frames per second
 }
 
 Character::~Character()
@@ -54,11 +58,26 @@ void Character::SetMovement(Movement movement)
   if (movement != Movement::Stop && !m_isDead)
     m_facingDirection = static_cast<Direction>(static_cast<uint8_t>(movement));
 
-  UpdateFrame();
+  switch(movement)
+  {
+    case Movement::Up: m_currentFrame = 0; break;
+    case Movement::Down: m_currentFrame = 2; break;
+    case Movement::Left: m_currentFrame = 4; break;
+    case Movement::Right: m_currentFrame = 6; break;
+  }
+
+  //UpdateFrame(); TODO tady je chyba
 }
 
-void Character::UpdateFrame()
+void Character::UpdateFrame(float elapsedTime)
 {
+  m_totalElapsed += elapsedTime;
+
+  if (m_totalElapsed < m_timePerFrame)
+    return;
+
+  m_totalElapsed -= m_timePerFrame;
+
   switch (m_movement)
   {
   case Movement::Up:
