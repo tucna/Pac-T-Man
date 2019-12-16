@@ -111,12 +111,11 @@ private:
   HWND m_window;
   DX::StepTimer m_timer;
   Character::Movement m_pacmanMovementRequest;
-  Phase m_frightenedPhase;
 
   Camera m_camera; // TODO: std::unique_ptr instead?
-  Dots m_dots;
   World m_world;
 
+  std::unique_ptr<Dots> m_dots;
   std::unique_ptr<Caption> m_caption;
   std::unique_ptr<ShaderManager> m_shaderManager;
   std::unique_ptr<DirectX::Keyboard> m_keyboard;

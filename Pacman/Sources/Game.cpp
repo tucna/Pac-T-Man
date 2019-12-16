@@ -48,7 +48,6 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   CreateResources();
 
   m_world.Init(m_d3dDevice.Get());
-  m_dots.Init(m_d3dDevice.Get());
 
   m_caption = std::make_unique<Caption>();
   m_caption->Init(m_d3dDevice.Get());
@@ -323,7 +322,7 @@ void Game::Update(const DX::StepTimer& timer)
   }
 
   Dots::Type dotEaten;
-  m_dots.Update(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z), m_d3dContext.Get(), dotEaten);
+  m_dots->Update(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z), m_d3dContext.Get(), dotEaten);
 
   if (dotEaten == Dots::Type::LastOne)
   {
@@ -511,11 +510,11 @@ void Game::DrawSprites()
   m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &spriteConstantBuffer, sizeof(spriteConstantBuffer));
 
   Global::CameraPerObject cameraPerObjectConstantBuffer = {};
-  cameraPerObjectConstantBuffer.world = m_dots.GetWorldMatrix();
+  cameraPerObjectConstantBuffer.world = m_dots->GetWorldMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-  m_dots.Draw(m_d3dContext.Get());
+  m_dots->Draw(m_d3dContext.Get());
 
   // Draw pacman
   m_d3dContext->PSSetShaderResources(0, 1, m_pacManShaderResourceView.GetAddressOf());
@@ -804,18 +803,35 @@ void Game::UpdateCameraForStartAnimation()
 
 void Game::NewGameInitialization()
 {
+  // Level
+  if (m_dots)
+    m_dots.reset();
+
+  m_dots = std::make_unique<Dots>();
+  m_dots->Init(m_d3dDevice.Get());
+
   // Ghosts
   BLINKY->SetPosition(10.5f, 0.30f, 13.5f);
   BLINKY->SetMovement(Character::Movement::Left);
+  BLINKY->SetMode(Global::Mode::Scatter);
 
   PINKY->SetPosition(10.5f, 0.31f, 11.5f);
+  PINKY->SetMovement(Character::Movement::Stop);
+  PINKY->SetMode(Global::Mode::Scatter);
   PINKY->SetDotLimit(0);
+  PINKY->ResetEatenDots();
 
   INKY->SetPosition(9.5f, 0.32f, 11.5f);
+  INKY->SetMovement(Character::Movement::Stop);
+  INKY->SetMode(Global::Mode::Scatter);
   INKY->SetDotLimit(30);
+  INKY->ResetEatenDots();
 
   CLYDE->SetPosition(11.5f, 0.33f, 11.5f);
+  CLYDE->SetMovement(Character::Movement::Stop);
+  CLYDE->SetMode(Global::Mode::Scatter);
   CLYDE->SetDotLimit(60);
+  CLYDE->ResetEatenDots();
 
   SetGhostsDefaultSprites();
 
@@ -830,6 +846,11 @@ void Game::NewGameInitialization()
 
   // Game
   m_gamePaused = true;
+  m_pacmanMovementRequest = Character::Movement::Stop;
+  m_currentPhaseIndex = 1;
+  m_previousPhaseIndex = 1;
+  m_frightenedTransition = false;
+  m_currentGhostCounter = Ghosts::Pinky;
 }
 
 bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2)
