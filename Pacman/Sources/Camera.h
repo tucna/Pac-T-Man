@@ -9,6 +9,8 @@ public:
   ~Camera();
 
   void LerpBetweenCameraPositions(float lerpCoef);
+  void InverseLerpBetweenCameraPositions(float lerpCoef);
+  void ResetLerp() { m_lerpCoef = 0; }
 
   void SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ);
   void SetOrthographicValues(float halfWidth, float halfHeight);

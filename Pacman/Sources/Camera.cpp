@@ -30,10 +30,36 @@ void Camera::LerpBetweenCameraPositions(float lerpCoef)
     m_lerpCoef = 1.0f;
     m_lerpDone = true;
   }
+  else
+  {
+    m_lerpDone = false;
+  }
 
   float posX = Global::frontCamera.x + m_lerpCoef * (Global::upCamera.x - Global::frontCamera.x);
   float posY = Global::frontCamera.y + m_lerpCoef * (Global::upCamera.y - Global::frontCamera.y);
   float posZ = Global::frontCamera.z + m_lerpCoef * (Global::upCamera.z - Global::frontCamera.z);
+
+  SetPosition(posX, posY, posZ);
+  SetLookAtPos(10.5, 0, 10.5);
+}
+
+void Camera::InverseLerpBetweenCameraPositions(float lerpCoef)
+{
+  m_lerpCoef += lerpCoef;
+
+  if (m_lerpCoef > 1.0f)
+  {
+    m_lerpCoef = 1.0f;
+    m_lerpDone = true;
+  }
+  else
+  {
+    m_lerpDone = false;
+  }
+
+  float posX = Global::upCamera.x + m_lerpCoef * (Global::frontCamera.x - Global::upCamera.x);
+  float posY = Global::upCamera.y + m_lerpCoef * (Global::frontCamera.y - Global::upCamera.y);
+  float posZ = Global::upCamera.z + m_lerpCoef * (Global::frontCamera.z - Global::upCamera.z);
 
   SetPosition(posX, posY, posZ);
   SetLookAtPos(10.5, 0, 10.5);

@@ -132,10 +132,16 @@ void Game::Update(const DX::StepTimer& timer)
     }
   }
 
+  if (PACMAN->IsDead() && PACMAN->IsAnimationDone() && m_gameState == Game::State::Level)
+  {
+    m_gameState = Game::State::Dead;
+  }
+
   switch (m_gameState)
   {
   case Game::State::Intro:
     m_caption->AdjustOffset(0.02f, 0.6f);
+    m_camera.ResetLerp(); // TODO> reset is not good I guess
     break;
   case Game::State::Start:
     m_camera.LerpBetweenCameraPositions(0.04f);
@@ -144,6 +150,13 @@ void Game::Update(const DX::StepTimer& timer)
       m_gameState = Game::State::Level;
     break;
   case Game::State::Level:
+    m_camera.ResetLerp(); // TODO> reset is not good I guess
+    break;
+  case Game::State::Dead:
+    m_camera.InverseLerpBetweenCameraPositions(0.04f);
+
+    if (m_camera.IsCameraLerpDone())
+      m_gameState = Game::State::Intro;
     break;
   }
 
@@ -374,6 +387,9 @@ void Game::Render()
     DrawWorld();
     DrawSprites();
     DrawDebug();
+    break;
+  case Game::State::Dead:
+    DrawWorld();
     break;
   }
 

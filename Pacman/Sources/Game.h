@@ -20,7 +20,8 @@ public:
   {
     Intro,
     Start,
-    Level
+    Level,
+    Dead
   };
 
   enum class Ghosts
