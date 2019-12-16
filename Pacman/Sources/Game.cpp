@@ -59,22 +59,11 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
     ghost->Init(m_d3dDevice.Get());
   }
 
-  BLINKY->SetPosition(10.5f, 0.30f, 13.5f);
-  BLINKY->SetMovement(Character::Movement::Left);
-
-  PINKY->SetPosition(10.5f, 0.31f, 11.5f);
-  PINKY->SetDotLimit(0);
-
-  INKY->SetPosition(9.5f, 0.32f, 11.5f);
-  INKY->SetDotLimit(30);
-
-  CLYDE->SetPosition(11.5f, 0.33f, 11.5f);
-  CLYDE->SetDotLimit(60);
-
-  SetGhostsDefaultSprites();
 
   PACMAN = std::make_unique<Pacman>();
   PACMAN->Init(m_d3dDevice.Get());
+
+  NewGameInitialization();
 
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf()));
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf()));
@@ -147,7 +136,10 @@ void Game::Update(const DX::StepTimer& timer)
     m_camera.LerpBetweenCameraPositions(0.04f);
 
     if (m_camera.IsCameraLerpDone())
+    {
+      NewGameInitialization();
       m_gameState = Game::State::Level;
+    }
     break;
   case Game::State::Level:
     m_camera.ResetLerp(); // TODO> reset is not good I guess
@@ -160,7 +152,7 @@ void Game::Update(const DX::StepTimer& timer)
     break;
   }
 
-  // Skip all simulation in a case that gmae did not start
+  // Skip all simulation in a case that game did not start
   if (m_gameState != Game::State::Level || m_gamePaused)
     return;
 
@@ -786,9 +778,11 @@ void Game::HandleCollisions()
       else
       {
         PACMAN->SetDead(true);
+        PACMAN->SetSpriteX(0);
         PACMAN->SetSpriteY(1);
         PACMAN->SetFramesPerState(12);
         PACMAN->SetOneCycle(true);
+        PACMAN->Restart();
       }
     }
   });
@@ -801,6 +795,36 @@ void Game::UpdateCameraForStartAnimation()
   cameraConstantBufferPerFrame.projection = m_camera.GetProjectionMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerFrame.Get(), &cameraConstantBufferPerFrame, sizeof(cameraConstantBufferPerFrame));
+}
+
+void Game::NewGameInitialization()
+{
+  // Ghosts
+  BLINKY->SetPosition(10.5f, 0.30f, 13.5f);
+  BLINKY->SetMovement(Character::Movement::Left);
+
+  PINKY->SetPosition(10.5f, 0.31f, 11.5f);
+  PINKY->SetDotLimit(0);
+
+  INKY->SetPosition(9.5f, 0.32f, 11.5f);
+  INKY->SetDotLimit(30);
+
+  CLYDE->SetPosition(11.5f, 0.33f, 11.5f);
+  CLYDE->SetDotLimit(60);
+
+  SetGhostsDefaultSprites();
+
+  // Pacman
+  PACMAN->SetDead(false);
+  PACMAN->SetPosition(10.5f, 0.25f, 9.5f);
+  PACMAN->SetMovement(Character::Movement::Left);
+  PACMAN->SetSpriteY(0);
+  PACMAN->SetFramesPerState(2);
+  PACMAN->SetOneCycle(false);
+  PACMAN->Restart();
+
+  // Game
+  m_gamePaused = true;
 }
 
 bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2)

@@ -46,10 +46,12 @@ public:
   void IncreaseFrameCounter();
   void ResetFrameCounter();
   void ReverseMovementDirection();
+  void Restart() { m_totalElapsed = 0; m_isAnimationDone = false; } // TODO: good place to call m_totalElapsed = 0?
 
   void SetPosition(float x, float y, float z);
   void SetMovement(Movement movement);
   void SetSpriteY(uint8_t spriteY) { m_spriteY = spriteY; }
+  void SetSpriteX(uint8_t spriteX) { m_currentFrame = spriteX; }
   void SetColumnsAndRowsOfAssociatedSpriteSheet(uint8_t columns, uint8_t rows);
   void SetSpriteScaleFactor(float scale) { m_spriteScaleFactor = scale; }
   void SetSpriteXAddition(uint8_t xAddition) { m_spriteXAddition = xAddition; }

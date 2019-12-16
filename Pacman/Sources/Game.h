@@ -86,6 +86,7 @@ private:
   void CreatePhases();
   void HandleCollisions();
   void UpdateCameraForStartAnimation();
+  void NewGameInitialization();
 
   bool AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2);
 
