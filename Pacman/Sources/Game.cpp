@@ -49,7 +49,9 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
 
   m_world.Init(m_d3dDevice.Get());
   m_dots.Init(m_d3dDevice.Get());
-  m_caption.Init(m_d3dDevice.Get());
+
+  m_caption = std::make_unique<Caption>();
+  m_caption->Init(m_d3dDevice.Get());
 
   for (auto& ghost : m_ghosts)
   {
@@ -133,7 +135,7 @@ void Game::Update(const DX::StepTimer& timer)
   switch (m_gameState)
   {
   case Game::State::Intro:
-    m_caption.AdjustOffset(0.02f, 0.6f);
+    m_caption->AdjustOffset(0.02f, 0.6f);
     break;
   case Game::State::Start:
     m_camera.LerpBetweenCameraPositions(0.04f);
@@ -463,7 +465,7 @@ void Game::DrawWorld()
 
   // TODO light
   Global::LightConstantBuffer lightCB;
-  lightCB.values = XMFLOAT4(10.5f, m_caption.GetOffsetY() * 4, 11.5f, 1.0f);
+  lightCB.values = XMFLOAT4(10.5f, m_caption->GetOffsetY() * 4, 11.5f, 1.0f);
 
   m_shaderManager->UpdateConstantBuffer(m_light.Get(), &lightCB, sizeof(lightCB));
   // --------------
@@ -477,13 +479,12 @@ void Game::DrawIntro()
   m_shaderManager->SetPixelShader(ShaderManager::PixelShader::UI);
 
   Global::CameraPerObject cameraPerObjectConstantBuffer = {};
-  cameraPerObjectConstantBuffer.world = m_caption.GetWorldMatrix();
-
-  cameraPerObjectConstantBuffer.world._11 = -m_caption.GetOffsetY();
+  XMStoreFloat4x4(&cameraPerObjectConstantBuffer.world, DirectX::XMMatrixIdentity());
+  cameraPerObjectConstantBuffer.world._11 = -m_caption->GetOffsetY();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-  m_caption.Draw(m_d3dContext.Get());
+  m_caption->Draw(m_d3dContext.Get());
 }
 
 void Game::DrawSprites()
