@@ -59,7 +59,6 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
     ghost->Init(m_d3dDevice.Get());
   }
 
-
   PACMAN = std::make_unique<Pacman>();
   PACMAN->Init(m_d3dDevice.Get());
 
@@ -325,6 +324,12 @@ void Game::Update(const DX::StepTimer& timer)
 
   Dots::Type dotEaten;
   m_dots.Update(static_cast<uint8_t>(pacmanPosCurrent.x), static_cast<uint8_t>(pacmanPosCurrent.z), m_d3dContext.Get(), dotEaten);
+
+  if (dotEaten == Dots::Type::LastOne)
+  {
+    NewGameInitialization();
+    m_gameState = Game::State::Level;
+  }
 
   if (dotEaten != Dots::Type::Nothing && m_currentGhostCounter != Ghosts::None)
     m_ghosts[static_cast<uint8_t>(m_currentGhostCounter)]->IncrementEatenDots();

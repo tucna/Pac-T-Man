@@ -11,7 +11,8 @@ public:
   {
     Nothing,
     Normal,
-    Extra
+    Extra,
+    LastOne // TODO: indication that the last dot was eaten - is it a good idea?
   };
 
   struct InstanceType

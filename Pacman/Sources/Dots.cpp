@@ -172,7 +172,9 @@ void Dots::Update(uint8_t column, uint8_t row, ID3D11DeviceContext1* context, Ty
 
     if (m_instances.size() == 0)
     {
-      // TODO: game end
+      // All dots were eaten
+      dotEaten = Type::LastOne;
+      return;
     }
     else
     {
