@@ -69,7 +69,7 @@ void Camera::SetProjectionValues(float fovDegrees, float aspectRatio, float near
 {
   float fovRadians = (fovDegrees / 360.0f) * XM_2PI;
 
-  XMStoreFloat4x4(&m_projectionMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(fovRadians, aspectRatio, nearZ, farZ))); // TODO> here could be RH instead of LH
+  XMStoreFloat4x4(&m_projectionMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(fovRadians, aspectRatio, nearZ, farZ)));
 }
 
 void Camera::SetOrthographicValues(float halfWidth, float halfHeight)

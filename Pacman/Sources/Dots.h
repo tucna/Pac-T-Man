@@ -12,7 +12,7 @@ public:
     Nothing,
     Normal,
     Extra,
-    LastOne // TODO: indication that the last dot was eaten - is it a good idea?
+    LastOne
   };
 
   struct InstanceType

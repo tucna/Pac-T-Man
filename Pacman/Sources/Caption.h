@@ -4,7 +4,6 @@
 
 #include "Global.h"
 
-// TODO this can be grouped with dots - same thing technically and also PacMan itself is similar
 class Caption
 {
 public:

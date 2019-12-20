@@ -128,7 +128,7 @@ void Game::Update(const DX::StepTimer& timer)
   {
   case Game::State::Intro:
     m_caption->AdjustOffset(0.02f, 0.6f);
-    m_camera.ResetLerp(); // TODO> reset is not good I guess
+    m_camera.ResetLerp();
     break;
   case Game::State::Start:
     m_camera.LerpBetweenCameraPositions(0.04f);
@@ -140,7 +140,7 @@ void Game::Update(const DX::StepTimer& timer)
     }
     break;
   case Game::State::Level:
-    m_camera.ResetLerp(); // TODO> reset is not good I guess
+    m_camera.ResetLerp();
     break;
   case Game::State::Dead:
     m_camera.InverseLerpBetweenCameraPositions(0.04f);
@@ -467,20 +467,18 @@ void Game::DrawWorld()
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
-  // TODO do not do this!!!
+  // Camera
   Global::CameraPerFrame cameraConstantBufferPerFrame = {};
   cameraConstantBufferPerFrame.view = m_camera.GetViewMatrix();
   cameraConstantBufferPerFrame.projection = m_camera.GetProjectionMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerFrame.Get(), &cameraConstantBufferPerFrame, sizeof(cameraConstantBufferPerFrame));
-  // ------------------------------
 
-  // TODO light
+  // Light
   Global::LightConstantBuffer lightCB;
   lightCB.values = XMFLOAT4(10.5f, m_caption->GetOffsetY() * 4, 11.5f, 1.0f);
 
   m_shaderManager->UpdateConstantBuffer(m_light.Get(), &lightCB, sizeof(lightCB));
-  // --------------
 
   m_world.Draw(m_d3dContext.Get());
 }
@@ -563,7 +561,6 @@ void Game::DrawDebug()
     m_shaderManager->SetGeometryShader(ShaderManager::GeometryShader::Billboard);
     m_shaderManager->SetPixelShader(ShaderManager::PixelShader::Color);
 
-    // TODO this should not be necessary but what the heck
     Global::SpriteConstantBuffer frameConstantBuffer = { 0, 0, 1, 1, DirectX::XMFLOAT4(0.25f, 0, 0, 0) };
     m_shaderManager->UpdateConstantBuffer(m_frameBuffer.Get(), &frameConstantBuffer, sizeof(frameConstantBuffer));
 
@@ -818,18 +815,21 @@ void Game::NewGameInitialization()
   PINKY->SetPosition(10.5f, 0.31f, 11.5f);
   PINKY->SetMovement(Character::Movement::Stop);
   PINKY->SetMode(Global::Mode::Scatter);
+  PINKY->SetSpriteX(0);
   PINKY->SetDotLimit(0);
   PINKY->ResetEatenDots();
 
   INKY->SetPosition(9.5f, 0.32f, 11.5f);
   INKY->SetMovement(Character::Movement::Stop);
   INKY->SetMode(Global::Mode::Scatter);
+  INKY->SetSpriteX(0);
   INKY->SetDotLimit(30);
   INKY->ResetEatenDots();
 
   CLYDE->SetPosition(11.5f, 0.33f, 11.5f);
   CLYDE->SetMovement(Character::Movement::Stop);
   CLYDE->SetMode(Global::Mode::Scatter);
+  CLYDE->SetSpriteX(0);
   CLYDE->SetDotLimit(60);
   CLYDE->ResetEatenDots();
 
@@ -851,6 +851,7 @@ void Game::NewGameInitialization()
   m_previousPhaseIndex = 1;
   m_frightenedTransition = false;
   m_currentGhostCounter = Ghosts::Pinky;
+  m_timer.ResetElapsedTime();
 }
 
 bool Game::AreMovementsOppositeOrSame(Character::Movement m1, Character::Movement m2)

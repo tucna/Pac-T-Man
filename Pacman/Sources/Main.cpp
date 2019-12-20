@@ -251,7 +251,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
       s_fullscreen = !s_fullscreen;
     }
-    // TUCNA > shall I pass thru         Keyboard::ProcessMessage(message, wParam, lParam); ??
+    Keyboard::ProcessMessage(message, wParam, lParam);
     break;
 
   case WM_MENUCHAR:
