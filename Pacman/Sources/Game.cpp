@@ -492,9 +492,18 @@ void Game::DrawIntro()
   m_shaderManager->SetVertexShader(ShaderManager::VertexShader::UI);
   m_shaderManager->SetPixelShader(ShaderManager::PixelShader::UI);
 
+  // Camera tucna todo
+  Global::CameraPerFrame cameraConstantBufferPerFrame = {};
+  XMStoreFloat4x4(&cameraConstantBufferPerFrame.view, DirectX::XMMatrixIdentity());
+  cameraConstantBufferPerFrame.projection = m_camera.GetOrthographicMatrix();
+
+  m_shaderManager->UpdateConstantBuffer(m_cameraPerFrame.Get(), &cameraConstantBufferPerFrame, sizeof(cameraConstantBufferPerFrame));
+  //------------------
+
+
   Global::CameraPerObject cameraPerObjectConstantBuffer = {};
   XMStoreFloat4x4(&cameraPerObjectConstantBuffer.world, DirectX::XMMatrixIdentity());
-  cameraPerObjectConstantBuffer.world._11 = -m_caption->GetOffsetY();
+  //cameraPerObjectConstantBuffer.world._11 = -m_caption->GetOffsetY(); TODO this was wrong anyway
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
@@ -1232,7 +1241,7 @@ void Game::CreateResources()
 
   // Initialize windows-size dependent objects here.
   m_camera.SetProjectionValues(75.0f, static_cast<float>(m_outputWidth) / static_cast<float>(m_outputHeight), 0.1f, 1000.0f);
-  m_camera.SetOrthographicValues(static_cast<float>(m_outputWidth) / 2.0f, static_cast<float>(m_outputHeight) / 2.0f);
+  m_camera.SetOrthographicValues(static_cast<float>(m_outputWidth), static_cast<float>(m_outputHeight));
 
   XMFLOAT4X4 projection = m_camera.GetProjectionMatrix();
 

@@ -13,7 +13,7 @@ public:
   void ResetLerp() { m_lerpCoef = 0; }
 
   void SetProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ);
-  void SetOrthographicValues(float halfWidth, float halfHeight);
+  void SetOrthographicValues(float width, float height);
   void SetPosition(float x, float y, float z);
   void SetRotation(float x, float y, float z);
   void SetLookAtPos(float x, float y, float z);

@@ -72,9 +72,9 @@ void Camera::SetProjectionValues(float fovDegrees, float aspectRatio, float near
   XMStoreFloat4x4(&m_projectionMatrix, XMMatrixTranspose(XMMatrixPerspectiveFovLH(fovRadians, aspectRatio, nearZ, farZ)));
 }
 
-void Camera::SetOrthographicValues(float halfWidth, float halfHeight)
+void Camera::SetOrthographicValues(float width, float height)
 {
-  XMStoreFloat4x4(&m_orthoMatrix, XMMatrixTranspose(XMMatrixOrthographicOffCenterLH(-halfWidth, halfWidth, -halfHeight, halfHeight, 0.0f, 100.0f)));
+  XMStoreFloat4x4(&m_orthoMatrix, XMMatrixTranspose(XMMatrixOrthographicOffCenterLH(0, width, height, 0, 0.0f, 100.0f)));
 }
 
 void Camera::SetPosition(float x, float y, float z)
