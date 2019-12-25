@@ -815,6 +815,7 @@ void Game::NewGameInitialization()
   BLINKY->SetPosition(10.5f, 0.30f, 13.5f);
   BLINKY->SetMovement(Character::Movement::Left);
   BLINKY->SetMode(Global::Mode::Scatter);
+  BLINKY->SetSpriteY(Global::rowBlinky);
 
   PINKY->SetPosition(10.5f, 0.31f, 11.5f);
   PINKY->SetMovement(Character::Movement::Stop);
@@ -822,6 +823,7 @@ void Game::NewGameInitialization()
   PINKY->SetSpriteX(0);
   PINKY->SetDotLimit(0);
   PINKY->ResetEatenDots();
+  PINKY->SetSpriteY(Global::rowPinky);
 
   INKY->SetPosition(9.5f, 0.32f, 11.5f);
   INKY->SetMovement(Character::Movement::Stop);
@@ -829,6 +831,7 @@ void Game::NewGameInitialization()
   INKY->SetSpriteX(0);
   INKY->SetDotLimit(30);
   INKY->ResetEatenDots();
+  INKY->SetSpriteY(Global::rowInky);
 
   CLYDE->SetPosition(11.5f, 0.33f, 11.5f);
   CLYDE->SetMovement(Character::Movement::Stop);
@@ -836,12 +839,11 @@ void Game::NewGameInitialization()
   CLYDE->SetSpriteX(0);
   CLYDE->SetDotLimit(60);
   CLYDE->ResetEatenDots();
-
-  SetGhostsDefaultSprites();
+  CLYDE->SetSpriteY(Global::rowClyde);
 
   // Pacman
   PACMAN->SetDead(false);
-  PACMAN->SetPosition(10.5f, 0.25f, 9.5f);
+  PACMAN->SetPosition(10.5f, 0.25f, 5.5f);
   PACMAN->SetMovement(Character::Movement::Left);
   PACMAN->SetSpriteY(0);
   PACMAN->SetFramesPerState(2);
@@ -888,7 +890,7 @@ void Game::UpdatePositionOfBlinky()
 
   if (BLINKY->GetMovement() == Character::Movement::InHouse)
   {
-    BLINKY->SetMode(Global::Mode::Chase);
+    BLINKY->SetMode(CURRENT_PHASE.mode);
     BLINKY->SetSpriteY(Global::rowBlinky);
   }
 
@@ -922,7 +924,7 @@ void Game::UpdatePositionOfPinky()
 
   if (PINKY->GetMovement() == Character::Movement::InHouse)
   {
-    PINKY->SetMode(Global::Mode::Chase);
+    PINKY->SetMode(CURRENT_PHASE.mode);
     PINKY->SetSpriteY(Global::rowPinky);
   }
 
@@ -973,7 +975,7 @@ void Game::UpdatePositionOfInky()
 
   if (INKY->GetMovement() == Character::Movement::InHouse)
   {
-    INKY->SetMode(Global::Mode::Chase);
+    INKY->SetMode(CURRENT_PHASE.mode);
     INKY->SetSpriteY(Global::rowInky);
   }
 
@@ -1032,7 +1034,7 @@ void Game::UpdatePositionOfClyde()
 
   if (CLYDE->GetMovement() == Character::Movement::InHouse)
   {
-    CLYDE->SetMode(Global::Mode::Chase);
+    CLYDE->SetMode(CURRENT_PHASE.mode);
     CLYDE->SetSpriteY(Global::rowClyde);
   }
 
