@@ -137,6 +137,7 @@ void Game::Update(const DX::StepTimer& timer)
     {
       NewGameInitialization();
       m_gameState = Game::State::Level;
+      CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
     }
     break;
   case Game::State::Level:
@@ -150,9 +151,12 @@ void Game::Update(const DX::StepTimer& timer)
     break;
   }
 
-  // Skip all simulation in a case that game did not start
+  // Skip all simulation in a case that game did not start and current phase timer should not move in case of a paused game
   if (m_gameState != Game::State::Level || m_gamePaused)
+  {
+    CURRENT_PHASE.startingTime = timer.GetTotalSeconds();
     return;
+  }
 
   // Update frames
   PACMAN->UpdateFrame(m_timer.GetElapsedSeconds());
