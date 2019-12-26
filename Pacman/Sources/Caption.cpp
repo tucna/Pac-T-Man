@@ -6,8 +6,11 @@
 using namespace DirectX;
 
 Caption::Caption() :
-  m_offsetY(1.5)
+  m_position(0, 0, 0),
+  m_height(0),
+  m_width(0)
 {
+  UpdateWorldMatrix();
 }
 
 Caption::~Caption()
@@ -33,8 +36,11 @@ void Caption::Draw(ID3D11DeviceContext1 * context)
   context->DrawIndexed(6, 0, 0);
 }
 
-void Caption::Init(ID3D11Device1 * device)
+void Caption::Init(ID3D11Device1* device, uint16_t width, uint16_t height)
 {
+  m_width = width;
+  m_height = height;
+
   DX::ThrowIfFailed(CreateWICTextureFromFile(device, nullptr, L"Resources/caption.png", m_resource.GetAddressOf(), m_shaderResourceView.GetAddressOf()));
 
   // Vertex buffer
@@ -45,10 +51,10 @@ void Caption::Init(ID3D11Device1 * device)
   m_vertices.push_back({ { 0.8f,  0.2f, 0.0f}, {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}, {1, 0} });
   */
 
-  m_vertices.push_back({ { 0, 100, 0.0f}, {0.0, 1.0, 0.0}, {0.0, 1.0, 0.0}, {0, 1} });
+  m_vertices.push_back({ { 0, static_cast<float>(height), 0.0f}, {0.0, 1.0, 0.0}, {0.0, 1.0, 0.0}, {0, 1} });
   m_vertices.push_back({ { 0, 0, 0.0f}, {0.0, 1.0, 0.0}, {0.0, 0.0, 0.0}, {0, 0} });
-  m_vertices.push_back({ { 400, 100, 0.0f}, {0.0, 1.0, 0.0}, {1.0, 1.0, 0.0}, {1, 1} });
-  m_vertices.push_back({ { 400, 0, 0.0f}, {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}, {1, 0} });
+  m_vertices.push_back({ { static_cast<float>(width), static_cast<float>(height), 0.0f}, {0.0, 1.0, 0.0}, {1.0, 1.0, 0.0}, {1, 1} });
+  m_vertices.push_back({ { static_cast<float>(width), 0, 0.0f}, {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}, {1, 0} });
 
 
   D3D11_BUFFER_DESC bd = {};
@@ -118,8 +124,24 @@ void Caption::Init(ID3D11Device1 * device)
   DX::ThrowIfFailed(device->CreateBlendState(&omDesc, m_blendState.GetAddressOf()));
 }
 
-void Caption::AdjustOffset(float value, float minimum)
+void Caption::AdjustY(float value, float minimum)
 {
-  m_offsetY -= value;
-  m_offsetY = std::max(m_offsetY, minimum);
+  m_position.y += value;
+  m_position.y = std::min(m_position.y, minimum);
+
+  UpdateWorldMatrix();
+}
+
+void Caption::SetPosition(float x, float y, float z)
+{
+  m_position.x = x;
+  m_position.y = y;
+  m_position.z = z;
+
+  UpdateWorldMatrix();
+}
+
+void Caption::UpdateWorldMatrix()
+{
+  XMStoreFloat4x4(&m_worldMatrix, XMMatrixTranspose(XMMatrixTranslation(m_position.x, m_position.y, m_position.z)));
 }

@@ -45,12 +45,13 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   m_outputHeight = height;
 
   CreateDevice();
+
+  m_caption = std::make_unique<Caption>();
+  m_caption->Init(m_d3dDevice.Get(), 400, 100);
+
   CreateResources();
 
   m_world.Init(m_d3dDevice.Get());
-
-  m_caption = std::make_unique<Caption>();
-  m_caption->Init(m_d3dDevice.Get());
 
   for (auto& ghost : m_ghosts)
   {
@@ -127,7 +128,7 @@ void Game::Update(const DX::StepTimer& timer)
   switch (m_gameState)
   {
   case Game::State::Intro:
-    m_caption->AdjustOffset(0.02f, 0.6f);
+    m_caption->AdjustY(5, 80);
     m_camera.ResetLerp();
     break;
   case Game::State::Start:
@@ -502,7 +503,7 @@ void Game::DrawIntro()
 
 
   Global::CameraPerObject cameraPerObjectConstantBuffer = {};
-  XMStoreFloat4x4(&cameraPerObjectConstantBuffer.world, DirectX::XMMatrixIdentity());
+  cameraPerObjectConstantBuffer.world = m_caption->GetWorldMatrix();
   //cameraPerObjectConstantBuffer.world._11 = -m_caption->GetOffsetY(); TODO this was wrong anyway
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
@@ -1306,6 +1307,8 @@ void Game::CreateResources()
   ID3D11Buffer* vertexShaderBuffers[2] = { m_cameraPerFrame.Get(), m_cameraPerObject.Get() };
   m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Instanced, vertexShaderBuffers, 2);
   m_shaderManager->BindConstantBuffersToVertexShader(ShaderManager::VertexShader::Indexed, vertexShaderBuffers, 2);
+
+  m_caption->SetPosition(static_cast<float>((m_outputWidth / 2) - (m_caption->GetWidth() / 2)), static_cast<float>(-m_caption->GetHeight() * 2), 0);
 }
 
 void Game::OnDeviceLost()
