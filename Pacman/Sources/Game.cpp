@@ -632,6 +632,22 @@ void Game::MoveGhostTowardsPosition(float posX, float posZ, Game::Ghosts ghost)
       character.SetMovement(Character::Movement::InHouse);
       character.SetDead(false);
 
+      switch (ghost)
+      {
+      case Ghosts::Blinky:
+        character.SetSpriteY(Global::rowBlinky);
+        break;
+      case Ghosts::Pinky:
+        character.SetSpriteY(Global::rowPinky);
+        break;
+      case Ghosts::Inky:
+        character.SetSpriteY(Global::rowInky);
+        break;
+      case Ghosts::Clyde:
+        character.SetSpriteY(Global::rowClyde);
+        break;
+      }
+
       return;
     }
   }
@@ -888,10 +904,7 @@ void Game::UpdatePositionOfBlinky()
   }
 
   if (BLINKY->GetMovement() == Character::Movement::InHouse)
-  {
     BLINKY->SetMode(CURRENT_PHASE.mode);
-    BLINKY->SetSpriteY(Global::rowBlinky);
-  }
 
   switch (BLINKY->GetMode())
   {
@@ -922,10 +935,7 @@ void Game::UpdatePositionOfPinky()
   }
 
   if (PINKY->GetMovement() == Character::Movement::InHouse)
-  {
     PINKY->SetMode(CURRENT_PHASE.mode);
-    PINKY->SetSpriteY(Global::rowPinky);
-  }
 
   switch (PINKY->GetMode())
   {
@@ -973,10 +983,7 @@ void Game::UpdatePositionOfInky()
   }
 
   if (INKY->GetMovement() == Character::Movement::InHouse)
-  {
     INKY->SetMode(CURRENT_PHASE.mode);
-    INKY->SetSpriteY(Global::rowInky);
-  }
 
   switch (INKY->GetMode())
   {
@@ -1032,10 +1039,7 @@ void Game::UpdatePositionOfClyde()
   }
 
   if (CLYDE->GetMovement() == Character::Movement::InHouse)
-  {
     CLYDE->SetMode(CURRENT_PHASE.mode);
-    CLYDE->SetSpriteY(Global::rowClyde);
-  }
 
   switch (CLYDE->GetMode())
   {
@@ -1045,9 +1049,7 @@ void Game::UpdatePositionOfClyde()
   case Global::Mode::Chase:
   {
     const DirectX::XMFLOAT3& pacmanPos = PACMAN->GetPosition();
-    const DirectX::XMFLOAT3& clydePos = CLYDE->GetPosition();
-
-    float distance = sqrt((clydePos.x - pacmanPos.x) * (clydePos.x - pacmanPos.x) + (clydePos.z - pacmanPos.z) * (clydePos.z - pacmanPos.z));
+    const float distance = DistanceBetweenCharacters(*PACMAN, *CLYDE);
 
     if (distance > 8)
     {
