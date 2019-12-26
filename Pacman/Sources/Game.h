@@ -80,8 +80,8 @@ private:
   void OnDeviceLost();
 
   void SetSpriteConstantBufferForCharacter(Global::SpriteConstantBuffer& spriteConstantBuffer, const Character& character);
-  void MoveCharacterTowardsPosition(float posX, float posZ, Character& character);
-  void MoveCharacterTowardsRandomPosition(Character& character);
+  void MoveGhostTowardsPosition(float posX, float posZ, Game::Ghosts ghost);
+  void MoveGhostTowardsRandomPosition(Game::Ghosts ghost);
   void SetGhostsDefaultSprites();
   void CreatePhases();
   void HandleCollisions();
@@ -112,7 +112,7 @@ private:
   DX::StepTimer m_timer;
   Character::Movement m_pacmanMovementRequest;
 
-  Camera m_camera; // TODO: std::unique_ptr instead?
+  Camera m_camera;
   World m_world;
 
   std::unique_ptr<Dots> m_dots;

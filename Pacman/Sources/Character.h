@@ -46,7 +46,7 @@ public:
   void IncreaseFrameCounter();
   void ResetFrameCounter();
   void ReverseMovementDirection();
-  void Restart() { m_totalElapsed = 0; m_isAnimationDone = false; } // TODO: good place to call m_totalElapsed = 0?
+  void Restart() { m_totalElapsed = 0; m_isAnimationDone = false; }
 
   void SetPosition(float x, float y, float z);
   void SetMovement(Movement movement);

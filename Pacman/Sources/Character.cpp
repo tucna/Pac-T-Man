@@ -23,7 +23,7 @@ Character::Character() :
 {
   UpdateWorldMatrix();
 
-  m_timePerFrame = 1.0f / 10.0f; // TODO the 10 can be altered - frames per second
+  m_timePerFrame = 1.0f / 10.0f;
 }
 
 Character::~Character()

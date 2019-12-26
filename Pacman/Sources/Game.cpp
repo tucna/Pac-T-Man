@@ -121,9 +121,7 @@ void Game::Update(const DX::StepTimer& timer)
   }
 
   if (PACMAN->IsDead() && PACMAN->IsAnimationDone() && m_gameState == Game::State::Level)
-  {
     m_gameState = Game::State::Dead;
-  }
 
   switch (m_gameState)
   {
@@ -479,12 +477,6 @@ void Game::DrawWorld()
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerFrame.Get(), &cameraConstantBufferPerFrame, sizeof(cameraConstantBufferPerFrame));
 
-  // Light
-  Global::LightConstantBuffer lightCB;
-  lightCB.values = XMFLOAT4(10.5f, m_caption->GetOffsetY() * 4, 11.5f, 1.0f);
-
-  m_shaderManager->UpdateConstantBuffer(m_light.Get(), &lightCB, sizeof(lightCB));
-
   m_world.Draw(m_d3dContext.Get());
 }
 
@@ -493,18 +485,14 @@ void Game::DrawIntro()
   m_shaderManager->SetVertexShader(ShaderManager::VertexShader::UI);
   m_shaderManager->SetPixelShader(ShaderManager::PixelShader::UI);
 
-  // Camera tucna todo
   Global::CameraPerFrame cameraConstantBufferPerFrame = {};
   XMStoreFloat4x4(&cameraConstantBufferPerFrame.view, DirectX::XMMatrixIdentity());
   cameraConstantBufferPerFrame.projection = m_camera.GetOrthographicMatrix();
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerFrame.Get(), &cameraConstantBufferPerFrame, sizeof(cameraConstantBufferPerFrame));
-  //------------------
-
 
   Global::CameraPerObject cameraPerObjectConstantBuffer = {};
   cameraPerObjectConstantBuffer.world = m_caption->GetWorldMatrix();
-  //cameraPerObjectConstantBuffer.world._11 = -m_caption->GetOffsetY(); TODO this was wrong anyway
 
   m_shaderManager->UpdateConstantBuffer(m_cameraPerObject.Get(), &cameraPerObjectConstantBuffer, sizeof(cameraPerObjectConstantBuffer));
 
@@ -589,26 +577,26 @@ void Game::DrawDebug()
   m_debugPoints.clear();
 }
 
-void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& character)
+void Game::MoveGhostTowardsPosition(float posX, float posZ, Game::Ghosts ghost)
 {
-  /* TODO: make debug draw alive again
+  Ghost& character = *m_ghosts[static_cast<uint8_t>(ghost)];
+
   if (m_debugDraw)
-    switch (characterID)
+    switch (ghost)
     {
-      case Characters::Blinky:
+      case Ghosts::Blinky:
         m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}});
         break;
-      case Characters::Pinky:
+      case Ghosts::Pinky:
         m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.6f, 0.8f}});
         break;
-      case Characters::Inky:
+      case Ghosts::Inky:
         m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {0.2f, 1.0f, 1.0f}});
         break;
-      case Characters::Clyde:
+      case Ghosts::Clyde:
         m_debugPoints.push_back({{posX, 0.3f, posZ}, {0.0f ,1.0f, 0.0f}, {1.0f, 0.8f, 0.2f}});
         break;
     }
-  */
 
   character.IncreaseFrameCounter();
 
@@ -636,7 +624,6 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& chara
 
   if (isCharacterDead)
   {
-    // TODO add distance computation
     float d = sqrt((characterCurrentPos.x - posX) * (characterCurrentPos.x - posX) + (characterCurrentPos.z - posZ) * (characterCurrentPos.z - posZ));
 
     if (d < 0.1f)
@@ -733,24 +720,26 @@ void Game::MoveCharacterTowardsPosition(float posX, float posZ, Character& chara
   }
 }
 
-void Game::MoveCharacterTowardsRandomPosition(Character& character)
+void Game::MoveGhostTowardsRandomPosition(Game::Ghosts ghost)
 {
+  Ghost& character = *m_ghosts[static_cast<uint8_t>(ghost)];
+
   const DirectX::XMFLOAT3 charPos = character.GetPosition();
   uint8_t direction = rand() % 4;
 
   switch (direction)
   {
   case 0:
-    MoveCharacterTowardsPosition(charPos.x + 1.0f, charPos.z, character);
+    MoveGhostTowardsPosition(charPos.x + 1.0f, charPos.z, ghost);
     break;
   case 1:
-    MoveCharacterTowardsPosition(charPos.x - 1.0f, charPos.z, character);
+    MoveGhostTowardsPosition(charPos.x - 1.0f, charPos.z, ghost);
     break;
   case 2:
-    MoveCharacterTowardsPosition(charPos.x, charPos.z + 1.0f, character);
+    MoveGhostTowardsPosition(charPos.x, charPos.z + 1.0f, ghost);
     break;
   case 3:
-    MoveCharacterTowardsPosition(charPos.x, charPos.z - 1.0f, character);
+    MoveGhostTowardsPosition(charPos.x, charPos.z - 1.0f, ghost);
     break;
   }
 }
@@ -894,7 +883,7 @@ void Game::UpdatePositionOfBlinky()
 {
   if (BLINKY->IsDead())
   {
-    MoveCharacterTowardsPosition(10.5f, 11.5f, *BLINKY);
+    MoveGhostTowardsPosition(10.5f, 11.5f, Ghosts::Blinky);
     return;
   }
 
@@ -907,16 +896,16 @@ void Game::UpdatePositionOfBlinky()
   switch (BLINKY->GetMode())
   {
   case Global::Mode::Scatter:
-    MoveCharacterTowardsPosition(18.5f, 21.5f, *BLINKY);
+    MoveGhostTowardsPosition(18.5f, 21.5f, Ghosts::Blinky);
     break;
   case Global::Mode::Chase:
   {
     const DirectX::XMFLOAT3& pacmanPos = PACMAN->GetPosition();
-    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *BLINKY);
+    MoveGhostTowardsPosition(pacmanPos.x, pacmanPos.z, Ghosts::Blinky);
   }
   break;
   case Global::Mode::Frightened:
-    MoveCharacterTowardsRandomPosition(*BLINKY);
+    MoveGhostTowardsRandomPosition(Ghosts::Blinky);
     break;
   }
 }
@@ -928,7 +917,7 @@ void Game::UpdatePositionOfPinky()
 
   if (PINKY->IsDead())
   {
-    MoveCharacterTowardsPosition(10.5f, 11.5f, *PINKY);
+    MoveGhostTowardsPosition(10.5f, 11.5f, Ghosts::Pinky);
     return;
   }
 
@@ -941,7 +930,7 @@ void Game::UpdatePositionOfPinky()
   switch (PINKY->GetMode())
   {
   case Global::Mode::Scatter:
-    MoveCharacterTowardsPosition(2.5f, 21.5f, *PINKY);
+    MoveGhostTowardsPosition(2.5f, 21.5f, Ghosts::Pinky);
     break;
   case Global::Mode::Chase:
   {
@@ -963,11 +952,11 @@ void Game::UpdatePositionOfPinky()
       break;
     }
 
-    MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *PINKY);
+    MoveGhostTowardsPosition(pacmanPos.x, pacmanPos.z, Ghosts::Pinky);
   }
   break;
   case Global::Mode::Frightened:
-    MoveCharacterTowardsRandomPosition(*PINKY);
+    MoveGhostTowardsRandomPosition(Ghosts::Pinky);
     break;
   }
 }
@@ -979,7 +968,7 @@ void Game::UpdatePositionOfInky()
 
   if (INKY->IsDead())
   {
-    MoveCharacterTowardsPosition(10.5f, 11.5f, *INKY);
+    MoveGhostTowardsPosition(10.5f, 11.5f, Ghosts::Inky);
     return;
   }
 
@@ -992,7 +981,7 @@ void Game::UpdatePositionOfInky()
   switch (INKY->GetMode())
   {
   case Global::Mode::Scatter:
-    MoveCharacterTowardsPosition(21.5f, 0.0f, *INKY);
+    MoveGhostTowardsPosition(21.5f, 0.0f, Ghosts::Inky);
     break;
   case Global::Mode::Chase:
   {
@@ -1022,11 +1011,11 @@ void Game::UpdatePositionOfInky()
     finalPosX = pacmanPos.x + (pacmanPos.x - blinkyPos.x);
     finalPosZ = pacmanPos.z + (pacmanPos.z - blinkyPos.z);
 
-    MoveCharacterTowardsPosition(finalPosX, finalPosZ, *INKY);
+    MoveGhostTowardsPosition(finalPosX, finalPosZ, Ghosts::Inky);
   }
   break;
   case Global::Mode::Frightened:
-    MoveCharacterTowardsRandomPosition(*INKY);
+    MoveGhostTowardsRandomPosition(Ghosts::Inky);
     break;
   }
 }
@@ -1038,7 +1027,7 @@ void Game::UpdatePositionOfClyde()
 
   if (CLYDE->IsDead())
   {
-    MoveCharacterTowardsPosition(10.5f, 11.5f, *CLYDE);
+    MoveGhostTowardsPosition(10.5f, 11.5f, Ghosts::Clyde);
     return;
   }
 
@@ -1051,7 +1040,7 @@ void Game::UpdatePositionOfClyde()
   switch (CLYDE->GetMode())
   {
   case Global::Mode::Scatter:
-    MoveCharacterTowardsPosition(0.0f, 0.0f, *CLYDE);
+    MoveGhostTowardsPosition(0.0f, 0.0f, Ghosts::Clyde);
     break;
   case Global::Mode::Chase:
   {
@@ -1063,17 +1052,17 @@ void Game::UpdatePositionOfClyde()
     if (distance > 8)
     {
       // Behave as blinky
-      MoveCharacterTowardsPosition(pacmanPos.x, pacmanPos.z, *CLYDE);
+      MoveGhostTowardsPosition(pacmanPos.x, pacmanPos.z, Ghosts::Clyde);
     }
     else
     {
       // Scatter
-      MoveCharacterTowardsPosition(0.0f, 0.0f, *CLYDE);
+      MoveGhostTowardsPosition(0.0f, 0.0f, Ghosts::Clyde);
     }
   }
   break;
   case Global::Mode::Frightened:
-    MoveCharacterTowardsRandomPosition(*CLYDE);
+    MoveGhostTowardsRandomPosition(Ghosts::Clyde);
     break;
   }
 }
@@ -1089,7 +1078,6 @@ void Game::CreateDevice()
 
   static const D3D_FEATURE_LEVEL featureLevels[] =
   {
-    // TODO: Modify for supported Direct3D feature levels
     D3D_FEATURE_LEVEL_11_1,
     D3D_FEATURE_LEVEL_11_0,
     D3D_FEATURE_LEVEL_10_1,
@@ -1129,7 +1117,7 @@ void Game::CreateDevice()
       D3D11_MESSAGE_ID hide[] =
       {
           D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
-          // TODO: Add more message IDs here as needed.
+          // Add more message IDs here as needed.
       };
       D3D11_INFO_QUEUE_FILTER filter = {};
       filter.DenyList.NumIDs = _countof(hide);

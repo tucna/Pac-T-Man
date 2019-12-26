@@ -16,7 +16,6 @@ public:
   void AdjustY(float value, float minimum);
   void SetPosition(float x, float y, float z);
 
-  float GetOffsetY() { return 0.6f;/*return m_offsetY; TODO*/ }
   uint16_t GetWidth() { return m_width; }
   uint16_t GetHeight() { return m_height; }
 

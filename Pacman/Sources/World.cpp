@@ -174,7 +174,7 @@ void World::Draw(ID3D11DeviceContext1* context)
   context->DrawIndexed((UINT)m_indices.size(), 0, 0);
 }
 
-bool World::IsPassable(uint8_t column, uint8_t row, bool canGoHome) // TODO: can go home is not a good name
+bool World::IsPassable(uint8_t column, uint8_t row, bool canGoHome)
 {
   if (canGoHome && (m_map[row][column] == 0 || m_map[row][column] == 3))
     return true;
