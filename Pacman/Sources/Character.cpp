@@ -50,9 +50,6 @@ void Character::AdjustPosition(float x, float y, float z)
 
 void Character::SetMovement(Movement movement)
 {
-  if (m_movement == movement)
-    return;
-
   m_movement = movement;
 
   if (movement != Movement::Stop && !m_isDead)

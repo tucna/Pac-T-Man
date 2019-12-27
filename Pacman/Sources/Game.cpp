@@ -62,8 +62,6 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
   PACMAN = std::make_unique<Pacman>();
   PACMAN->Init(m_d3dDevice.Get());
 
-  NewGameInitialization();
-
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf()));
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/ghosts.png", m_ghostsResource.GetAddressOf(), m_ghostsShaderResourceView.GetAddressOf()));
 
@@ -629,7 +627,8 @@ void Game::MoveGhostTowardsPosition(float posX, float posZ, Game::Ghosts ghost)
     if (d < 0.1f)
     {
       character.AlignToMap();
-      character.SetMovement(Character::Movement::InHouse);
+      character.SetMovement(Character::Movement::Up);
+      character.SetMode(Global::Mode::Chase);
       character.SetDead(false);
 
       switch (ghost)
@@ -651,7 +650,6 @@ void Game::MoveGhostTowardsPosition(float posX, float posZ, Game::Ghosts ghost)
       return;
     }
   }
-
 
   if (character.GetMovement() == Character::Movement::Left)
   {
@@ -718,13 +716,6 @@ void Game::MoveGhostTowardsPosition(float posX, float posZ, Game::Ghosts ghost)
     }
 
     Character::Movement newMoment = static_cast<Character::Movement>(std::min_element(distances.begin(), distances.end()) - distances.begin());
-
-    /*
-    if ((newMoment == Character::Movement::Down && m_world.GetTile(static_cast<uint8_t>(characterCurrentPos.x), static_cast<uint8_t>(characterCurrentPos.z - 1.0f)) == 3))
-      character.SetPosition(characterCurrentPos.x, 1.0, characterCurrentPos.z);
-    else
-      character.SetPosition(characterCurrentPos.x, 0.3, characterCurrentPos.z);
-    */
 
     if (newMoment != characterMovement && character.GetNumberOfFrames() >= Global::minFramesPerDirection)
     {
