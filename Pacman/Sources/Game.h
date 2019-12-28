@@ -9,7 +9,6 @@
 #include "Ghost.h"
 #include "Character.h"
 #include "Keyboard.h"
-#include "Pacman.h"
 #include "StepTimer.h"
 #include "World.h"
 
@@ -123,7 +122,7 @@ private:
   std::vector<Global::Vertex> m_debugPoints;
 
   std::array<std::unique_ptr<Ghost>, Global::numGhosts> m_ghosts;
-  std::unique_ptr<Pacman> m_pacman;
+  std::unique_ptr<Character> m_pacman;
 
   std::array<Phase, Global::phasesNum> m_phasesLevel1; // Level 1 have 8 phases + two more frightened (blue + blink)
 

@@ -170,7 +170,6 @@
   <ItemGroup>
     <ClInclude Include="Sources\ShaderManager\PS_OneCB.h" />
     <ClInclude Include="sources\Caption.h" />
-    <ClInclude Include="sources\Pacman.h" />
     <ClInclude Include="sources\Ghost.h" />
     <ClInclude Include="Sources\Character.h" />
     <ClInclude Include="Sources\Camera.h" />
@@ -191,7 +190,6 @@
   <ItemGroup>
     <ClCompile Include="Sources\ShaderManager\PS_OneCB.cpp" />
     <ClCompile Include="sources\Caption.cpp" />
-    <ClCompile Include="sources\Pacman.cpp" />
     <ClCompile Include="sources\Ghost.cpp" />
     <ClCompile Include="Sources\Character.cpp" />
     <ClCompile Include="Sources\Camera.cpp" />

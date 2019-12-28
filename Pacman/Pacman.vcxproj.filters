@@ -67,9 +67,6 @@
     <ClInclude Include="sources\Ghost.h">
       <Filter>Sources</Filter>
     </ClInclude>
-    <ClInclude Include="sources\Pacman.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
     <ClInclude Include="sources\Caption.h">
       <Filter>Sources</Filter>
     </ClInclude>
@@ -115,9 +112,6 @@
       <Filter>Shader manager\Shaders sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\Ghost.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="sources\Pacman.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="sources\Caption.cpp">

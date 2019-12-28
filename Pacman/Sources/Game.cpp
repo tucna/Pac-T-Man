@@ -59,7 +59,7 @@ void Game::Initialize(HWND window, uint16_t width, uint16_t height)
     ghost->Init(m_d3dDevice.Get());
   }
 
-  PACMAN = std::make_unique<Pacman>();
+  PACMAN = std::make_unique<Character>();
   PACMAN->Init(m_d3dDevice.Get());
 
   DX::ThrowIfFailed(CreateWICTextureFromFile(m_d3dDevice.Get(), nullptr, L"Resources/pacman.png", m_pacManResource.GetAddressOf(), m_pacManShaderResourceView.GetAddressOf()));
@@ -854,6 +854,8 @@ void Game::NewGameInitialization()
   PACMAN->SetSpriteY(0);
   PACMAN->SetFramesPerState(2);
   PACMAN->SetOneCycle(false);
+  PACMAN->SetColumnsAndRowsOfAssociatedSpriteSheet(12, 2);
+  PACMAN->SetSpriteScaleFactor(Global::pacManSize);
   PACMAN->Restart();
 
   // Game
