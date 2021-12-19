@@ -1,5 +1,5 @@
 # Pac-T-Man
-Project to implement my own **Pac-Man** game using *DirectX 11*. As an inpiration, the original version from 1980 was used.
+Project to implement my own **Pac-Man** game using *DirectX 11*. As an inspiration, the original version from 1980 was used.
 
 <p align="center">  
   <img src="Doc/intro.gif">
